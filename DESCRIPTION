@@ -10,7 +10,6 @@ License: LGPL (>= 2.0, < 3) | Mozilla Public License
 LazyData: TRUE
 RoxygenNote: 6.0.1
 Suggests:
-    testthat,
     knitr,
     rmarkdown
 Imports:
