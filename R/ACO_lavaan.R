@@ -138,6 +138,7 @@
 #'@family Ant Colony Algorithms
 #'@seealso \code{\link{antcolony.mplus}}
 #' @examples
+#' \dontrun{
 #' # using simulated test data and the default values for lavaan.model.specs
 #' # first, read in the original or "full" model
 #' data(exampleAntModel) # a character vector for a lavaan model
@@ -170,6 +171,7 @@
 #' max.run = 500)
 #'
 #' abilityShortForm[[1]] # print the results of the final short form
+#' }
 #'@import lavaan utils
 #'@export
 

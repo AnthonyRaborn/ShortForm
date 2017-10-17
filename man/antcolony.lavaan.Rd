@@ -176,6 +176,7 @@ level and add it to the current weight of the items of the best short form.
 Step 6. Return to step 2 until convergence criterion is reached.
 }
 \examples{
+\dontrun{
 # using simulated test data and the default values for lavaan.model.specs
 # first, read in the original or "full" model
 data(exampleAntModel) # a character vector for a lavaan model
@@ -208,6 +209,7 @@ feedbackfile = 'iteration.html',
 max.run = 500)
 
 abilityShortForm[[1]] # print the results of the final short form
+}
 }
 \seealso{
 \code{\link{antcolony.mplus}}
