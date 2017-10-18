@@ -172,6 +172,30 @@
 #'
 #' abilityShortForm[[1]] # print the results of the final short form
 #' }
+#' \dontshow{
+#' # using simulated test data and the default values for lavaan.model.specs
+#' # first, read in the original or "full" model
+#' data(shortExampleAntModel) # a character vector for a lavaan model
+#'
+#' # then, create the list of the items by the factors
+#' # in this case, all items load onto the general 'Ability' factor
+#' list.items <- list(c('Item1','Item2','Item3','Item4','Item5',
+#' 'Item6','Item7','Item8','Item9','Item10',
+#' 'Item11','Item12','Item13','Item14','Item15'))
+#'
+#' # load the data
+#' data(simulated_test_data)
+#'
+#' # finally, call the function with some minor changes to the default values.
+#' abilityShortForm = antcolony.lavaan(data = simulated_test_data,
+#' ants = 1, evaporation = 0.7, antModel = exampleAntModel,
+#' list.items = list.items, full = 15, i.per.f = 15,
+#' factors = 'Ability', steps = 1, fit.indices = c('cfi', 'rmsea'),
+#' fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
+#' summaryfile = 'summary.txt',
+#' feedbackfile = 'iteration.html',
+#' max.run = 3)
+#'}
 #'@import lavaan utils
 #'@export
 
