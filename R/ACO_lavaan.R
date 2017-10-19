@@ -188,13 +188,13 @@
 #'
 #' # finally, call the function with some minor changes to the default values.
 #' abilityShortForm = antcolony.lavaan(data = simulated_test_data,
-#' ants = 1, evaporation = 0.7, antModel = exampleAntModel,
+#' ants = 1, evaporation = 0.7, antModel = shortExampleAntModel,
 #' list.items = list.items, full = 15, i.per.f = 15,
 #' factors = 'Ability', steps = 1, fit.indices = c('cfi', 'rmsea'),
 #' fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
 #' summaryfile = 'summary.txt',
 #' feedbackfile = 'iteration.html',
-#' max.run = 3)
+#' max.run = 2)
 #'}
 #'@import lavaan utils
 #'@export
