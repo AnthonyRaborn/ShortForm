@@ -138,6 +138,28 @@
 #'@family Ant Colony Algorithms
 #'@seealso \code{\link{antcolony.mplus}}
 #' @examples
+#' # a 3-factor example using the HolzingerSwineford1939 data from `lavaan`
+#' # first, call the data from `lavaan`
+#' HS_data = lavaan::HolzingerSwineford1939
+#' 
+#' # then, create the original model
+#' HS.model <- ' visual  =~ x1 + x2 + x3 
+#'               textual =~ x4 + x5 + x6
+#'               speed   =~ x7 + x8 + x9 '
+#'               
+#' # create the list of the items, where each element of the list
+#' # is a different factor 
+#' list.items = list(c('x1', 'x2', 'x3'), 
+#' c('x4', 'x5', 'x6'), c('x7', 'x8', 'x9'))
+#' 
+#' # finally, run the function with some changes to the default values
+#' # notice that in this example we are recreating the original model
+#' abilityShortForm = antcolony.lavaan(data = HS_data, ants = 1, evaporation =
+#' 0.7, antModel = HS.model, list.items = list.items, full = 9, i.per.f =
+#' c(3,3,3), factors = c('visual','textual','speed'), steps = 1, fit.indices =
+#' c('cfi'), fit.statistics.test = "(cfi > 0.6)", summaryfile =
+#' 'summary.txt', feedbackfile = 'iteration.html', max.run = 2)
+#' 
 #' \dontrun{
 #' # using simulated test data and the default values for lavaan.model.specs
 #' # first, read in the original or "full" model
@@ -172,28 +194,6 @@
 #'
 #' abilityShortForm[[1]] # print the results of the final short form
 #' } 
-#' # a 3-factor example using the HolzingerSwineford1939 data from `lavaan`
-#' # first, call the data from `lavaan`
-#' HS_data = lavaan::HolzingerSwineford1939
-#' 
-#' # then, create the original model
-#' HS.model <- ' visual  =~ x1 + x2 + x3 
-#'               textual =~ x4 + x5 + x6
-#'               speed   =~ x7 + x8 + x9 '
-#'               
-#' # create the list of the items, where each element of the list
-#' # is a different factor 
-#' list.items = list(c('x1', 'x2', 'x3'), 
-#' c('x4', 'x5', 'x6'), c('x7', 'x8', 'x9'))
-#' 
-#' # finally, run the function with some changes to the default values
-#' # notice that in this example we are recreating the original model
-#' abilityShortForm = antcolony.lavaan(data = HS_data, ants = 1, evaporation =
-#' 0.7, antModel = HS.model, list.items = list.items, full = 9, i.per.f =
-#' c(3,3,3), factors = c('visual','textual','speed'), steps = 1, fit.indices =
-#' c('cfi', 'rmsea'), fit.statistics.test = "(cfi > 0.8)", summaryfile =
-#' 'summary.txt', feedbackfile = 'iteration.html', max.run = 2)
-#' 
 #'@import lavaan utils
 #'@export
 
