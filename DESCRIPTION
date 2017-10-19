@@ -6,7 +6,7 @@ Date: 2017-10-12
 Authors@R: c(person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"), person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", role = c("aut", "cre")))
 Description: Performs automatic creation of short forms of scales with an 
     ant colony optimization algorithm. As implemented in the package, 
-    the algorithm randomly selects items to build a model of a prespecified length, 
+    the algorithm randomly selects items to build a model of a specified length, 
     then updates the probability of item selection according to the fit of 
     the best model within each set of searches. The algorithm continues until 
     the same items are selected by multiple ants a given number of times in a row. 
