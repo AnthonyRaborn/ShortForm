@@ -2,69 +2,69 @@
 #'specification searches with the package \link[lavaan]{lavaan}.
 #'
 #'@description The Ant Colony Optimization (ACO) algorithm (Dorigo & Stutzle,
-#'2004) can produce short forms of scales that are optimized with respect to
-#'characteristics selected by the developer, such as model fit and predictive
-#'relationships with other variables. The algorithm is based on the foraging
-#'behavior of a group of ants, which start searching for food in a variety of
-#'directions and then eventually all ants converge to the shortest distance to
-#'the food source. This behavior occurs because ants leave a pheronome trail
-#'behind as they search for food and ants in shorter paths leave stronger
-#'pheronome trails, which are detected by other ants and that will lead them to
-#'follow the shortest trail.
+#'  2004) can produce short forms of scales that are optimized with respect to
+#'  characteristics selected by the developer, such as model fit and predictive
+#'  relationships with other variables. The algorithm is based on the foraging
+#'  behavior of a group of ants, which start searching for food in a variety of
+#'  directions and then eventually all ants converge to the shortest distance to
+#'  the food source. This behavior occurs because ants leave a pheronome trail
+#'  behind as they search for food and ants in shorter paths leave stronger
+#'  pheronome trails, which are detected by other ants and that will lead them
+#'  to follow the shortest trail.
 #'
-#'@details This function sends a specified number of
-#'ants per iteration, which randomly select items to build a model, then
-#'evaluates the model based on pheromone levels. The pheromone levels are
-#'updated after each iteration according to the best-fitting model of that
-#'iteration. The algorithm's stopping rule is to end the search when a certain
-#'solution is the same for a given number of ants in a row.
+#'@details This function sends a specified number of ants per iteration, which
+#'  randomly select items to build a model, then evaluates the model based on
+#'  pheromone levels. The pheromone levels are updated after each iteration
+#'  according to the best-fitting model of that iteration. The algorithm's
+#'  stopping rule is to end the search when a certain solution is the same for a
+#'  given number of ants in a row.
 #'
-#'PREPARATORY STEPS: For the ACO algorithm implementation for short
-#'for selection, the following decisions are needed:
+#'  PREPARATORY STEPS: For the ACO algorithm implementation for short for
+#'  selection, the following decisions are needed:
 #'
-#'1. Determine the target size for the short form.
+#'  1. Determine the target size for the short form.
 #'
-#'2. Determine which characteristics should be optimized.
+#'  2. Determine which characteristics should be optimized.
 #'
-#'3. Define how the pheronome level will be computed: This is a function of the
-#'characteristics of the short form that will be optimized. In Leite, Huang and
-#'Marcoulides (2008), the pheronomone level was zero if model fit indices did
-#'not meet Hu and Bentler's (1999) suggested thresholds, and equal to the sum of
-#'path coefficients of a predictor variable if model fit indices met thresholds.
-#'Currently, the package only implements pheromone calculation based on
-#'regression coefficients or variance explained, with user-selected model fit
-#'index thresholds.
+#'  3. Define how the pheronome level will be computed: This is a function of
+#'  the characteristics of the short form that will be optimized. In Leite,
+#'  Huang and Marcoulides (2008), the pheronomone level was zero if model fit
+#'  indices did not meet Hu and Bentler's (1999) suggested thresholds, and equal
+#'  to the sum of path coefficients of a predictor variable if model fit indices
+#'  met thresholds. Currently, the package only implements pheromone calculation
+#'  based on regression coefficients or variance explained, with user-selected
+#'  model fit index thresholds.
 #'
-#'4. Define how many short forms should be evaluated before the best-so-far
-#'pheronome level is examined. Leite, Huang and Marcoulides (2008) used 10 short
-#'forms.
+#'  4. Define how many short forms should be evaluated before the best-so-far
+#'  pheronome level is examined. Leite, Huang and Marcoulides (2008) used 10
+#'  short forms.
 #'
-#'5. Define the percentage of pheronome evaporation, if any. Leite, Huang and
-#'Marcoulides (2008) used 5\%.
+#'  5. Define the percentage of pheronome evaporation, if any. Leite, Huang and
+#'  Marcoulides (2008) used 5\%.
 #'
-#'6. Define convergence criterion. Leite, Huang and Marcoulides (2008) set the
-#'algorithm to converge if the short form did not improve in 100 x number of
-#'short forms in step 4.
+#'  6. Define convergence criterion. Leite, Huang and Marcoulides (2008) set the
+#'  algorithm to converge if the short form did not improve in 100 x number of
+#'  short forms in step 4.
 #'
-#'IMPLEMENTATION: Once these decisions are made, the ACO algorithm
-#'selects short forms with the following steps:
+#'  IMPLEMENTATION: Once these decisions are made, the ACO algorithm selects
+#'  short forms with the following steps:
 #'
-#'Step 1. All items are assigned an initial weight of 1.
+#'  Step 1. All items are assigned an initial weight of 1.
 #'
-#'Step 2. A set of n short forms is selected by sampling with probability
-#'proportional to the item weights.
+#'  Step 2. A set of n short forms is selected by sampling with probability
+#'  proportional to the item weights.
 #'
-#'Step 3. Fit the latent variable model to the n short forms.
+#'  Step 3. Fit the latent variable model to the n short forms.
 #'
-#'Step 4. Calculate the pheromone levels for the n short forms. Define
-#'the best-so-far pheronome level (if iteration 1) or compare the current best
-#'pheronome from the set of n short forms to the best-so-far pheronome.
+#'  Step 4. Calculate the pheromone levels for the n short forms. Define the
+#'  best-so-far pheronome level (if iteration 1) or compare the current best
+#'  pheronome from the set of n short forms to the best-so-far pheronome.
 #'
-#'Step 5. If the pheromone level of the best short form from step 4
-#'exceeds the best-so-far pheronome level, update the best-so-far pheromone
-#'level and add it to the current weight of the items of the best short form.
+#'  Step 5. If the pheromone level of the best short form from step 4 exceeds
+#'  the best-so-far pheronome level, update the best-so-far pheromone level and
+#'  add it to the current weight of the items of the best short form.
 #'
-#'Step 6. Return to step 2 until convergence criterion is reached.
+#'  Step 6. Return to step 2 until convergence criterion is reached.
 #'
 #'@param data The data being used in data frame format. Default value is
 #'  \code{null}. Only one of \code{data} or \code{sample.cov} should be used.
@@ -139,27 +139,20 @@
 #'@seealso \code{\link{antcolony.mplus}}
 #' @examples
 #' # a 3-factor example using the HolzingerSwineford1939 data from `lavaan`
-#' # first, call the data from `lavaan`
-#' HS_data = lavaan::HolzingerSwineford1939
-#' 
-#' # then, create the original model
-#' HS.model <- ' visual  =~ x1 + x2 + x3 
-#'               textual =~ x4 + x5 + x6
-#'               speed   =~ x7 + x8 + x9 '
-#'               
-#' # create the list of the items, where each element of the list
-#' # is a different factor 
-#' list.items = list(c('x1', 'x2', 'x3'), 
-#' c('x4', 'x5', 'x6'), c('x7', 'x8', 'x9'))
-#' 
-#' # finally, run the function with some changes to the default values
+#'
+#' # some changes to the default values
 #' # notice that in this example we are recreating the original model
-#' abilityShortForm = antcolony.lavaan(data = HS_data, ants = 1, evaporation =
-#' 0.7, antModel = HS.model, list.items = list.items, full = 9, i.per.f =
+#' abilityShortForm = antcolony.lavaan(data = lavaan::HolzingerSwineford1939,
+#' ants = 1, evaporation = 0.7, 
+#' antModel = ' visual  =~ x1 + x2 + x3
+#'              textual =~ x4 + x5 + x6
+#'              speed   =~ x7 + x8 + x9 ', 
+#' list.items = list(c('x1',
+#' 'x2', 'x3'), c('x4', 'x5', 'x6'), c('x7', 'x8', 'x9')), full = 9, i.per.f =
 #' c(3,3,3), factors = c('visual','textual','speed'), steps = 1, fit.indices =
 #' c('cfi'), fit.statistics.test = "(cfi > 0.6)", summaryfile =
-#' 'summary.txt', feedbackfile = 'iteration.html', max.run = 2)
-#' 
+#' NULL, feedbackfile = NULL, max.run = 2)
+#'
 #' \dontrun{
 #' # using simulated test data and the default values for lavaan.model.specs
 #' # first, read in the original or "full" model
@@ -193,7 +186,7 @@
 #' max.run = 500)
 #'
 #' abilityShortForm[[1]] # print the results of the final short form
-#' } 
+#' }
 #'@import lavaan utils
 #'@export
 
@@ -216,8 +209,12 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     stop("Pheromone calculation not recognized! Enter either \'gamma\' or \'variance\'." )
   }
   # create initial, empty files to be used
+  if(length(summaryfile) > 0){
   write(x = "", file = summaryfile)
-  write(x = "", file = feedbackfile)
+    }
+  if(length(feedbackfile) > 0) {
+    write(x = "", file = feedbackfile)
+    }
   #creates the table of initial pheromone levels.
   include = rep(2,full)
   #puts initial best solution (all items selected).
@@ -327,16 +324,21 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite","ERROR: initial model-implied matrix (Sigma) is not positive definite", "ERROR: missing observed variables in dataset")
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
           pheromone = 0
-          if(verbose == TRUE) {print("Failed iteration!")}
+          if(verbose == TRUE) {
+            print("Failed iteration!")
+            }
+          
           #writes feedback about non-convergence and non-positive definite.
+          if(length(summaryfile) > 0){
           fit.info = matrix(c(select.indicator,run,count,ant,999,999,round((include),5)),1,)
           write.table(fit.info, file = summaryfile, append = T,
                       quote = F, sep = " ", row.names = F, col.names = F)
-
+          }
           #provide feedback about search.
+          if(length(feedbackfile) > 0){
           feedback = c(paste("<h1>",run,"-",count,"-",ant,"-",step,"- Failure", "</h1>" ) )
           write(feedback, file = feedbackfile, append = T)
-
+          }
           #finishes if for non-convergent cases.
         } else {
 
@@ -354,7 +356,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           variance.explained <- lavaan::lavInspect(modelCheck$lavaan.output, "rsquare")
 
           #saves information about the selected items and the RMSEA they generated for the final ant.
-          if (ant == ants){
+          if (ant == ants && length(summaryfile) > 0){
             fit.info = matrix(c(select.indicator,run,count,ant,model.fit,mean(std.gammas), mean(variance.explained),
                                 round(include,2)),1,)
 
@@ -362,11 +364,13 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                         quote = F, sep = " ", row.names = F, col.names = F)
           }
           #provide feedback about search.
+          if(length(feedbackfile) > 0){
           feedback = c(paste("<h1>","run:",run,"count:",count,"ant:",ant,"step:",step,"<br>",
                              "Fit Statistics:",model.fit,"<br>",
                              "GAMMA:",mean(std.gammas), "VAR.EXP:", mean(variance.explained),"</h1>" ) )
           write(feedback, file = feedbackfile, append = T)
-
+          }
+          
           mapply(assign, names(model.fit), model.fit, MoreArgs = list(envir = globalenv()))
           #implements fit requirement.
           if (eval(parse(text=fit.statistics.test)) == FALSE) {
