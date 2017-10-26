@@ -48,7 +48,10 @@ data(simulated_test_data)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
 ants = 5, evaporation = 0.7, antModel = exampleAntModel,
 list.items = list.items, full = 56, i.per.f = 20,
-lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = unlist(list.items), int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE)
+lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = unlist(list.items), 
+                          int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, 
+                          auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, 
+                          auto.cov.y = TRUE)
 factors = 'Ability', steps = 3, fit.indices = c('cfi', 'rmsea'),
 fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
 summaryfile = 'summary.txt',
