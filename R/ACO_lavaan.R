@@ -189,6 +189,7 @@
 #' }
 #'@import lavaan utils
 #'@export
+#'@author Anthony W Raborn, \email{anthony.w.raborn@@gmail.com}
 
 antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                      ants = 20, evaporation = 0.9, antModel, list.items = NULL,

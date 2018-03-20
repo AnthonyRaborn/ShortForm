@@ -218,7 +218,8 @@
 #' modelOut = 'exampleModel.inp')
 #' }
 #'@export
-#'
+#'@author Walter Leite; Anthony W Raborn, \email{anthony.w.raborn@@gmail.com}
+#'@references \url{https://doi.org/10.1080/00273170802285743}
 
 antcolony.mplus = function(ants = 20, evaporation = 0.95, mplus = NULL, list.items = NULL, full = NULL,
                            i.per.f = NULL, factors = NULL, steps = 50, max.run = 1000,

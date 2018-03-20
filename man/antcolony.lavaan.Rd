@@ -231,3 +231,6 @@ abilityShortForm[[1]] # print the results of the final short form
 
 Other Ant Colony Algorithms: \code{\link{antcolony.mplus}}
 }
+\author{
+Anthony W Raborn, \email{anthony.w.raborn@gmail.com}
+}

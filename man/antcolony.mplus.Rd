@@ -255,8 +255,14 @@ dataOut = 'exampleModel.dat',
 modelOut = 'exampleModel.inp')
 }
 }
+\references{
+\url{https://doi.org/10.1080/00273170802285743}
+}
 \seealso{
 \code{\link{antcolony.lavaan}}
 
 Other Ant Colony Algorithms: \code{\link{antcolony.lavaan}}
+}
+\author{
+Walter Leite; Anthony W Raborn, \email{anthony.w.raborn@gmail.com}
 }
