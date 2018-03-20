@@ -22,7 +22,7 @@ refit.model<-function(fitted.model, ptab){
   
   # Expand to get full table
   fulltab<-lavaan:::lav_partable_full(tab)
-  mergetab<-lavaan:::lav_partable_merge(tab,fulltab, remove.duplicated=TRUE, warn=FALSE)
+  mergetab<-lavaan::lav_partable_merge(tab,fulltab, remove.duplicated=TRUE, warn=FALSE)
   
   # Modify parameter table based on new input matrix
   

@@ -51,7 +51,7 @@ search.prep<-function(fitted.model,loadings=TRUE,fcov=TRUE,errors=FALSE){
   fulltab<-lavaan:::lav_partable_full(ptab)
   
   # Merge together so we have what's free
-  mergetab<-lavaan:::lav_partable_merge(ptab,fulltab, remove.duplicated=TRUE, warn=FALSE)
+  mergetab<-lavaan::lav_partable_merge(ptab,fulltab, remove.duplicated=TRUE, warn=FALSE)
   
   idx<-vector("numeric")
   null.val<-vector("numeric")
