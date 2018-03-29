@@ -1,7 +1,7 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* Added the Tabu search, which includes 5 .R files
+* Added the Tabu search, which includes 6 .R files
 
 * Updated the description file to reflect this addition
 
@@ -15,17 +15,10 @@ This is a resubmission. In this version I have:
 * ubuntu 14.04 trusty (travis ci), R 3.4.4
 
 ## R CMD check results
-There were no ERRORs or WARNINGs. 
+0 errors | 0 warnings | 0 notes
 
-There was 1 NOTE:
+R CMD check succeeded
 
-* checking dependencies in R code ... NOTE
-Unexported objects imported by ':::' calls:
-  'lavaan:::lav_partable_full' 'lavaan:::vnames'
-  See the note in ?`:::` about the use of this operator.
-  
-This note is unfortunately necessary due to the reliance of this
-unexported functions inside the package.
 
 ## Downstream dependencies
 There are currently no downstream dependencies for this package.
