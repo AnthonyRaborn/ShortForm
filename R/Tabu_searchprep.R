@@ -48,7 +48,7 @@ search.prep<-function(fitted.model,loadings=TRUE,fcov=TRUE,errors=FALSE){
   ptab<-lavaan::parTable(fitted.model)
   
   # Full parameter table
-  fulltab<-lavaan:::lav_partable_full(ptab)
+  fulltab<-lav_partable_full(ptab)
   
   # Merge together so we have what's free
   mergetab<-lavaan::lav_partable_merge(ptab,fulltab, remove.duplicated=TRUE, warn=FALSE)
@@ -56,8 +56,8 @@ search.prep<-function(fitted.model,loadings=TRUE,fcov=TRUE,errors=FALSE){
   idx<-vector("numeric")
   null.val<-vector("numeric")
   
-  lv.names<-lavaan:::vnames(ptab,type="lv") # extract names of latent vars
-  ov.names<-lavaan:::vnames(ptab,type="ov.nox") # indicators
+  lv.names<-vnames(ptab,type="lv") # extract names of latent vars
+  ov.names<-vnames(ptab,type="ov.nox") # indicators
   
   # Loadings
   if(loadings){
