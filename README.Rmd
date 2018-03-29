@@ -1,7 +1,7 @@
 ---
 output:
   github_document:
-    html_preview: false
+    html_preview: TRUE
 ---
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm)
 [![Travis-CI Build Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm)
 
-Automatic Short Form Creation for scales. Currently, only the Ant Colony Algorithm is implemented. The original R imnplementation for this algorithm is from Leite, Huang, & Marcoulides (2008) <doi:10.1080/00273170802285743>.
+Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization  (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from Leite, Huang, & Marcoulides (2008) <doi:10.1080/00273170802285743>, while the Tabu search function was taken from Marcoulides & Falk (2018) <doi:10.1080/10705511.2017.1409074>.
 
 ## Installation
 ```{r gh-installation, eval = FALSE}
@@ -26,9 +26,12 @@ install.packages("ShortForm") # the CRAN-approved version
 
 ## Usage
 
-Here is a (slightly modified) example from the help documentation using lavaan.
+Here are some (slightly modified) examples from the help documentation using lavaan.
 
-```{r example, eval = FALSE}
+### ACO Algorithm
+
+```{r ACO example, eval = FALSE}
+library(ShortForm)
 # using simulated test data and the default values for lavaan.model.specs
 # (with one exception), fit a 20-item short form
 # first, read in the original or "full" model
@@ -69,3 +72,32 @@ abilityShortForm[[1]] # print the results of the final short form
 ```
 
 A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer.
+
+### Tabu Search Algorithm
+
+```{r Tabu example, eval = FALSE}
+library(ShortForm)
+# load simulation data and select columns used in this example
+data(simulated_test_data) 
+tabuData <- simulated_test_data[,c(1:10)]
+
+# specify an improper model (improper because the data is actually unidimensional)
+tabuModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4
+FakeAbility =~ Item5 + Item6 + Item7 + Item8
+Ability ~ Outcome
+FakeAbility ~ 0*Outcome"
+
+# fit the initial misspecified model for Tabu
+init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
+auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=TRUE)
+
+# use search.prep to prepare for the Tabu search
+ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=TRUE, errors=FALSE)
+
+# perform the Tabu search with 100 iterations and a Tabu list size of 5
+Tabu_example <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 100, tabu.size = 5)
+
+# check the final model
+summary(Tabu_example$best.mod)
+```
