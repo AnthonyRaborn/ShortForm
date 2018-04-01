@@ -6,7 +6,7 @@ output:
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
+  comment = "## ",
   fig.path = "README-"
 )
 ```
@@ -26,14 +26,18 @@ install.packages("ShortForm") # the CRAN-approved version
 
 ## Usage
 
-Here are some (slightly modified) examples from the help documentation using lavaan.
+Here are some (slightly modified) examples from the help documentation using
+lavaan. Be warned, the algorithms may take some time to converge, particularly
+with large forms, multiple dimensions, and different settings. The time for these
+examples to converge on a low-end laptop is printed at the bottom.
 
 ### ACO Algorithm
 
-```{r ACO example, eval = FALSE}
+```{r ACO example}
+start.time.ACO <- Sys.time()
 library(ShortForm)
 # using simulated test data and the default values for lavaan.model.specs
-# (with one exception), fit a 20-item short form
+# (with one exception), fit a 10-item short form
 # first, read in the original or "full" model
 data(exampleAntModel) # a character vector for a lavaan model
 
@@ -44,38 +48,37 @@ list.items <- list(c('Item1','Item2','Item3','Item4','Item5',
 'Item11','Item12','Item13','Item14','Item15',
 'Item16','Item17','Item18','Item19','Item20',
 'Item21','Item22','Item23','Item24','Item25',
-'Item26','Item27','Item28','Item29','Item30',
-'Item31','Item32','Item33','Item34','Item35',
-'Item36','Item37','Item38','Item39','Item40',
-'Item41','Item42','Item43','Item44','Item45',
-'Item46','Item47','Item48','Item49','Item50',
-'Item51','Item52','Item53','Item54','Item55','Item56'))
+'Item26','Item27','Item28','Item29','Item30'))
 
 # load the data
 data(simulated_test_data)
 # finally, call the function with some minor changes to the default values.
 # since the data is binary, let lavaan know by putting the items in the
 # 'orderd' element of the lavaan.model.specs list.
+set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
 ants = 5, evaporation = 0.7, antModel = exampleAntModel,
-list.items = list.items, full = 56, i.per.f = 20,
-lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = unlist(list.items), 
-                          int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, 
-                          auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, 
-                          auto.cov.y = TRUE)
+list.items = list.items, full = 30, i.per.f = 10,
+lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", 
+                          ordered = unlist(list.items), int.ov.free = TRUE,
+                          int.lv.free = FALSE, auto.fix.first = TRUE, 
+                          auto.fix.single = TRUE, auto.cov.lv.x = TRUE, 
+                          auto.th = TRUE, auto.delta = TRUE, 
+                          auto.cov.y = TRUE),
 factors = 'Ability', steps = 3, fit.indices = c('cfi', 'rmsea'),
-fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
-summaryfile = 'summary.txt',
-feedbackfile = 'iteration.html',
-max.run = 500)
-abilityShortForm[[1]] # print the results of the final short form
+fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
+summaryfile = NULL,
+feedbackfile = NULL,
+max.run = 50, verbose = FALSE)
+abilityShortForm # print the results of the final short form
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer.
+A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run this example.
 
 ### Tabu Search Algorithm
 
-```{r Tabu example, eval = FALSE}
+```{r Tabu example}
+start.time.Tabu <- Sys.time()
 library(ShortForm)
 # load simulation data and select columns used in this example
 data(simulated_test_data) 
@@ -96,8 +99,11 @@ auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=TRUE)
 ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=TRUE, errors=FALSE)
 
 # perform the Tabu search with 100 iterations and a Tabu list size of 5
-Tabu_example <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 100, tabu.size = 5)
+set.seed(1) # reproduceable
+Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 25, tabu.size = 5)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
 
 # check the final model
-summary(Tabu_example$best.mod)
+lavaan::summary(Tabu_example$best.mod)
 ```
+
+It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run both together.
