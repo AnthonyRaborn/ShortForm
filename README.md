@@ -4,6 +4,10 @@
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm)
 [![Travis-CI Build
 Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm)
+[![CRAN Downloads Per
+Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm)
+[![CRAN Downloads
+Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
 
 Automatic Short Form Creation for scales. Currently, the Ant Colony
 Optimization (ACO) Algorithm and the Tabu search are implemented. The
@@ -140,7 +144,7 @@ abilityShortForm # print the results of the final short form
 
 A similar example can be found in the `antcolony.mplus` function, but
 requires you to have a valid Mplus installation on the computer. It took
-a total of 6.46 minutes to run this example.
+a total of 6.3 minutes to run this example.
 
 ### Tabu Search Algorithm
 
@@ -297,5 +301,5 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 5.47 minutes to run this example, and a total of
-11.93 minutes to run both together.
+It took a total of 5.18 minutes to run this example, and a total of
+11.48 minutes to run both together.
