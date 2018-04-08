@@ -25,7 +25,9 @@ Suggests:
     rmarkdown
 Imports:
     lavaan (>= 0.5-22),
-    MplusAutomation (>= 0.7)
+    MplusAutomation (>= 0.7),
+    ggplot2,
+    tidyr
 Depends:
     R (>= 3.0.0)
 Roxygen: list(wrap = FALSE)

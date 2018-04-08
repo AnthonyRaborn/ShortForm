@@ -193,12 +193,12 @@
 
 antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                      ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-                     full = NULL,i.per.f = NULL, factors = NULL, steps = 50,
+                     full = NULL, i.per.f = NULL, factors = NULL, steps = 50,
                      lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
                      pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
                      fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-                     summaryfile = "summary.txt",
-                     feedbackfile = "iteration.html", max.run = 1000, verbose = FALSE) {
+                     summaryfile = NULL,
+                     feedbackfile = NULL, max.run = 1000, verbose = FALSE) {
 
   if(!requireNamespace("lavaan", quietly = TRUE)){
     stop("The `lavaan` package is required to use this function. Please install `lavaan`, then try to use this function again.")
@@ -212,7 +212,11 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # create initial, empty files to be used
   if(length(summaryfile) > 0){
   write(x = "", file = summaryfile)
-    }
+  }
+  
+  summary = matrix(nrow = 1, 
+                   ncol = (full + 3 + 2 + length(fit.indices) + full))
+  
   if(length(feedbackfile) > 0) {
     write(x = "", file = feedbackfile)
     }
@@ -335,6 +339,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           write.table(fit.info, file = summaryfile, append = T,
                       quote = F, sep = " ", row.names = F, col.names = F)
           }
+          
           #provide feedback about search.
           if(length(feedbackfile) > 0){
           feedback = c(paste("<h1>",run,"-",count,"-",ant,"-",step,"- Failure", "</h1>" ) )
@@ -364,6 +369,16 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             write.table(fit.info, file = summaryfile, append = T,
                         quote = F, sep = " ", row.names = F, col.names = F)
           }
+          
+          if (ant == ants){
+            summary <- rbind(summary,
+                             matrix(c(select.indicator,run,count,ant,model.fit,
+                                      mean(std.gammas), mean(variance.explained),
+                                      round(include,2)),1,))
+          }
+          
+          
+          }
           #provide feedback about search.
           if(length(feedbackfile) > 0){
           feedback = c(paste("<h1>","run:",run,"count:",count,"ant:",ant,"step:",step,"<br>",
@@ -372,9 +387,10 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           write(feedback, file = feedbackfile, append = T)
           }
           
-          mapply(assign, names(model.fit), model.fit, MoreArgs = list(envir = globalenv()))
+          mapply(assign, names(model.fit), model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
           #implements fit requirement.
-          if (eval(parse(text=fit.statistics.test)) == FALSE) {
+          if (eval(parse(text=fit.statistics.test), 
+                   envir = antcolony.lavaan.env) == FALSE) {
             # Model didn't fit well enough, so set pheromone to 0.
             pheromone = 0 } else {
               # Model fit well enough, so calculate pheromone by either gamma or variance.
@@ -452,10 +468,10 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       #ends loop.
       run = run + 1
     }
-    else {
+    if(run == max.run) {
       stop("Max runs reached! Problems converging onto a solution.")
     }
-  }
+  
 
   print("Compiling results.")
   #ranks items within factor.
@@ -472,9 +488,13 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   results = cbind(round(ratio,3),ranks)
   dimnames(results) = list(c(item.vector),c("ratio","ranks"))
+  
+  summary <- data.frame(summary[-1,])
+  colnames(summary) = c(item.vector, "run", "ant", "count", fit.indices, "mean.gamma", "mean.var.exp", paste0(item.vector, ".Pheromone"))
+  
   final.solution = matrix(c(best.so.far.fit.indices,best.so.far.pheromone,best.so.far.solution),1,,
                           dimnames=list(NULL,c(names(model.fit),"mean_gamma",item.vector)))
 
   #FINISH FUNCTION.
-  return(list(final.solution,results))
+  return(list(final.solution, results, summary))
 }
