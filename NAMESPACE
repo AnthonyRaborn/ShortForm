@@ -3,6 +3,7 @@
 export(add.param)
 export(antcolony.lavaan)
 export(antcolony.mplus)
+export(antcolony_plot)
 export(refit.model)
 export(search.prep)
 export(tabu.sem)

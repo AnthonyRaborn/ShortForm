@@ -14,8 +14,8 @@ antcolony.lavaan(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
   pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-  summaryfile = "summary.txt", feedbackfile = "iteration.html",
-  max.run = 1000, verbose = FALSE)
+  summaryfile = NULL, feedbackfile = NULL, max.run = 1000,
+  verbose = FALSE)
 }
 \arguments{
 \item{data}{The data being used in data frame format. Default value is
