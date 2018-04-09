@@ -3,6 +3,11 @@ cache: packages
 notifications:
   email:
     false
-  webook:
-    urls:
-      - https://discordapp.com/api/webhooks/371825202578849793/BhZM9dLEygQo7c1a6es-11OiRI115hC4JIPb3g3L2RAbbAXUTghamiJxqCBAwz4M51lg
+after_success:
+  - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+after_failure:
+  - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL
