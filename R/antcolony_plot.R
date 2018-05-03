@@ -35,10 +35,10 @@
 #'                   factors = c('visual','textual','speed'), 
 #'                   steps = 10, fit.indices = c('cfi'), 
 #'                   fit.statistics.test = "(cfi > 0.6)", 
-#'                   summaryfile = NULL, feedbackfile = NULL, max.run = 100))
+#'                   summaryfile = NULL, feedbackfile = NULL, max.run = 100)
 #' 
 #' # once converged, put the entire results object into the antcolony_plot function:
-#' plots <- ancolony_plot(results)
+#' plots <- antcolony_plot(results)
 #' 
 #' # print the plot for changes in mean gamma
 #' plots[[2]]

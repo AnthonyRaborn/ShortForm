@@ -216,6 +216,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   
   summary = matrix(nrow = 1, 
                    ncol = (full + 3 + 2 + length(fit.indices) + full))
+  # ncol = number of items + 3 (run, ant, count) + 
+  # 2 (mean.gamma, mean.var.exp) + number of fit indices + number of items
   
   if(length(feedbackfile) > 0) {
     write(x = "", file = feedbackfile)
