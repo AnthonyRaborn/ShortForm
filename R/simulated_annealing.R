@@ -14,13 +14,14 @@
 
 simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE, randomNeighbor = TRUE, maxChanges = 5, restartCriteria = "consecutive", ...){
   
+  #### initial values ####
   currentModel = bestModel = initialModel
   currentStep = 1
   consecutive = 0
   bestFit = 0
 
-  # if(...)
-  
+
+  #### selecting functions for use in algorithm ####
   if (temperature == "linear") {
     temperatureFunction <- linearTemperature
   } else if (temperature == "quadratic") {
@@ -64,7 +65,16 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
     )
   }
   
-  while (currentStep < maxSteps) {
+  #### perform algorithm ####
+  
+  print("Current Progress:")
+  trackStep = txtProgressBar(min = 1, max = maxSteps, initial = 1, style = 3)
+
+  
+  while (currentStep <= maxSteps) {
+    
+    setTxtProgressBar(trackStep, currentStep)
+    
     # how many changes to make?
     numChanges = sample(1:maxChanges, size = 1)
     # generate random model
@@ -82,5 +92,9 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
   return(list(bestModel, bestFit))
   }
 
-trial <- simulatedAnnealing(initialModel = lavaan::cfa(model = antModel, data = data),
-                            originalData = data, maxSteps = 200)
+data(exampleAntModel)
+data(simulated_test_data)
+trial <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel, 
+                                                       data = simulated_test_data),
+                            originalData = simulated_test_data, maxSteps = 100,
+                            fitStatistic = 'rmsea', maximize = FALSE)

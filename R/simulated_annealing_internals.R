@@ -49,6 +49,8 @@ selectionFunction <- function(currentModelObject = currentModel, randomNeighborM
   # check if the randomNeighborModel is a valid model for use
   if (length(randomNeighborModel[[2]]) > 0 | length(randomNeighborModel[[2]] > 0)) {
     return(currentModel)
+  } else {
+    randomNeighborModel = randomNeighborModel[[1]]
   }
   
   if (class(currentModelObject) == "list") {
@@ -57,17 +59,17 @@ selectionFunction <- function(currentModelObject = currentModel, randomNeighborM
   
   
   # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-  if (goal(randomNeighborModel$lavaan.output, fitStatistic, maximize) < goal(currentModelObject, fitStatistic, maximize)) {
+  if (goal(randomNeighborModel, fitStatistic, maximize) < goal(currentModelObject, fitStatistic, maximize)) {
     
     consecutive = consecutive + 1
     return(randomNeighborModel)
     
   } else {
     
-    probability = exp(-(goal(randomNeighborModel$lavaan.output, fitStatistic, maximize) - goal(currentModelObject, fitStatistic, maximize)) / currentTemp)
+    probability = exp(-(goal(randomNeighborModel, fitStatistic, maximize) - goal(currentModelObject, fitStatistic, maximize)) / currentTemp)
     
     if (probability > runif(1)) {
-      newModel = randomNeighborModel$lavaan.output
+      newModel = randomNeighborModel
     } else { 
       newModel = currentModelObject
     }
@@ -139,10 +141,10 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
 modelWarningCheck <- function(expr) {
   warn <- err <- c()
   value <- withCallingHandlers(
-    tryCatch(expr, error=function(e) {
+    tryCatch(expr, error = function(e) {
       err <<- append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e))))
       NULL
-    }), warning=function(w) {
+    }), warning = function(w) {
       warn <<- append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
       invokeRestart("muffleWarning")
     })
