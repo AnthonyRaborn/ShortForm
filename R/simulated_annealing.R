@@ -16,7 +16,7 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
   
   #### initial values ####
   currentModel = bestModel = initialModel
-  currentStep = 1
+  currentStep = 0
   consecutive = 0
   bestFit = 0
 
@@ -68,10 +68,10 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
   #### perform algorithm ####
   
   print("Current Progress:")
-  trackStep = txtProgressBar(min = 1, max = maxSteps, initial = 1, style = 3)
+  trackStep = txtProgressBar(min = 0, max = maxSteps - 1, initial = 1, style = 3)
 
   
-  while (currentStep <= maxSteps) {
+  while (currentStep < maxSteps) {
     
     setTxtProgressBar(trackStep, currentStep)
     
@@ -89,12 +89,13 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
     currentStep = currentStep + 1
   }
   
+  setTxtProgressBar(trackStep, maxSteps)
   return(list(bestModel, bestFit))
   }
 
 data(exampleAntModel)
 data(simulated_test_data)
-trial <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel, 
+trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel, 
                                                        data = simulated_test_data),
-                            originalData = simulated_test_data, maxSteps = 100,
+                            originalData = simulated_test_data, maxSteps = 10,
                             fitStatistic = 'rmsea', maximize = FALSE)
