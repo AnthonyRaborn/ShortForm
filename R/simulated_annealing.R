@@ -80,12 +80,12 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
     # generate random model
     randomNeighborModel = randomNeighbor(currentModelObject = currentModel, numChanges = numChanges, data = originalData)
     # select between random model and current model
-    currentModel = selectionFunction(currentModel = currentModel, randomNeighborModel = randomNeighborModel, currentTemp = temperatureFunction(currentStep, maxSteps), maximize = maximize)
+    currentModel = selectionFunction(currentModel = currentModel, randomNeighborModel = randomNeighborModel, currentTemp = temperatureFunction(currentStep, maxSteps), maximize = maximize, fitStatistic = fitStatistic, consecutive = consecutive)
     # check for current best model
-    bestModel = checkModels(currentModel, fitStatistic, maximize, bestFit)
+    bestModel = checkModels(currentModel, fitStatistic, maximize, bestFit, bestModel)
     bestFit = lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic)
     # restart if the same model was chosen too many times
-    restartCriteria()
+    restartCriteria(consecutive = consecutive)
     currentStep = currentStep + 1
   }
   
@@ -99,3 +99,4 @@ trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
                                                        data = simulated_test_data),
                             originalData = simulated_test_data, maxSteps = 10,
                             fitStatistic = 'rmsea', maximize = FALSE)
+lavaan::summary(trial1[[1]])

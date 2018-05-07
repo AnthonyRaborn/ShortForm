@@ -44,7 +44,7 @@ randomNeighborSelection <- function(currentModelObject = currentModel, numChange
 }
 
 
-selectionFunction <- function(currentModelObject = currentModel, randomNeighborModel, currentTemp, maximize){
+selectionFunction <- function(currentModelObject = currentModel, randomNeighborModel, currentTemp, maximize, fitStatistic, consecutive){
   
   # check if the randomNeighborModel is a valid model for use
   if (length(randomNeighborModel[[2]]) > 0 | length(randomNeighborModel[[2]] > 0)) {
@@ -97,7 +97,7 @@ goal <- function(x, fitStatistic = 'cfi', maximize) {
   }
 }
 
-consecutiveRestart <- function(maxConsecutiveSelection = 25){
+consecutiveRestart <- function(maxConsecutiveSelection = 25, consecutive){
   if (consecutive == maxConsecutiveSelection) {
     currentModel = bestModel
     consecutive = 0
@@ -118,22 +118,24 @@ logisticTemperature <- function(currentStep, maxSteps) {
   currentTemp <- 1/(1 + exp((x.new[currentStep])))
 }
 
-checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit) {
+checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
   if (class(currentModel) == "list") {
     currentModel <- currentModel[[1]]
   }
   currentFit = lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic)
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
-      bestFit = currentFit
       bestModel = currentModel
+    } else {
+      bestModel = bestModel
     }
   } else {
     if (currentFit < bestFit) {
-      bestFit = currentFit
       bestModel = currentModel
+    } else {
+      bestModel = bestModel
     }
-  }
+    }
   
   return(bestModel)
 }
