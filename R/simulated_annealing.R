@@ -12,15 +12,97 @@
 # bestGoal - the best value of the goal function achieved so far
 # restartCriteria - if allowed, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
 
-simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE, randomNeighbor = TRUE, maxChanges = 5, restartCriteria = "consecutive", ...){
+#' Simulated Annealing
+#'
+#' @param initialModel The initial model. Can either be a lavaan model object or a character vector with lavaan model.syntax.
+#' @param originalData The original data frame with variable names.
+#' @param maxSteps The number of iterations for which the algorithm will run.
+#' @param fitStatistic Either a single model fit statistic produced by lavaan, or a user-defined fit statistic function.
+#' @param temperature Either an acceptable character value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".
+#' @param maximize Logical indicating if the goal is to maximize (TRUE) the fitStatistic for model selection.
+#' @param Kirkpatrick Either TRUE to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.
+#' @param randomNeighbor Either TRUE to use the included function for randomNeighbor selection, or a user-defined function for creating random models.
+#' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.
+#' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
+#' @param maximumConsecutive A numeric value used with restartCriteria.
+#' @param maxItems 
+#' @param items 
+#' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' data(exampleAntModel)
+#' data(simulated_test_data)
+#' trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel, 
+#'                                                         data = simulated_test_data),
+#'                              originalData = simulated_test_data, maxSteps = 3,
+#'                              fitStatistic = 'rmsea', maximize = FALSE)
+#' lavaan::summary(trial1[[1]])
+#' 
+#' trial2 <- simulatedAnnealing(initialModel = exampleAntModel, originalData = simulated_test_data, maxSteps = 5, maxItems = 30, items = paste0("Item", 1:56))
+#' lavaan::summary(trial2[[1]])
+
+simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE, randomNeighbor = TRUE, maxChanges = 5, restartCriteria = "consecutive", maximumConsecutive = 25, maxItems = NULL, items = NULL, ...){
   
   #### initial values ####
-  currentModel = bestModel = initialModel
+  currentModel = bestModel = list(initialModel)
   currentStep = 0
   consecutive = 0
-  bestFit = 0
-
-
+  allFit = c()
+  
+  if (!is.null(maxItems)) {
+    currentModel = randomInitialModel(initialModel, maxItems, data = originalData, allItems = items)
+    bestFit = tryCatch(
+      lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic), error = function(e, checkMaximize = maximize) {
+        if (length(e) > 0) {
+          if (checkMaximize == TRUE) {
+            return(0)
+          } else {
+            return(Inf)
+            }
+        }
+      }
+    )
+    if (is.null(items)) {
+      if (length(colnames(data)) > 0) {
+          items = colnames(data)
+      } else {
+        stop("To use this function for short forms, you need to set both the maxItems to consider as well as the names of the items.")
+      } 
+        }
+    if (randomNeighbor == TRUE) {
+      randomNeighbor <- randomNeighborSelectionShortForm
+    } else if (class(randomNeighbor == "function")) {
+      randomNeighbor <- randomNeighbor
+    } else{
+      stop("You need to specify a random neighbor function, or set randomNeighbor=TRUE to use the standard random neighbor function.")
+    }
+  } else {
+    bestFit = tryCatch(
+      lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic), error = function(e, checkMaximize = maximize) {
+        if (length(e) > 0) {
+          if (checkMaximize == TRUE) {
+            return(0)
+          } else {
+            return(Inf)
+          }
+        }
+      }
+    )
+    
+    if (randomNeighbor == TRUE) {
+      
+      randomNeighbor <- randomNeighborSelection
+    } else if (class(randomNeighbor == "function")) {
+      randomNeighbor <- randomNeighbor
+    } else{
+      stop("You need to specify a random neighbor function, or set randomNeighbor=TRUE to use the standard random neighbor function.")
+    }
+  }
+  
+  
   #### selecting functions for use in algorithm ####
   if (temperature == "linear") {
     temperatureFunction <- linearTemperature
@@ -46,14 +128,6 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
     )
   }
   
-  if (randomNeighbor == TRUE) {
-    randomNeighbor <- randomNeighborSelection
-  } else if (class(randomNeighbor == "function")) {
-    randomNeighbor <- randomNeighbor
-  } else{
-    stop("You need to specify a random neighbor function, or set randomNeighbor=TRUE to use the standard random neighbor function.")
-  }
-  
   if (restartCriteria == "consecutive") {
     restartCriteria <- consecutiveRestart
   } else if (class(restartCriteria) == "function") {
@@ -69,7 +143,7 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
   
   print("Current Progress:")
   trackStep = txtProgressBar(min = 0, max = maxSteps - 1, initial = 1, style = 3)
-
+  
   
   while (currentStep < maxSteps) {
     
@@ -78,25 +152,37 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
     # how many changes to make?
     numChanges = sample(1:maxChanges, size = 1)
     # generate random model
-    randomNeighborModel = randomNeighbor(currentModelObject = currentModel, numChanges = numChanges, data = originalData)
+    if (is.null(items)) {
+      randomNeighborModel = randomNeighbor(currentModelObject = currentModel, numChanges = numChanges, data = originalData)
+    } else {
+      randomNeighborModel = randomNeighbor(currentModelObject = currentModel, numChanges = numChanges, data = originalData, allItems = items)
+      
+    }
     # select between random model and current model
     currentModel = selectionFunction(currentModel = currentModel, randomNeighborModel = randomNeighborModel, currentTemp = temperatureFunction(currentStep, maxSteps), maximize = maximize, fitStatistic = fitStatistic, consecutive = consecutive)
+    # recored fit
+    allFit[currentStep+1] =  tryCatch(
+      lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic), error = function(e) {
+        if (length(e) > 0) {
+          bestFit
+        }
+      }
+    )
     # check for current best model
     bestModel = checkModels(currentModel, fitStatistic, maximize, bestFit, bestModel)
-    bestFit = lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic)
+    bestFit = tryCatch(
+      lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic), error = function(e) {
+        if (length(e) > 0) {
+          bestFit
+        }
+      }
+    )
     # restart if the same model was chosen too many times
-    restartCriteria(consecutive = consecutive)
+    restartCriteria(maxConsecutiveSelection = maximumConsecutive, consecutive = consecutive)
     currentStep = currentStep + 1
   }
   
   setTxtProgressBar(trackStep, maxSteps)
-  return(list(bestModel, bestFit))
-  }
+  return(list(bestModel = bestModel, bestFit = bestFit, allFit = allFit))
+}
 
-data(exampleAntModel)
-data(simulated_test_data)
-trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel, 
-                                                       data = simulated_test_data),
-                            originalData = simulated_test_data, maxSteps = 10,
-                            fitStatistic = 'rmsea', maximize = FALSE)
-lavaan::summary(trial1[[1]])

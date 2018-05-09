@@ -47,26 +47,24 @@ randomNeighborSelection <- function(currentModelObject = currentModel, numChange
 selectionFunction <- function(currentModelObject = currentModel, randomNeighborModel, currentTemp, maximize, fitStatistic, consecutive){
   
   # check if the randomNeighborModel is a valid model for use
-  if (length(randomNeighborModel[[2]]) > 0 | length(randomNeighborModel[[2]] > 0)) {
-    return(currentModel)
-  } else {
-    randomNeighborModel = randomNeighborModel[[1]]
-  }
+  if (length(randomNeighborModel[[2]]) > 0 | length(randomNeighborModel[[2]]) > 0) {
+    return(currentModelObject)
+  } 
   
-  if (class(currentModelObject) == "list") {
-    currentModelObject = currentModelObject[[1]]
+  # check that the current model isn't null
+  if (is.null(currentModelObject[[1]])) {
+    return(newModel)
   }
-  
   
   # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-  if (goal(randomNeighborModel, fitStatistic, maximize) < goal(currentModelObject, fitStatistic, maximize)) {
+  if (goal(randomNeighborModel[[1]], fitStatistic, maximize) < goal(currentModelObject[[1]], fitStatistic, maximize)) {
     
     consecutive = consecutive + 1
     return(randomNeighborModel)
     
   } else {
     
-    probability = exp(-(goal(randomNeighborModel, fitStatistic, maximize) - goal(currentModelObject, fitStatistic, maximize)) / currentTemp)
+    probability = exp(-(goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)) / currentTemp)
     
     if (probability > runif(1)) {
       newModel = randomNeighborModel
@@ -74,8 +72,8 @@ selectionFunction <- function(currentModelObject = currentModel, randomNeighborM
       newModel = currentModelObject
     }
     
-    consecutive = ifelse(identical(lavaan::parameterTable(newModel), 
-                                   lavaan::parameterTable(currentModelObject)), 
+    consecutive = ifelse(identical(lavaan::parameterTable(newModel[[1]]), 
+                                   lavaan::parameterTable(currentModelObject[[1]])), 
                          consecutive + 1, 0)
     return(newModel)
   }
@@ -122,6 +120,9 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
   if (class(currentModel) == "list") {
     currentModel <- currentModel[[1]]
   }
+  if (is.null(currentModel)) {
+    return(bestModel)
+  }
   currentFit = lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic)
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
@@ -135,7 +136,7 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
     } else {
       bestModel = bestModel
     }
-    }
+  }
   
   return(bestModel)
 }
@@ -150,6 +151,89 @@ modelWarningCheck <- function(expr) {
       warn <<- append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
       invokeRestart("muffleWarning")
     })
-  list(lavaan.output = value, warnings <- as.character(unlist(warn)), errors <- as.character(unlist(err)))
+  list('lavaan.output' = value, 'warnings' <- as.character(unlist(warn)), 'errors' <- as.character(unlist(err)))
 }
 
+
+randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, numChanges = numChanges, allItems, data) {
+  
+  # take the model syntax from the currentModelObject
+  internalModelObject = currentModelObject$model.syntax
+  
+  # randomly select current items to replace
+  replacePattern = paste0("\\b",
+                          allItems,
+                          collapse = "\\b|\\b")
+  currentItems = unique(unlist(
+    stringr::str_match_all(string = internalModelObject,
+                           pattern = replacePattern
+    )))
+  currentItems = currentItems[currentItems %in% allItems]
+  changingItems = sample(currentItems, numChanges)
+  newItems = sample(allItems[!(allItems %in% currentItems)], numChanges)
+  changingItemsPattern = paste0("\\b", changingItems, "\\b" )
+  
+  # make the changes
+  for (i in 1:length(newItems)){
+    internalModelObject = 
+      stringr::str_replace(pattern = changingItemsPattern[i],
+                           replacement = newItems[i],
+                           string = internalModelObject)
+  }
+  
+  # refit the model with new items
+  randomNeighborModel <- modelWarningCheck(
+    lavaan::cfa(
+      model = internalModelObject,
+      data = data
+    )
+  )
+  
+  randomNeighborModel$model.syntax = internalModelObject
+  
+  return(randomNeighborModel)
+  
+}
+
+randomInitialModel <- function(initialModelSyntax, maxItems, data, allItems = items) {
+  
+  if (!is.character(initialModelSyntax)) {
+    stop("Please input the initial model as a character string in the lavaan model.syntax format.")
+  }
+  
+  # extract the latent factor syntax
+  factors = unique(lavaan::lavaanify(initialModelSyntax)[lavaan::lavaanify(initialModelSyntax)$op=="=~", 'lhs'])
+  vectorModelSyntax = stringr::str_split(string = initialModelSyntax, pattern = '\\n', simplify = TRUE)
+  factorSyntax = vectorModelSyntax[grepl(x = vectorModelSyntax, pattern = paste0(factors, " =~ "))]
+  # remove the factors from the syntax
+  itemSyntax <- gsub(pattern = paste(factors, "=~ "), replacement = "", x = factorSyntax)
+  
+  # extract the items for each factor
+  itemsPerFactor = stringr::str_match_all(string = itemSyntax,
+                                          pattern = paste0("(\\b", paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"))
+  # reduce the number of items for each factor according to maxItems
+  newItemsPerFactor = list()
+  for (i in 1:length(itemsPerFactor)) {
+    newItemsPerFactor[[i]] = sample(x = unique(na.omit(unlist(itemsPerFactor[i]))), size = unlist(maxItems[i]))
+  }
+  
+  # create the new model syntax
+  newModelSyntax = vectorModelSyntax
+  for (i in 1:length(factors)) {
+    newModelSyntax[grepl(pattern =
+                           paste0(factors[i], " =~ "), x = newModelSyntax)] <- gsub(
+                             pattern = "(?<=(=~ ))[A-z0-9 \\+]{1,}",
+                             replacement = paste0(newItemsPerFactor[[i]], collapse = " + "),
+                             x = vectorModelSyntax[grepl(pattern =
+                                                           paste0(factors[i], " =~ "), x = vectorModelSyntax)],
+                             perl = TRUE
+                           )
+  }
+  newModelSyntax = stringr::str_flatten(newModelSyntax, collapse = "\n")
+  
+  # fit the new model
+  newModel = modelWarningCheck(lavaan::cfa(model = newModelSyntax, data = originalData))
+  newModel$model.syntax = newModelSyntax
+  
+  return(newModel)
+}
