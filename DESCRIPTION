@@ -22,12 +22,13 @@ LazyData: TRUE
 RoxygenNote: 6.0.1
 Suggests:
     knitr,
+    MplusAutomation (>= 0.7),
     rmarkdown
 Imports:
     lavaan (>= 0.5-22),
-    MplusAutomation (>= 0.7),
     ggplot2,
-    tidyr
+    tidyr,
+    stringr
 Depends:
     R (>= 3.0.0)
 Roxygen: list(wrap = FALSE)
