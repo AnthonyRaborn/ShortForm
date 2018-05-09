@@ -1,3 +1,14 @@
+# Package v0.4.1
+## New functionality: Simulated Annealing
+
+* The Simulated Annealing (SA) algorithm has been added to the package, with a single user-facing function `simulatedAnnealing()`. 
+* SA can be used on anything lavaan can run, though the current implementation focuses on traditional confirmatory models using `lavaan::cfa()`. However, there are plans for more user control in the modelling process to allow for other model defaults.
+
+## New functionality: ACO Plots
+
+* The `antcolony_lavaan()` function has been modified so that it no longer will print a `summaryfile.txt`. Rather, the function maintains the old summary file as an internal object and returns it after completion,
+* The new function `antcolony_plot()` takes the results from `antcolony_lavaan()` and creates three graphs: (a) a plot showing how pheremone levels change as the algorithm progresses, (b) a plot showing how the mean value of the regression coefficients changes as the algorithm progresses, and (c) a plot showing how the mean variance explained changes as the algorithm progresses.
+
 # Package v0.4.0
 ## New functionality: Tabu Search
 
