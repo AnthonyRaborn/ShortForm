@@ -12,7 +12,10 @@
 # bestGoal - the best value of the goal function achieved so far
 # restartCriteria - if allowed, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
 
-#' Simulated Annealing
+#' An adaptation of the simulated annealing algorithm for psychometric models.
+#' 
+#' @description Simulated annealing mimics the physical process of annealing metals together. [Kirkpatrick et al. (1983)](http://science.sciencemag.org/content/220/4598/671) introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models. 
+#' 
 #'
 #' @param initialModel The initial model. Can either be a lavaan model object or a character vector with lavaan model.syntax.
 #' @param originalData The original data frame with variable names.
@@ -29,7 +32,7 @@
 #' @param items 
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
-#' @return
+#' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
 #' @export
 #'
 #' @examples
@@ -47,13 +50,14 @@
 simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE, randomNeighbor = TRUE, maxChanges = 5, restartCriteria = "consecutive", maximumConsecutive = 25, maxItems = NULL, items = NULL, ...){
   
   #### initial values ####
+  currentModel = NULL; bestModel = NULL
   currentModel = bestModel = list(initialModel)
   currentStep = 0
   consecutive = 0
   allFit = c()
   
   if (!is.null(maxItems)) {
-    currentModel = randomInitialModel(initialModel, maxItems, data = originalData, allItems = items)
+    currentModel = randomInitialModel(initialModel, maxItems, data = originalData, allItems = colnames(originalData))
     bestFit = tryCatch(
       lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic), error = function(e, checkMaximize = maximize) {
         if (length(e) > 0) {
