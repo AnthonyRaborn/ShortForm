@@ -23,15 +23,17 @@
 #' @param maximize Logical indicating if the goal is to maximize (TRUE) the fitStatistic for model selection.
 #' @param Kirkpatrick Either TRUE to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.
 #' @param randomNeighbor Either TRUE to use the included function for randomNeighbor selection, or a user-defined function for creating random models.
+#' #'@param lavaan.model.specs A list which contains the specifications for the
+#'  lavaan model. The default values are the defaults for lavaan to perform a
+#'  CFA. See \link[lavaan]{lavaan} for more details.
 #' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.
 #' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
 #' @param maximumConsecutive A numeric value used with restartCriteria.
-#' @param maxItems 
-#' @param items 
+#' @param maxItems When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.
+#' @param items A character vector of item names. Defaults to `NULL`. This is only needed if the data does not have the same variable names as the lavaan model.syntax or if the data has no variable names.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
 #' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
-#' @export
 #'
 #' @examples
 #' data(exampleAntModel)
@@ -40,12 +42,22 @@
 #'                                                         data = simulated_test_data),
 #'                              originalData = simulated_test_data, maxSteps = 3,
 #'                              fitStatistic = 'rmsea', maximize = FALSE)
-#' lavaan::summary(trial1[[1]])
+#' # lavaan::summary(trial1[[1]]) # shows the resulting model
 #' 
-#' trial2 <- simulatedAnnealing(initialModel = exampleAntModel, originalData = simulated_test_data, maxSteps = 5, maxItems = 30, items = paste0("Item", 1:56))
+#' trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
+#' originalData = simulated_test_data, 
+#' maxSteps = 5, maxItems = 30, items = paste0("Item", 1:56))
 #' lavaan::summary(trial2[[1]])
+#' @import lavaan utils
+#' @export
 
-simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE, randomNeighbor = TRUE, maxChanges = 5, restartCriteria = "consecutive", maximumConsecutive = 25, maxItems = NULL, items = NULL, ...){
+simulatedAnnealing <- function(initialModel, originalData, maxSteps, 
+                               fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, 
+                               Kirkpatrick = TRUE, randomNeighbor = TRUE, 
+                               lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
+                               maxChanges = 5, 
+                               restartCriteria = "consecutive", maximumConsecutive = 25, 
+                               maxItems = NULL, items = NULL, ...){
   
   #### initial values ####
   currentModel = NULL; bestModel = NULL
@@ -53,6 +65,11 @@ simulatedAnnealing <- function(initialModel, originalData, maxSteps, fitStatisti
   currentStep = 0
   consecutive = 0
   allFit = c()
+  
+  # creates objects in the global environment that are fed into the lavaan function in order to fine-tune the model to user specifications
+  simulatedAnnealing.env <- new.env(parent = baseenv())
+  mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs=list(envir = simulatedAnnealing.env))
+  
   
   if (!is.null(maxItems)) {
     currentModel = randomInitialModel(initialModel, maxItems, data = originalData, allItems = colnames(originalData))

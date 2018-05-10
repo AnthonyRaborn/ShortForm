@@ -53,7 +53,7 @@ selectionFunction <- function(currentModelObject = currentModel, randomNeighborM
   
   # check that the current model isn't null
   if (is.null(currentModelObject[[1]])) {
-    return(newModel)
+    return(randomNeighborModel)
   }
   
   # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
@@ -103,17 +103,17 @@ consecutiveRestart <- function(maxConsecutiveSelection = 25, consecutive){
 }
 
 linearTemperature <- function(currentStep, maxSteps) {
-  currentTemp <- (maxSteps - currentStep)/maxSteps
+  currentTemp <- (maxSteps - (currentStep + 1))/maxSteps
 }
 
 quadraticTemperature <- function(currentStep, maxSteps) {
-  currentTemp <- ((maxSteps - currentStep)/maxSteps)^2
+  currentTemp <- ((maxSteps - (currentStep + 1))/maxSteps)^2
 }
 
 logisticTemperature <- function(currentStep, maxSteps) {
   x = 1:maxSteps
   x.new = scale(x, center = T, scale = maxSteps/12)
-  currentTemp <- 1/(1 + exp((x.new[currentStep])))
+  currentTemp <- 1/(1 + exp((x.new[(currentStep + 1)])))
 }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
@@ -183,10 +183,20 @@ randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, 
   
   # refit the model with new items
   randomNeighborModel <- modelWarningCheck(
-    lavaan::cfa(
-      model = internalModelObject,
-      data = data
-    )
+    lavaan::lavaan(
+      model = internalModelObject, data = originalData,
+      model.type = simulatedAnnealing.env$model.type,
+      auto.var = simulatedAnnealing.env$auto.var,
+      ordered = simulatedAnnealing.env$ordered,
+      estimator = simulatedAnnealing.env$estimator,
+      int.ov.free = simulatedAnnealing.env$int.ov.free,
+      int.lv.free = simulatedAnnealing.env$int.lv.free,
+      auto.fix.first = simulatedAnnealing.env$auto.fix.first,
+      auto.fix.single = simulatedAnnealing.env$auto.fix.single,
+      auto.cov.lv.x = simulatedAnnealing.env$auto.cov.lv.x,
+      auto.th = simulatedAnnealing.env$auto.th,
+      auto.delta = simulatedAnnealing.env$auto.delta,
+      auto.cov.y = simulatedAnnealing.env$auto.cov.y)
   )
   
   randomNeighborModel$model.syntax = internalModelObject
@@ -204,9 +214,13 @@ randomInitialModel <- function(initialModelSyntax, maxItems, data, allItems = it
   # extract the latent factor syntax
   factors = unique(lavaan::lavaanify(initialModelSyntax)[lavaan::lavaanify(initialModelSyntax)$op=="=~", 'lhs'])
   vectorModelSyntax = stringr::str_split(string = initialModelSyntax, pattern = '\\n', simplify = TRUE)
-  factorSyntax = vectorModelSyntax[grepl(x = vectorModelSyntax, pattern = paste0(factors, " =~ "))]
+  factorSyntax = c()
+  itemSyntax = c()
+  for (i in 1:length(factors)){
+  factorSyntax[i] = vectorModelSyntax[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], " =~ "))]
   # remove the factors from the syntax
-  itemSyntax <- gsub(pattern = paste(factors, "=~ "), replacement = "", x = factorSyntax)
+  itemSyntax[i] <- gsub(pattern = paste(factors[i], "=~ "), replacement = "", x = factorSyntax[i])
+  }
   
   # extract the items for each factor
   itemsPerFactor = stringr::str_match_all(string = itemSyntax,
@@ -232,7 +246,20 @@ randomInitialModel <- function(initialModelSyntax, maxItems, data, allItems = it
   newModelSyntax = stringr::str_flatten(newModelSyntax, collapse = "\n")
   
   # fit the new model
-  newModel = modelWarningCheck(lavaan::cfa(model = newModelSyntax, data = originalData))
+  newModel = modelWarningCheck(lavaan::lavaan(
+    model = newModelSyntax, data = originalData,
+    model.type = simulatedAnnealing.env$model.type,
+    auto.var = simulatedAnnealing.env$auto.var,
+    ordered = simulatedAnnealing.env$ordered,
+    estimator = simulatedAnnealing.env$estimator,
+    int.ov.free = simulatedAnnealing.env$int.ov.free,
+    int.lv.free = simulatedAnnealing.env$int.lv.free,
+    auto.fix.first = simulatedAnnealing.env$auto.fix.first,
+    auto.fix.single = simulatedAnnealing.env$auto.fix.single,
+    auto.cov.lv.x = simulatedAnnealing.env$auto.cov.lv.x,
+    auto.th = simulatedAnnealing.env$auto.th,
+    auto.delta = simulatedAnnealing.env$auto.delta,
+    auto.cov.y = simulatedAnnealing.env$auto.cov.y))
   newModel$model.syntax = newModelSyntax
   
   return(newModel)
