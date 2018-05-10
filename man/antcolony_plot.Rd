@@ -28,3 +28,31 @@ algorithm}
 \description{
 ACO Plot Function
 }
+\examples{
+\dontrun{
+# Below is a modified version of the example in the `antcolony.lavaan` function.
+# The latent variables are allowed to be correlated for identification
+results = antcolony.lavaan(data = lavaan::HolzingerSwineford1939,
+ants = 5, evaporation = 0.7, 
+antModel = ' visual  =~ x1 + x2 + x3
+             textual =~ x4 + x5 + x6
+             speed   =~ x7 + x8 + x9 
+             visual ~ textual + speed
+             textual ~ speed', 
+list.items = list(c('x1', 'x2', 'x3'), 
+                  c('x4', 'x5', 'x6'), 
+                  c('x7', 'x8', 'x9')), 
+                  full = 9, i.per.f = c(2,2,2), 
+                  factors = c('visual','textual','speed'), 
+                  steps = 10, fit.indices = c('cfi'), 
+                  fit.statistics.test = "(cfi > 0.6)", 
+                  summaryfile = NULL, feedbackfile = NULL, max.run = 100)
+
+# once converged, put the entire results object into the antcolony_plot function:
+plots <- antcolony_plot(results)
+
+# print the plot for changes in mean gamma
+plots[[2]]
+
+}
+}
