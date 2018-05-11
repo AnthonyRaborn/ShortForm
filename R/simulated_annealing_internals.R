@@ -103,17 +103,17 @@ consecutiveRestart <- function(maxConsecutiveSelection = 25, consecutive){
 }
 
 linearTemperature <- function(currentStep, maxSteps) {
-  currentTemp <- (maxSteps - (currentStep + 1))/maxSteps
+  currentTemp <- (maxSteps - (currentStep))/maxSteps
 }
 
 quadraticTemperature <- function(currentStep, maxSteps) {
-  currentTemp <- ((maxSteps - (currentStep + 1))/maxSteps)^2
+  currentTemp <- ((maxSteps - (currentStep))/maxSteps)^2
 }
 
 logisticTemperature <- function(currentStep, maxSteps) {
   x = 1:maxSteps
   x.new = scale(x, center = T, scale = maxSteps/12)
-  currentTemp <- 1/(1 + exp((x.new[(currentStep + 1)])))
+  currentTemp <- 1/(1 + exp((x.new[(currentStep)])))
 }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
@@ -155,11 +155,25 @@ modelWarningCheck <- function(expr) {
 }
 
 
-randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, numChanges = numChanges, allItems, data) {
+randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, numChanges = numChanges, allItems, data, bifactor = FALSE) {
   
   # take the model syntax from the currentModelObject
   internalModelObject = currentModelObject$model.syntax
   
+  # extract the latent factor syntax
+  factors = unique(lavaan::lavaanify(internalModelObject)[lavaan::lavaanify(internalModelObject)$op=="=~", 'lhs'])
+  vectorModelSyntax = stringr::str_split(string = internalModelObject, pattern = '\\n', simplify = TRUE)
+  factorSyntax = c()
+  itemSyntax = c()
+  for (i in 1:length(factors)){
+    factorSyntax[i] = vectorModelSyntax[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], " =~ "))]
+    # remove the factors from the syntax
+    itemSyntax[i] <- gsub(pattern = paste(factors[i], "=~ "), replacement = "", x = factorSyntax[i])
+  }
+  
+  # extract the items for each factor
+  itemsPerFactor = stringr::str_match_all(string = itemSyntax,
+                                          pattern = paste0("(\\b", paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"))
   # randomly select current items to replace
   replacePattern = paste0("\\b",
                           allItems,
@@ -180,6 +194,25 @@ randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, 
                            replacement = newItems[i],
                            string = internalModelObject)
   }
+  if (bifactor == TRUE){
+    # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
+    # assumes that the bifactor latent variable is the last one
+    newItemsPerFactor[[length(itemsPerFactor)]] = unlist(newItemsPerFactor[1:(length(itemsPerFactor) - 1)])
+  }
+  
+  # create the new model syntax
+  newModelSyntax = vectorModelSyntax
+  for (i in 1:length(factors)) {
+    newModelSyntax[grepl(pattern =
+                           paste0(factors[i], " =~ "), x = newModelSyntax)] <- gsub(
+                             pattern = "(?<=(=~ ))[A-z0-9 \\+]{1,}",
+                             replacement = paste0(newItemsPerFactor[[i]], collapse = " + "),
+                             x = vectorModelSyntax[grepl(pattern =
+                                                           paste0(factors[i], " =~ "), x = vectorModelSyntax)],
+                             perl = TRUE
+                           )
+  }
+  newModelSyntax = stringr::str_flatten(newModelSyntax, collapse = "\n")
   
   # refit the model with new items
   randomNeighborModel <- modelWarningCheck(
@@ -192,6 +225,7 @@ randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, 
       int.ov.free = simulatedAnnealing.env$int.ov.free,
       int.lv.free = simulatedAnnealing.env$int.lv.free,
       auto.fix.first = simulatedAnnealing.env$auto.fix.first,
+      std.lv = simulatedAnnealing.env$std.lv,
       auto.fix.single = simulatedAnnealing.env$auto.fix.single,
       auto.cov.lv.x = simulatedAnnealing.env$auto.cov.lv.x,
       auto.th = simulatedAnnealing.env$auto.th,
@@ -205,7 +239,7 @@ randomNeighborSelectionShortForm <- function(currentModelObject = currentModel, 
   
 }
 
-randomInitialModel <- function(initialModelSyntax, maxItems, data, allItems = items) {
+randomInitialModel <- function(initialModelSyntax, maxItems, data, allItems = items, bifactor = FALSE) {
   
   if (!is.character(initialModelSyntax)) {
     stop("Please input the initial model as a character string in the lavaan model.syntax format.")
@@ -229,6 +263,12 @@ randomInitialModel <- function(initialModelSyntax, maxItems, data, allItems = it
   newItemsPerFactor = list()
   for (i in 1:length(itemsPerFactor)) {
     newItemsPerFactor[[i]] = sample(x = unique(na.omit(unlist(itemsPerFactor[i]))), size = unlist(maxItems[i]))
+  }
+  
+  if (bifactor == TRUE){
+    # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
+    # assumes that the bifactor latent variable is the last one
+    newItemsPerFactor[[length(itemsPerFactor)]] = unlist(newItemsPerFactor[1:(length(itemsPerFactor) - 1)])
   }
   
   # create the new model syntax

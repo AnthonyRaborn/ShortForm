@@ -6,8 +6,13 @@
 \usage{
 simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
   temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE,
-  randomNeighbor = TRUE, maxChanges = 5, restartCriteria = "consecutive",
-  maximumConsecutive = 25, maxItems = NULL, items = NULL, ...)
+  randomNeighbor = TRUE, lavaan.model.specs = list(model.type = "cfa",
+  auto.var = TRUE, estimator = "default", ordered = NULL, int.ov.free = TRUE,
+  int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single =
+  TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
+  TRUE), maxChanges = 5, restartCriteria = "consecutive",
+  maximumConsecutive = 25, maxItems = NULL, items = NULL,
+  bifactor = FALSE, ...)
 }
 \arguments{
 \item{initialModel}{The initial model. Can either be a lavaan model object or a character vector with lavaan model.syntax.}
@@ -26,6 +31,10 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
 
 \item{randomNeighbor}{Either TRUE to use the included function for randomNeighbor selection, or a user-defined function for creating random models.}
 
+\item{lavaan.model.specs}{A list which contains the specifications for the
+lavaan model. The default values are the defaults for lavaan to perform a
+CFA. See \link[lavaan]{lavaan} for more details.}
+
 \item{maxChanges}{An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.}
 
 \item{restartCriteria}{Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.}
@@ -34,7 +43,9 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
 
 \item{maxItems}{When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.}
 
-\item{items}{A character vector of item names. Defaults to `NULL`. This is only needed if the data does not have the same variable names as the lavaan model.syntax or if the data has no variable names.}
+\item{items}{A character vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.}
+
+\item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }
@@ -61,14 +72,14 @@ restartCriteria - if allowed, this would "restart" the SA process by changing cu
 \examples{
 data(exampleAntModel)
 data(simulated_test_data)
-trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel, 
+trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
                                                         data = simulated_test_data),
                              originalData = simulated_test_data, maxSteps = 3,
                              fitStatistic = 'rmsea', maximize = FALSE)
 # lavaan::summary(trial1[[1]]) # shows the resulting model
 
 trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
-originalData = simulated_test_data, 
+originalData = simulated_test_data,
 maxSteps = 5, maxItems = 30, items = paste0("Item", 1:56))
 lavaan::summary(trial2[[1]])
 }
