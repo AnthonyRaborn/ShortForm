@@ -54,7 +54,7 @@
 simulatedAnnealing <- function(initialModel, originalData, maxSteps, 
                                fitStatistic = 'cfi', temperature = "linear", maximize = TRUE, 
                                Kirkpatrick = TRUE, randomNeighbor = TRUE, 
-                               lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
+                               lavaan.model.specs = list(model.type = "cfa", auto.var = FALSE, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
                                maxChanges = 5, 
                                restartCriteria = "consecutive", maximumConsecutive = 25, 
                                maxItems = NULL, items = NULL, ...){
