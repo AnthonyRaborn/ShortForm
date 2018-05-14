@@ -104,7 +104,7 @@ simulatedAnnealing <-
       assign,
       names(lavaan.model.specs),
       lavaan.model.specs,
-      MoreArgs = list(envir = parent.frame())
+      MoreArgs = list(envir = environment())
       )
     
     if (!is.null(maxItems)) {

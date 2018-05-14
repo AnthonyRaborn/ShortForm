@@ -72,7 +72,8 @@ restartCriteria - if allowed, this would "restart" the SA process by changing cu
 \examples{
 data(exampleAntModel)
 data(simulated_test_data)
-trial1 <- simulatedAnnealing(initialModel = exampleAntModel,
+trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
+                                                        data = simulated_test_data),
                              originalData = simulated_test_data, maxSteps = 3,
                              fitStatistic = 'rmsea', maximize = FALSE)
 # lavaan::summary(trial1[[1]]) # shows the resulting model
