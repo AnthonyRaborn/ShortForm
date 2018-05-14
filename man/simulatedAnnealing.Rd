@@ -15,7 +15,7 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
   bifactor = FALSE, ...)
 }
 \arguments{
-\item{initialModel}{The initial model. Can either be a lavaan model object or a character vector with lavaan model.syntax.}
+\item{initialModel}{The initial model as a character vector with lavaan model.syntax.}
 
 \item{originalData}{The original data frame with variable names.}
 
@@ -72,8 +72,7 @@ restartCriteria - if allowed, this would "restart" the SA process by changing cu
 \examples{
 data(exampleAntModel)
 data(simulated_test_data)
-trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
-                                                        data = simulated_test_data),
+trial1 <- simulatedAnnealing(initialModel = exampleAntModel,
                              originalData = simulated_test_data, maxSteps = 3,
                              fitStatistic = 'rmsea', maximize = FALSE)
 # lavaan::summary(trial1[[1]]) # shows the resulting model
@@ -81,5 +80,5 @@ trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
 trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
 originalData = simulated_test_data,
 maxSteps = 5, maxItems = 30, items = paste0("Item", 1:56))
-lavaan::summary(trial2[[1]])
+# lavaan::summary(trial2[[1]]) # shows the resulting model
 }
