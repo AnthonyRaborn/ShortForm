@@ -7,11 +7,11 @@ specification searches with the package \link[lavaan]{lavaan}.}
 \usage{
 antcolony.lavaan(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-  full = NULL, i.per.f = NULL, factors = NULL, steps = 50,
-  lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator =
-  "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE,
-  auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th =
-  TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
+  full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL,
+  steps = 50, lavaan.model.specs = list(model.type = "cfa", auto.var = T,
+  estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free =
+  FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE,
+  auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
   pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
   summaryfile = NULL, feedbackfile = NULL, max.run = 1000,
@@ -53,6 +53,9 @@ the same order of \code{list.items} and \code{factors}.}
 
 \item{factors}{Character vector with names of factors in the same order of
 \code{list.items} and \code{i.per.f}.}
+
+\item{bifactor}{Either the name of the factor that all of the chosen items 
+will load on (as character), or `NULL` if the model is not a bifactor model.}
 
 \item{steps}{A numeric value that sets the stopping rule, which is the number
 of ants in a row for which the model does not change.}
