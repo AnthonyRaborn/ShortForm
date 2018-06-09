@@ -280,6 +280,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           print(paste("Step =", step, "and Ant =", ant, "and Count =", count, "and Run =", run))}
         #selects items for all factors.
         all.items <- c()
+        if (!is.character(bifactor)) {
         for (factor in 1:length(list.items)) {
 
           #selects the items for a short form for the factor
@@ -298,9 +299,26 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           all.items = c(all.items, items)
           #finishes loop
         }
-        
-        if (is.character(bifactor)) {
-          input[which(factors==bifactor)] = paste(bifactor, "=~", paste(all.items, collapse = " + "))
+        } else  {
+          for (factor in 1:(length(list.items)-1)) {
+            
+            #selects the items for a short form for the factor
+            positions = is.element(item.vector,list.items[[factor]])
+            prob = include[positions]/sum(include[positions])
+            
+            items = sample(list.items[[factor]], size = i.per.f[factor],replace = F,prob)
+            
+            #stores selected items.
+            selected.items[[factor]] = items
+            
+            
+            #replaces the lavaan syntax for factor specification.
+            factor.position = grep(paste(factors[factor],"=~"),input,ignore.case=T)
+            input[factor.position]  = paste(factors[factor],"=~", paste(items,collapse =" + "))
+            all.items = c(all.items, items)
+            #finishes loop
+          }
+          input[grep(bifactor, input)] = paste(bifactor, "=~", paste(all.items, collapse = " + "))
         }
 
         selected.items = lapply(selected.items,sort)
@@ -308,7 +326,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         select.indicator = is.element(item.vector,selected.vector)
         notselect.indicator = (select.indicator == FALSE)
 
-        # MODIFY LAVAAN SYNTAX
+                # MODIFY LAVAAN SYNTAX
         new_ant_model = paste(input, collapse = '\n')
 
         # Run the model check function
@@ -356,6 +374,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           }
           #finishes if for non-convergent cases.
         } else {
+          
+          if (verbose==TRUE) cat(new_ant_model)
 
           # compute fit indices, gammas, and residual variances
           # first, fit indices
@@ -369,7 +389,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
           # obtains the variance explained ("rsquare") from lavaan
           variance.explained <- lavaan::lavInspect(modelCheck$lavaan.output, "rsquare")
-
+          mapply(assign, names(model.fit), model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
+          
           #saves information about the selected items and the RMSEA they generated for the final ant.
           if (ant == ants && length(summaryfile) > 0){
             fit.info = matrix(c(select.indicator,run,count,ant,model.fit,mean(std.gammas), mean(variance.explained),
@@ -386,8 +407,6 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                                       round(include,2)),1,))
           }
           
-          
-          }
           #provide feedback about search.
           if(length(feedbackfile) > 0){
           feedback = c(paste("<h1>","run:",run,"count:",count,"ant:",ant,"step:",step,"<br>",
@@ -396,7 +415,6 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           write(feedback, file = feedbackfile, append = T)
           }
           
-          mapply(assign, names(model.fit), model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
           #implements fit requirement.
           if (eval(parse(text=fit.statistics.test), 
                    envir = antcolony.lavaan.env) == FALSE) {
@@ -480,7 +498,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     if(run == max.run) {
       stop("Max runs reached! Problems converging onto a solution.")
     }
-  
+  }
 
   print("Compiling results.")
   #ranks items within factor.

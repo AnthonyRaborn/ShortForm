@@ -206,7 +206,6 @@ simulatedAnnealing <-
             
           }
         }
-        print(replacementItemPool)
         changingItems = c(); replacementItem = c()
         for (i in 1:numChanges){
           # randomly select factor to have an item changed
@@ -222,14 +221,12 @@ simulatedAnnealing <-
             changingItemTemp = sample(randomNeighbor.env$currentItems[[currentFactor]], 1)
           }
           changingItems = c(changingItems, changingItemTemp)
-          print(paste("The items being changed are:" , paste(changingItems, collapse = " ")))
           # Sample an item from the items in the item pool
           tempReplacementItems = sample(replacementItemPool[[currentFactor]], 1)
           while (tempReplacementItems %in% replacementItem) {
             tempReplacementItems = sample(replacementItemPool[[currentFactor]], 1)
           }
           replacementItem = c(replacementItem, tempReplacementItems)
-          print(paste("The new items are:", replacementItem))
         }
         
         for (i in 1:length(randomNeighbor.env$factors)) {
@@ -240,7 +237,6 @@ simulatedAnnealing <-
         }
         
         if (bifactor == TRUE){
-          print("Bifactor model detected.")
           # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
           # assumes that the bifactor latent variable is the last one
           randomNeighbor.env$currentItems[[length(itemsPerFactor)]] = unlist(randomNeighbor.env$currentItems[1:(length(itemsPerFactor) - 1)])
@@ -275,8 +271,6 @@ simulatedAnnealing <-
         )
         
         randomNeighborModel$model.syntax = newModelSyntax
-        print(currentModel$model.syntax)
-        print(newModelSyntax)
         return(randomNeighborModel)
         
       }
@@ -468,7 +462,6 @@ simulatedAnnealing <-
       restartCriteria(maxConsecutiveSelection = maximumConsecutive,
                       consecutive = consecutive)
       currentStep = currentStep + 1
-      print(lavaan::summary(currentModel[[1]]))
     }
     
     setTxtProgressBar(trackStep, maxSteps)

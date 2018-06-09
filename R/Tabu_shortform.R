@@ -133,7 +133,7 @@ tabuShortForm <-
     tabu.list<-vector("numeric")
     
     factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
-                                                "=~", 'lhs'])
+                                                       "=~", 'lhs'])
     externalRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
     
     if (is.list(allItems)) {
@@ -185,14 +185,57 @@ tabuShortForm <-
         for (f in 1:length(factors)) {
           for (i in 1:numItems[[f]]) {
             for (j in 1:length(excluded.items[[f]])) {
+              new.items = included.items
+              new.items[[f]][i] = excluded.items[[f]][j]
+              newModelSyntax = c()
+              for (k in 1:length(factors)) {
+                newModelSyntax[k] = paste(factors[k], "=~",
+                                          paste(new.items[[k]], collapse = " + "))
+              }
+              newModelSyntax = stringr::str_flatten(newModelSyntax, " \n ")
+              newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
+              fitmodel = modelWarningCheck(
+                lavaan::lavaan(
+                  model = newModelSyntax,
+                  data = originalData,
+                  model.type = model.type,
+                  int.ov.free = int.ov.free,
+                  int.lv.free = int.lv.free,
+                  auto.fix.first = auto.fix.first,
+                  std.lv = std.lv,
+                  auto.fix.single = auto.fix.single,
+                  auto.var = auto.var,
+                  auto.cov.lv.x = auto.cov.lv.x,
+                  auto.th = auto.th,
+                  auto.delta = auto.delta,
+                  auto.cov.y = auto.cov.y,
+                  ordered = ordered,
+                  estimator = estimator
+                )
+              )
+              
+              if (fitmodel$lavaan.output@Fit@converged &
+                  !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+                fit.val <- criterion(fitmodel$lavaan.output)
+              } else {
+                fit.val <- NA
+              }
+              
+              tmp.obj <- c(tmp.obj, fit.val)
+              tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
+              tmp.syntax <- c(tmp.syntax, newModelSyntax)
+              
+            }}}
+        
+        
+        
+      } else {
+        for (i in 1:length(included.items)) {
+          for (e in 1:length(excluded.items)) {
             new.items = included.items
-            new.items[[f]][i] = excluded.items[[f]][j]
-            newModelSyntax = c()
-            for (k in 1:length(factors)) {
-              newModelSyntax[k] = paste(factors[k], "=~",
-                                        paste(new.items[[k]], collapse = " + "))
-            }
-            newModelSyntax = stringr::str_flatten(newModelSyntax, " \n ")
+            new.items[i] = excluded.items[e]
+            newModelSyntax = paste(factors, "=~",
+                                   paste(new.items, collapse = " + "))
             newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
             fitmodel = modelWarningCheck(
               lavaan::lavaan(
@@ -225,54 +268,11 @@ tabuShortForm <-
             tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
             tmp.syntax <- c(tmp.syntax, newModelSyntax)
             
-            }}}
-              
-              
-              
-      } else {
-              for (i in 1:length(included.items)) {
-                for (e in 1:length(excluded.items)) {
-                  new.items = included.items
-                  new.items[i] = excluded.items[e]
-                  newModelSyntax = paste(factors, "=~",
-                                         paste(new.items, collapse = " + "))
-                  newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
-                  fitmodel = modelWarningCheck(
-                    lavaan::lavaan(
-                      model = newModelSyntax,
-                      data = originalData,
-                      model.type = model.type,
-                      int.ov.free = int.ov.free,
-                      int.lv.free = int.lv.free,
-                      auto.fix.first = auto.fix.first,
-                      std.lv = std.lv,
-                      auto.fix.single = auto.fix.single,
-                      auto.var = auto.var,
-                      auto.cov.lv.x = auto.cov.lv.x,
-                      auto.th = auto.th,
-                      auto.delta = auto.delta,
-                      auto.cov.y = auto.cov.y,
-                      ordered = ordered,
-                      estimator = estimator
-                    )
-                  )
-                  
-                  if (fitmodel$lavaan.output@Fit@converged &
-                      !any(is.na(fitmodel$lavaan.output@Fit@se))) {
-                    fit.val <- criterion(fitmodel$lavaan.output)
-                  } else {
-                    fit.val <- NA
-                  }
-                  
-                  tmp.obj <- c(tmp.obj, fit.val)
-                  tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
-                  tmp.syntax <- c(tmp.syntax, newModelSyntax)
-                  
-                  
-                }
-              }
-            }
-        
+            
+          }
+        }
+      }
+      
       # Check which indices result in a valid objective function
       valid <- which(!is.na(tmp.obj))
       
@@ -301,7 +301,7 @@ tabuShortForm <-
         best.syntax <- current.syntax
         tabu.list <- vector("numeric") # Clear Tabu list
       }
-      }
+    }
     
     setTxtProgressBar(trackIter, niter + 1)
     
