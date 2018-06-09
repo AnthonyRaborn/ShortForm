@@ -118,7 +118,7 @@ modelWarningCheck <- function(expr) {
 }
 
 
-syntaxExtraction = function(initialModelSyntaxFile) {
+syntaxExtraction = function(initialModelSyntaxFile, items = allItems) {
   
   # extract the latent factor syntax
   factors = unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op=="=~", 'lhs'])
@@ -134,7 +134,7 @@ syntaxExtraction = function(initialModelSyntaxFile) {
   
   # extract the items for each factor
   itemsPerFactor = stringr::str_extract_all(string = itemSyntax,
-                                            pattern = paste0("(\\b", paste0(paste0(unlist(allItems), collapse = "\\b)|(\\b"), "\\b)"))
+                                            pattern = paste0("(\\b", paste0(paste0(unlist(items), collapse = "\\b)|(\\b"), "\\b)"))
   )
   return(list('factors' = factors, 'itemsPerFactor' = itemsPerFactor))
 }

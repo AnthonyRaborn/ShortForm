@@ -23,12 +23,15 @@
 #' @export
 #'
 #' @examples 
-#' data(exampleAntModel)
+#' shortAntModel = '
+#' Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+#' Ability ~ Outcome
+#' '
 #' data(simulated_test_data)
-#' tabuResult <- tabuShortForm(initialModel = exampleAntModel,
-#'                              originalData = simulated_test_data, numItems = 10,
-#'                              allItems = colnames(simulated_test_data)[3:58],
-#'                              niter = 10, tabu.size = 3)
+#' tabuResult <- tabuShortForm(initialModel = shortAntModel,
+#'                              originalData = simulated_test_data, numItems = 7,
+#'                              allItems = colnames(simulated_test_data)[3:11],
+#'                              niter = 1, tabu.size = 3)
 #' # lavaan::summary(tabuResult$best.mod) # shows the resulting model
 
 tabuShortForm <-
@@ -43,6 +46,7 @@ tabuShortForm <-
              int.ov.free = TRUE,
              int.lv.free = FALSE,
              std.lv = TRUE,
+             auto.fix.first = FALSE,
              auto.fix.single = TRUE,
              auto.var = TRUE,
              auto.cov.lv.x = TRUE,
@@ -50,7 +54,8 @@ tabuShortForm <-
              auto.delta = TRUE,
              auto.cov.y = TRUE,
              ordered = NULL,
-             model.type = "cfa"
+             model.type = "cfa",
+             estimator = "default"
            ),
            bifactor = FALSE) {
     
@@ -69,7 +74,7 @@ tabuShortForm <-
       mapply(
         assign,
         c("factors", "itemsPerFactor"),
-        syntaxExtraction(initialModelSyntaxFile = initialModel),
+        syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
         MoreArgs = list(envir = parent.frame())
       )
       
@@ -125,6 +130,7 @@ tabuShortForm <-
     initialShortModel <- randomInitialModel()
     best.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
     best.model <- current.model <- initialShortModel$lavaan.output
+    tabu.list<-vector("numeric")
     
     factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
                                                 "=~", 'lhs'])
@@ -148,12 +154,21 @@ tabuShortForm <-
     }
     
     # Do iterations
+    print("Current Progress:")
+    trackIter = txtProgressBar(
+      min = 0,
+      max = niter + 1,
+      initial = 1,
+      style = 3
+    )
+    
     for (it in 1:niter) {
-      print(paste0("Running iteration ", it, "."))
+      setTxtProgressBar(trackIter, it)
       # Loop through all neighbors
       tmp.obj <- vector("numeric")
       tmp.mod <- list()
-      tmp.vec <- list()
+      tmp.syntax <- list()
+      
       
       if (is.list(allItems)) {
         excluded.items = list()
@@ -177,7 +192,6 @@ tabuShortForm <-
               newModelSyntax[k] = paste(factors[k], "=~",
                                         paste(new.items[[k]], collapse = " + "))
             }
-            print(newModelSyntax)
             newModelSyntax = stringr::str_flatten(newModelSyntax, " \n ")
             newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
             fitmodel = modelWarningCheck(
@@ -209,9 +223,55 @@ tabuShortForm <-
             
             tmp.obj <- c(tmp.obj, fit.val)
             tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
-            
+            tmp.syntax <- c(tmp.syntax, newModelSyntax)
             
             }}}
+              
+              
+              
+      } else {
+              for (i in 1:length(included.items)) {
+                for (e in 1:length(excluded.items)) {
+                  new.items = included.items
+                  new.items[i] = excluded.items[e]
+                  newModelSyntax = paste(factors, "=~",
+                                         paste(new.items, collapse = " + "))
+                  newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
+                  fitmodel = modelWarningCheck(
+                    lavaan::lavaan(
+                      model = newModelSyntax,
+                      data = originalData,
+                      model.type = model.type,
+                      int.ov.free = int.ov.free,
+                      int.lv.free = int.lv.free,
+                      auto.fix.first = auto.fix.first,
+                      std.lv = std.lv,
+                      auto.fix.single = auto.fix.single,
+                      auto.var = auto.var,
+                      auto.cov.lv.x = auto.cov.lv.x,
+                      auto.th = auto.th,
+                      auto.delta = auto.delta,
+                      auto.cov.y = auto.cov.y,
+                      ordered = ordered,
+                      estimator = estimator
+                    )
+                  )
+                  
+                  if (fitmodel$lavaan.output@Fit@converged &
+                      !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+                    fit.val <- criterion(fitmodel$lavaan.output)
+                  } else {
+                    fit.val <- NA
+                  }
+                  
+                  tmp.obj <- c(tmp.obj, fit.val)
+                  tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
+                  tmp.syntax <- c(tmp.syntax, newModelSyntax)
+                  
+                  
+                }
+              }
+            }
         
       # Check which indices result in a valid objective function
       valid <- which(!is.na(tmp.obj))
@@ -225,6 +285,7 @@ tabuShortForm <-
       # Move current state to next model
       current.obj <- (tmp.obj[valid])[indx]
       current.mod <- (tmp.mod[valid])[[indx]]
+      current.syntax <- (tmp.syntax[valid])[[indx]]
       # current.binvec<-(tmp.vec[valid])[[indx]]
       
       # Update Tabu list
@@ -237,14 +298,17 @@ tabuShortForm <-
       if (current.obj <= best.obj) {
         best.obj <- current.obj
         best.mod <- current.mod
+        best.syntax <- current.syntax
         tabu.list <- vector("numeric") # Clear Tabu list
       }
       }
-    }
+    
+    setTxtProgressBar(trackIter, niter + 1)
     
     ret <- list()
     ret$best.obj <- best.obj
     ret$best.mod <- best.mod
+    ret$best.syntax <- best.syntax
     
     return(ret)
   }

@@ -8,9 +8,10 @@ tabuShortForm(initialModel, originalData, numItems, allItems,
   criterion = function(x) lavaan::fitmeasures(object = x, fit.measures =
   "rmsea"), niter = 30, tabu.size = 5,
   lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv =
-  TRUE, auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th =
-  TRUE, auto.delta = TRUE, auto.cov.y = TRUE, ordered = NULL, model.type =
-  "cfa"), bifactor = FALSE)
+  TRUE, auto.fix.first = FALSE, auto.fix.single = TRUE, auto.var = TRUE,
+  auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE,
+  ordered = NULL, model.type = "cfa", estimator = "default"),
+  bifactor = FALSE)
 }
 \arguments{
 \item{initialModel}{The initial model (typically the full form) as a character vector with lavaan model.syntax.}
@@ -44,11 +45,14 @@ performs a Tabu model specification search. Currently only supports
 neighbors that are 1 move away from the current model.
 }
 \examples{
-data(exampleAntModel)
+shortAntModel = '
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+Ability ~ Outcome
+'
 data(simulated_test_data)
-tabuResult <- tabuShortForm(initialModel = exampleAntModel,
-                             originalData = simulated_test_data, numItems = 10,
-                             allItems = colnames(simulated_test_data)[3:58],
-                             niter = 10, tabu.size = 3)
+tabuResult <- tabuShortForm(initialModel = shortAntModel,
+                             originalData = simulated_test_data, numItems = 7,
+                             allItems = colnames(simulated_test_data)[3:11],
+                             niter = 1, tabu.size = 3)
 # lavaan::summary(tabuResult$best.mod) # shows the resulting model
 }
