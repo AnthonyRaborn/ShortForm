@@ -131,15 +131,15 @@
 #'  ants, counts, and current run for each attempt as well as printing
 #'  \code{"Failed iteration!"} for runs that do not converge and the model fit
 #'  information for runs that do converge successfully. Default is \code{FALSE}.
-#'@return A list with three elements: the first containing a named matrix with
+#'@return A list with four elements: the first containing a named matrix with
 #'  final model's best fit indices, the final pheromone level (either the mean
 #'  of the standardized regression coefficients (gammas), or the mean variance
 #'  explained), and a series of 0/1 values indicating the items selected in the
 #'  final solution,  the second element containing tbe summary matrix of the 
 #'  best fit statistic value(s) for each run, the items chosen for said best fit, 
 #'  the mean gamma and variance explained for the best fit, and the item pheromone 
-#'  levels after each run, and the third containing the best-fitting lavaan model
-#'  object.
+#'  levels after each run, the third containing the best-fitting lavaan model
+#'  object, and the fourth containing the best-fitting model syntax.
 #'  
 #'@family Ant Colony Algorithms
 #'@seealso \code{\link{antcolony.mplus}}
@@ -480,6 +480,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         best.so.far.pheromone = best.pheromone
         best.so.far.fit.indices = best.fit.indices
         best.so.far.model = modelCheck$lavaan.output
+        best.so.far.syntax = new_ant_model
         #re-starts count.
         count = 1
 
@@ -531,5 +532,5 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   #FINISH FUNCTION.
   # return(list(final.solution, results, summary))
-  return(list(final.solution, summary, 'best.model' = best.so.far.model))
+  return(list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax))
 }
