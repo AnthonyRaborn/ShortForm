@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
 
 
-Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization  (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from Leite, Huang, & Marcoulides (2008) <doi:10.1080/00273170802285743>, while the Tabu search function was taken from Marcoulides & Falk (2018) <doi:10.1080/10705511.2017.1409074>.
+Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization  (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from [Leite, Huang, & Marcoulides (2008)](<doi:10.1080/00273170802285743>), while the Tabu search function was taken from [Marcoulides & Falk (2018)](<doi:10.1080/10705511.2017.1409074>). There does not yet seem to be an application of Simulated Annealing (SA) within psychometrics, but Drezner & Marcoulides, 1999 (in *Multiple Linear Regression Viewpoints*, Volume 25(2); not available online) used SA for multiple regression model selection; this package appears to be the first to implement SA for psychometric models.
 
 ## Installation
 ```{r gh-installation, eval = FALSE}
@@ -57,7 +57,7 @@ list.items <- list(c('Item1','Item2','Item3','Item4','Item5',
 data(simulated_test_data)
 # finally, call the function with some minor changes to the default values.
 # since the data is binary, let lavaan know by putting the items in the
-# 'orderd' element of the lavaan.model.specs list.
+# 'ordered' element of the lavaan.model.specs list.
 set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
 ants = 5, evaporation = 0.7, antModel = exampleAntModel,
@@ -73,12 +73,14 @@ fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
 max.run = 50, verbose = FALSE)
-abilityShortForm # print the results of the final short form
+abilityShortForm[[1]] # print the results of the final short form
 ```
 
 A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run this example.
 
 ### Tabu Search Algorithm
+
+This example demonstrates how to use the Tabu search for model specification searches when the original model may be misspecified in some way.
 
 ```{r Tabu example}
 start.time.Tabu <- Sys.time()
@@ -92,7 +94,8 @@ tabuModel <- "
 Ability =~ Item1 + Item2 + Item3 + Item4
 FakeAbility =~ Item5 + Item6 + Item7 + Item8
 Ability ~ Outcome
-FakeAbility ~ 0*Outcome"
+FakeAbility ~ 0*Outcome
+Ability ~ 0*FakeAbility"
 
 # fit the initial misspecified model for Tabu
 init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
@@ -109,4 +112,34 @@ Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, 
 lavaan::summary(Tabu_example$best.mod)
 ```
 
-It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run both together.
+It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example.
+
+### Simulated Annealing
+
+This example demonstrates the use of simulated annealing for creating short forms.
+
+```{r Simulated Annealing example}
+start.time.SA <- Sys.time()
+library(ShortForm)
+# load simulation data and select columns used in this example
+data(simulated_test_data) 
+saData <- simulated_test_data[,c(1:10)]
+
+# specify the full model
+saModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10
+Ability ~ Outcome
+"
+lavaan.model.specs = list(model.type = "cfa",
+  auto.var = TRUE, estimator = "default", ordered = paste0("Item", 1:10), int.ov.free = TRUE,
+  int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single =
+  TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
+  TRUE)
+
+# perform the SA algorithm
+set.seed(1)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at each step
+```
+
+It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` minutes to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run all three together.

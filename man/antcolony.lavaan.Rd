@@ -7,15 +7,15 @@ specification searches with the package \link[lavaan]{lavaan}.}
 \usage{
 antcolony.lavaan(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-  full = NULL, i.per.f = NULL, factors = NULL, steps = 50,
-  lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator =
-  "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE,
-  auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th =
-  TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
+  full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL,
+  steps = 50, lavaan.model.specs = list(model.type = "cfa", auto.var = T,
+  estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free =
+  FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE,
+  auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
   pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-  summaryfile = "summary.txt", feedbackfile = "iteration.html",
-  max.run = 1000, verbose = FALSE)
+  summaryfile = NULL, feedbackfile = NULL, max.run = 1000,
+  verbose = FALSE)
 }
 \arguments{
 \item{data}{The data being used in data frame format. Default value is
@@ -53,6 +53,9 @@ the same order of \code{list.items} and \code{factors}.}
 
 \item{factors}{Character vector with names of factors in the same order of
 \code{list.items} and \code{i.per.f}.}
+
+\item{bifactor}{Either the name of the factor that all of the chosen items 
+will load on (as character), or `NULL` if the model is not a bifactor model.}
 
 \item{steps}{A numeric value that sets the stopping rule, which is the number
 of ants in a row for which the model does not change.}
@@ -101,12 +104,15 @@ ants, counts, and current run for each attempt as well as printing
 information for runs that do converge successfully. Default is \code{FALSE}.}
 }
 \value{
-A list with two elements, the first containing a named matrix with
+A list with four elements: the first containing a named matrix with
  final model's best fit indices, the final pheromone level (either the mean
  of the standardized regression coefficients (gammas), or the mean variance
  explained), and a series of 0/1 values indicating the items selected in the
- final solution, and the second element containing a matrix of the final
- pheromone level of each item and its rank within its factor.
+ final solution,  the second element containing tbe summary matrix of the 
+ best fit statistic value(s) for each run, the items chosen for said best fit, 
+ the mean gamma and variance explained for the best fit, and the item pheromone 
+ levels after each run, the third containing the best-fitting lavaan model
+ object, and the fourth containing the best-fitting model syntax.
 }
 \description{
 The Ant Colony Optimization (ACO) algorithm (Dorigo & Stutzle,
