@@ -32,7 +32,8 @@
 #'                              originalData = simulated_test_data, numItems = 7,
 #'                              allItems = colnames(simulated_test_data)[3:11],
 #'                              niter = 1, tabu.size = 3)
-#' # lavaan::summary(tabuResult$best.mod) # shows the resulting model
+#' lavaan::summary(tabuResult$best.mod) # shows the resulting model
+#' 
 
 tabuShortForm <-
   function(initialModel,
@@ -150,13 +151,13 @@ tabuShortForm <-
                                  )))
     } else {
       included.items <-
-        as.vector(stringr::str_extract_all(
+        unlist(as.vector(stringr::str_extract_all(
           string = initialShortModel$model.syntax,
           pattern = paste0("(\\b", paste0(
             paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"
-          )),
-          simplify = TRUE
+          ))
         ))
+        )
     }
     
     # Do iterations
