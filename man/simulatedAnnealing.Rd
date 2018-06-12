@@ -12,7 +12,7 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
   TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
   TRUE), maxChanges = 5, restartCriteria = "consecutive",
   maximumConsecutive = 25, maxItems = NULL, items = NULL,
-  bifactor = FALSE, ...)
+  bifactor = FALSE, progress = TRUE, ...)
 }
 \arguments{
 \item{initialModel}{The initial model as a character vector with lavaan model.syntax.}
@@ -46,6 +46,8 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 \item{items}{A character vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.}
 
 \item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.}
+
+\item{progress}{Character. If `'bar'`, the function prints a progress bar indicating how far along it is. If `'text'`, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }

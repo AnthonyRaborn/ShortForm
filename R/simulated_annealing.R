@@ -32,7 +32,7 @@
 #' @param maxItems When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.
 #' @param items A character vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.
-#' @param progressBar Logical. If `TRUE`, the function prints a progress bar indicating how far along it is. Otherwise, prints the current step value.
+#' @param progress Character. If `'bar'`, the function prints a progress bar indicating how far along it is. If `'text'`, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
 #' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
@@ -83,7 +83,7 @@ simulatedAnnealing <-
            maxItems = NULL,
            items = NULL,
            bifactor = FALSE,
-           progressBar = TRUE,
+           progress = TRUE,
            ...) {
     
     #### initial values ####
@@ -417,7 +417,7 @@ simulatedAnnealing <-
     #### perform algorithm ####
     
     cat("\n Current Progress:")
-      if (progressBar == TRUE) {
+      if (progress == 'bar') {
     trackStep = txtProgressBar(
       min = 0,
       max = maxSteps - 1,
@@ -428,9 +428,9 @@ simulatedAnnealing <-
     
     
     while (currentStep < maxSteps) {
-      if (progressBar==TRUE) {
+      if (progress == 'bar') {
       setTxtProgressBar(trackStep, currentStep)
-      } else {
+      } else if (progress == 'text') {
         cat(paste0("\r Current Step = ", currentStep, " of a maximum ", maxSteps, ".  "))
       }
       # how many changes to make?
@@ -486,7 +486,7 @@ simulatedAnnealing <-
       currentStep = currentStep + 1
     }
     
-    if (progressBar == TRUE) {
+    if (progress == 'bar') {
     setTxtProgressBar(trackStep, maxSteps)
       }
     return(list(
