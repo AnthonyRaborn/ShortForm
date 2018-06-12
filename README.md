@@ -94,7 +94,7 @@ abilityShortForm[[1]] # print the results of the final short form
 ##  [1,]      1      1
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.9 minutes to run this example.
+A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.76 minutes to run this example.
 
 ### Tabu Search Algorithm
 
@@ -255,7 +255,7 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 3.87 minutes to run this example.
+It took a total of 3.86 minutes to run this example.
 
 ### Simulated Annealing
 
@@ -281,7 +281,7 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progressBar = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
 ##  Initializing short form creation.
 ##  The initial short form is:
 ##   Ability =~ Item3 + Item4 + Item5 + Item7 + Item2
@@ -294,4 +294,4 @@ plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at 
 
 ![](README-Simulated%20Annealing%20example-1.png)
 
-It took a total of 27.86 minutes to run the SA example, and a total of 10.23 minutes to run all three together.
+It took a total of 2.52 minutes to run the SA example, and a total of 12.15 minutes to run all three together.
