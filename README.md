@@ -43,7 +43,7 @@ list.items <- list(c('Item1','Item2','Item3','Item4','Item5',
 data(simulated_test_data)
 # finally, call the function with some minor changes to the default values.
 # since the data is binary, let lavaan know by putting the items in the
-# 'orderd' element of the lavaan.model.specs list.
+# 'ordered' element of the lavaan.model.specs list.
 set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
 ants = 5, evaporation = 0.7, antModel = exampleAntModel,
@@ -94,9 +94,11 @@ abilityShortForm[[1]] # print the results of the final short form
 ##  [1,]      1      1
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.01 minutes to run this example.
+A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.93 minutes to run this example.
 
 ### Tabu Search Algorithm
+
+This example demonstrates how to use the Tabu search for model specification searches when the original model may be misspecified in some way.
 
 ``` r
 start.time.Tabu <- Sys.time()
@@ -110,7 +112,8 @@ tabuModel <- "
 Ability =~ Item1 + Item2 + Item3 + Item4
 FakeAbility =~ Item5 + Item6 + Item7 + Item8
 Ability ~ Outcome
-FakeAbility ~ 0*Outcome"
+FakeAbility ~ 0*Outcome
+Ability ~ 0*FakeAbility"
 
 # fit the initial misspecified model for Tabu
 init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
@@ -252,9 +255,11 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 3.23 minutes to run this example.
+It took a total of 3.8 minutes to run this example.
 
 ### Simulated Annealing
+
+This example demonstrates the use of simulated annealing for creating short forms.
 
 ``` r
 start.time.SA <- Sys.time()
@@ -263,223 +268,30 @@ library(ShortForm)
 data(simulated_test_data) 
 saData <- simulated_test_data[,c(1:10)]
 
-# specify an improper model (improper because the data is actually unidimensional)
-saModel <- lavaan::cfa(model = "
-Ability =~ Item1 + Item2 + Item3 + Item4
-FakeAbility =~ Item5 + Item6 + Item7 + Item8
+# specify the full model
+saModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10
 Ability ~ Outcome
-FakeAbility ~ 0*Outcome",
-data = saData,
-ordered = paste0("Item", 1:8))
+"
+lavaan.model.specs = list(model.type = "cfa",
+  auto.var = TRUE, estimator = "default", ordered = paste0("Item", 1:10), int.ov.free = TRUE,
+  int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single =
+  TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
+  TRUE)
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = colnames(saData), maxChanges = 3, progressBar = F)
-##  
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progressBar = F)
+##  Initializing short form creation.
+##  The initial short form is:
+##   Ability =~ Item3 + Item4 + Item5 + Item7 + Item2
+##  Ability ~ Outcome
+##  Using the short form randomNeighbor function.
+##  Finished initializing short form options.
 ##   Current Progress:
- Current Step = 0 of a maximum 200.  
- Current Step = 1 of a maximum 200.  
- Current Step = 2 of a maximum 200.  
- Current Step = 3 of a maximum 200.  
- Current Step = 4 of a maximum 200.  
- Current Step = 5 of a maximum 200.  
- Current Step = 6 of a maximum 200.  
- Current Step = 7 of a maximum 200.  
- Current Step = 8 of a maximum 200.  
- Current Step = 9 of a maximum 200.  
- Current Step = 10 of a maximum 200.  
- Current Step = 11 of a maximum 200.  
- Current Step = 12 of a maximum 200.  
- Current Step = 13 of a maximum 200.  
- Current Step = 14 of a maximum 200.  
- Current Step = 15 of a maximum 200.  
- Current Step = 16 of a maximum 200.  
- Current Step = 17 of a maximum 200.  
- Current Step = 18 of a maximum 200.  
- Current Step = 19 of a maximum 200.  
- Current Step = 20 of a maximum 200.  
- Current Step = 21 of a maximum 200.  
- Current Step = 22 of a maximum 200.  
- Current Step = 23 of a maximum 200.  
- Current Step = 24 of a maximum 200.  
- Current Step = 25 of a maximum 200.  
- Current Step = 26 of a maximum 200.  
- Current Step = 27 of a maximum 200.  
- Current Step = 28 of a maximum 200.  
- Current Step = 29 of a maximum 200.  
- Current Step = 30 of a maximum 200.  
- Current Step = 31 of a maximum 200.  
- Current Step = 32 of a maximum 200.  
- Current Step = 33 of a maximum 200.  
- Current Step = 34 of a maximum 200.  
- Current Step = 35 of a maximum 200.  
- Current Step = 36 of a maximum 200.  
- Current Step = 37 of a maximum 200.  
- Current Step = 38 of a maximum 200.  
- Current Step = 39 of a maximum 200.  
- Current Step = 40 of a maximum 200.  
- Current Step = 41 of a maximum 200.  
- Current Step = 42 of a maximum 200.  
- Current Step = 43 of a maximum 200.  
- Current Step = 44 of a maximum 200.  
- Current Step = 45 of a maximum 200.  
- Current Step = 46 of a maximum 200.  
- Current Step = 47 of a maximum 200.  
- Current Step = 48 of a maximum 200.  
- Current Step = 49 of a maximum 200.  
- Current Step = 50 of a maximum 200.  
- Current Step = 51 of a maximum 200.  
- Current Step = 52 of a maximum 200.  
- Current Step = 53 of a maximum 200.  
- Current Step = 54 of a maximum 200.  
- Current Step = 55 of a maximum 200.  
- Current Step = 56 of a maximum 200.  
- Current Step = 57 of a maximum 200.  
- Current Step = 58 of a maximum 200.  
- Current Step = 59 of a maximum 200.  
- Current Step = 60 of a maximum 200.  
- Current Step = 61 of a maximum 200.  
- Current Step = 62 of a maximum 200.  
- Current Step = 63 of a maximum 200.  
- Current Step = 64 of a maximum 200.  
- Current Step = 65 of a maximum 200.  
- Current Step = 66 of a maximum 200.  
- Current Step = 67 of a maximum 200.  
- Current Step = 68 of a maximum 200.  
- Current Step = 69 of a maximum 200.  
- Current Step = 70 of a maximum 200.  
- Current Step = 71 of a maximum 200.  
- Current Step = 72 of a maximum 200.  
- Current Step = 73 of a maximum 200.  
- Current Step = 74 of a maximum 200.  
- Current Step = 75 of a maximum 200.  
- Current Step = 76 of a maximum 200.  
- Current Step = 77 of a maximum 200.  
- Current Step = 78 of a maximum 200.  
- Current Step = 79 of a maximum 200.  
- Current Step = 80 of a maximum 200.  
- Current Step = 81 of a maximum 200.  
- Current Step = 82 of a maximum 200.  
- Current Step = 83 of a maximum 200.  
- Current Step = 84 of a maximum 200.  
- Current Step = 85 of a maximum 200.  
- Current Step = 86 of a maximum 200.  
- Current Step = 87 of a maximum 200.  
- Current Step = 88 of a maximum 200.  
- Current Step = 89 of a maximum 200.  
- Current Step = 90 of a maximum 200.  
- Current Step = 91 of a maximum 200.  
- Current Step = 92 of a maximum 200.  
- Current Step = 93 of a maximum 200.  
- Current Step = 94 of a maximum 200.  
- Current Step = 95 of a maximum 200.  
- Current Step = 96 of a maximum 200.  
- Current Step = 97 of a maximum 200.  
- Current Step = 98 of a maximum 200.  
- Current Step = 99 of a maximum 200.  
- Current Step = 100 of a maximum 200.  
- Current Step = 101 of a maximum 200.  
- Current Step = 102 of a maximum 200.  
- Current Step = 103 of a maximum 200.  
- Current Step = 104 of a maximum 200.  
- Current Step = 105 of a maximum 200.  
- Current Step = 106 of a maximum 200.  
- Current Step = 107 of a maximum 200.  
- Current Step = 108 of a maximum 200.  
- Current Step = 109 of a maximum 200.  
- Current Step = 110 of a maximum 200.  
- Current Step = 111 of a maximum 200.  
- Current Step = 112 of a maximum 200.  
- Current Step = 113 of a maximum 200.  
- Current Step = 114 of a maximum 200.  
- Current Step = 115 of a maximum 200.  
- Current Step = 116 of a maximum 200.  
- Current Step = 117 of a maximum 200.  
- Current Step = 118 of a maximum 200.  
- Current Step = 119 of a maximum 200.  
- Current Step = 120 of a maximum 200.  
- Current Step = 121 of a maximum 200.  
- Current Step = 122 of a maximum 200.  
- Current Step = 123 of a maximum 200.  
- Current Step = 124 of a maximum 200.  
- Current Step = 125 of a maximum 200.  
- Current Step = 126 of a maximum 200.  
- Current Step = 127 of a maximum 200.  
- Current Step = 128 of a maximum 200.  
- Current Step = 129 of a maximum 200.  
- Current Step = 130 of a maximum 200.  
- Current Step = 131 of a maximum 200.  
- Current Step = 132 of a maximum 200.  
- Current Step = 133 of a maximum 200.  
- Current Step = 134 of a maximum 200.  
- Current Step = 135 of a maximum 200.  
- Current Step = 136 of a maximum 200.  
- Current Step = 137 of a maximum 200.  
- Current Step = 138 of a maximum 200.  
- Current Step = 139 of a maximum 200.  
- Current Step = 140 of a maximum 200.  
- Current Step = 141 of a maximum 200.  
- Current Step = 142 of a maximum 200.  
- Current Step = 143 of a maximum 200.  
- Current Step = 144 of a maximum 200.  
- Current Step = 145 of a maximum 200.  
- Current Step = 146 of a maximum 200.  
- Current Step = 147 of a maximum 200.  
- Current Step = 148 of a maximum 200.  
- Current Step = 149 of a maximum 200.  
- Current Step = 150 of a maximum 200.  
- Current Step = 151 of a maximum 200.  
- Current Step = 152 of a maximum 200.  
- Current Step = 153 of a maximum 200.  
- Current Step = 154 of a maximum 200.  
- Current Step = 155 of a maximum 200.  
- Current Step = 156 of a maximum 200.  
- Current Step = 157 of a maximum 200.  
- Current Step = 158 of a maximum 200.  
- Current Step = 159 of a maximum 200.  
- Current Step = 160 of a maximum 200.  
- Current Step = 161 of a maximum 200.  
- Current Step = 162 of a maximum 200.  
- Current Step = 163 of a maximum 200.  
- Current Step = 164 of a maximum 200.  
- Current Step = 165 of a maximum 200.  
- Current Step = 166 of a maximum 200.  
- Current Step = 167 of a maximum 200.  
- Current Step = 168 of a maximum 200.  
- Current Step = 169 of a maximum 200.  
- Current Step = 170 of a maximum 200.  
- Current Step = 171 of a maximum 200.  
- Current Step = 172 of a maximum 200.  
- Current Step = 173 of a maximum 200.  
- Current Step = 174 of a maximum 200.  
- Current Step = 175 of a maximum 200.  
- Current Step = 176 of a maximum 200.  
- Current Step = 177 of a maximum 200.  
- Current Step = 178 of a maximum 200.  
- Current Step = 179 of a maximum 200.  
- Current Step = 180 of a maximum 200.  
- Current Step = 181 of a maximum 200.  
- Current Step = 182 of a maximum 200.  
- Current Step = 183 of a maximum 200.  
- Current Step = 184 of a maximum 200.  
- Current Step = 185 of a maximum 200.  
- Current Step = 186 of a maximum 200.  
- Current Step = 187 of a maximum 200.  
- Current Step = 188 of a maximum 200.  
- Current Step = 189 of a maximum 200.  
- Current Step = 190 of a maximum 200.  
- Current Step = 191 of a maximum 200.  
- Current Step = 192 of a maximum 200.  
- Current Step = 193 of a maximum 200.  
- Current Step = 194 of a maximum 200.  
- Current Step = 195 of a maximum 200.  
- Current Step = 196 of a maximum 200.  
- Current Step = 197 of a maximum 200.  
- Current Step = 198 of a maximum 200.  
- Current Step = 199 of a maximum 200.
 plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at each step
 ```
 
 ![](README-Simulated%20Annealing%20example-1.png)
 
-It took a total of 5.03 minutes to run the SA example, and a total of 13.27 minutes to run all three together.
+It took a total of 27.08 minutes to run the SA example, and a total of 10.19 minutes to run all three together.
