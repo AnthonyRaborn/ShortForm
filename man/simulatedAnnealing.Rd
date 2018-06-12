@@ -12,7 +12,7 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
   TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
   TRUE), maxChanges = 5, restartCriteria = "consecutive",
   maximumConsecutive = 25, maxItems = NULL, items = NULL,
-  bifactor = FALSE, progress = TRUE, ...)
+  bifactor = FALSE, progress = "bar", ...)
 }
 \arguments{
 \item{initialModel}{The initial model as a character vector with lavaan model.syntax.}

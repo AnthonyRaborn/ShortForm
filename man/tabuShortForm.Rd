@@ -24,7 +24,7 @@ tabuShortForm(initialModel, originalData, numItems, allItems,
 
 \item{criterion}{A function calculating the objective criterion to minimize. Default is to use the built-in `rmsea` value from `lavaan::fitmeasures()`.}
 
-\item{niter}{A numeric value indicating the number of iterations (model specification selections) 
+\item{niter}{A numeric value indicating the number of iterations (model specification selections)
 to perform. Default is 50.}
 
 \item{tabu.size}{A numeric value indicating the size of Tabu list. Default is 5.}
