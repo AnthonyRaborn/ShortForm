@@ -48,7 +48,7 @@
 #'
 #' trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
 #' originalData = simulated_test_data,
-#' maxSteps = 5, maxItems = 30, items = paste0("Item", 1:56))
+#' maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56))
 #' # lavaan::summary(trial2[[1]]) # shows the resulting model
 #' @import lavaan utils
 #' @export

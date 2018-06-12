@@ -94,7 +94,7 @@ abilityShortForm[[1]] # print the results of the final short form
 ##  [1,]      1      1
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.93 minutes to run this example.
+A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.9 minutes to run this example.
 
 ### Tabu Search Algorithm
 
@@ -255,7 +255,7 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 3.91 minutes to run this example.
+It took a total of 3.87 minutes to run this example.
 
 ### Simulated Annealing
 
@@ -294,4 +294,4 @@ plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at 
 
 ![](README-Simulated%20Annealing%20example-1.png)
 
-It took a total of 29.21 minutes to run the SA example, and a total of 10.33 minutes to run all three together.
+It took a total of 27.86 minutes to run the SA example, and a total of 10.23 minutes to run all three together.
