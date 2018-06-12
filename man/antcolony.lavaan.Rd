@@ -104,12 +104,15 @@ ants, counts, and current run for each attempt as well as printing
 information for runs that do converge successfully. Default is \code{FALSE}.}
 }
 \value{
-A list with two elements, the first containing a named matrix with
+A list with three elements: the first containing a named matrix with
  final model's best fit indices, the final pheromone level (either the mean
  of the standardized regression coefficients (gammas), or the mean variance
  explained), and a series of 0/1 values indicating the items selected in the
- final solution, and the second element containing a matrix of the final
- pheromone level of each item and its rank within its factor.
+ final solution,  the second element containing tbe summary matrix of the 
+ best fit statistic value(s) for each run, the items chosen for said best fit, 
+ the mean gamma and variance explained for the best fit, and the item pheromone 
+ levels after each run, and the third containing the best-fitting lavaan model
+ object.
 }
 \description{
 The Ant Colony Optimization (ACO) algorithm (Dorigo & Stutzle,

@@ -131,12 +131,16 @@
 #'  ants, counts, and current run for each attempt as well as printing
 #'  \code{"Failed iteration!"} for runs that do not converge and the model fit
 #'  information for runs that do converge successfully. Default is \code{FALSE}.
-#'@return A list with two elements, the first containing a named matrix with
+#'@return A list with three elements: the first containing a named matrix with
 #'  final model's best fit indices, the final pheromone level (either the mean
 #'  of the standardized regression coefficients (gammas), or the mean variance
 #'  explained), and a series of 0/1 values indicating the items selected in the
-#'  final solution, and the second element containing a matrix of the final
-#'  pheromone level of each item and its rank within its factor.
+#'  final solution,  the second element containing tbe summary matrix of the 
+#'  best fit statistic value(s) for each run, the items chosen for said best fit, 
+#'  the mean gamma and variance explained for the best fit, and the item pheromone 
+#'  levels after each run, and the third containing the best-fitting lavaan model
+#'  object.
+#'  
 #'@family Ant Colony Algorithms
 #'@seealso \code{\link{antcolony.mplus}}
 #' @examples
@@ -272,12 +276,12 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   #starts loop through iterations.
   while (step <= steps) {
     if (run <= max.run){
-      print(paste("Run number ", run, ".", sep = ""))
+      cat(paste("\r Run number ", run, ".           ", sep = ""))
       #sends a number of ants per time.
       ant  = 1
       while (ant <= ants) {
         if(verbose == TRUE){
-          print(paste("Step =", step, "and Ant =", ant, "and Count =", count, "and Run =", run))}
+          cat(paste("\r Step = ", step, " and Ant = ", ant, " and Count = ", count, " and Run = ", run, ".   ", sep = ""))}
         #selects items for all factors.
         all.items <- c()
         if (!is.character(bifactor)) {
@@ -300,6 +304,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           #finishes loop
         }
         } else  {
+          bifactor.items = c()
           for (factor in 1:(length(list.items)-1)) {
             
             #selects the items for a short form for the factor
@@ -310,7 +315,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             
             #stores selected items.
             selected.items[[factor]] = items
-            
+            bifactor.items = c(bifactor.items, items)
             
             #replaces the lavaan syntax for factor specification.
             factor.position = grep(paste(factors[factor],"=~"),input,ignore.case=T)
@@ -318,7 +323,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             all.items = c(all.items, items)
             #finishes loop
           }
-          input[grep(bifactor, input)] = paste(bifactor, "=~", paste(all.items, collapse = " + "))
+          input[grep(paste(bifactor, "=~"), input)] = paste(bifactor, "=~", paste(all.items, collapse = " + "))
+          selected.items[[length(list.items)]] = bifactor.items
         }
 
         selected.items = lapply(selected.items,sort)
@@ -357,7 +363,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
           pheromone = 0
           if(verbose == TRUE) {
-            print("Failed iteration!")
+            cat("Failed iteration!")
             }
           
           #writes feedback about non-convergence and non-positive definite.
@@ -374,13 +380,13 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           }
           #finishes if for non-convergent cases.
         } else {
-          
-          if (verbose==TRUE) cat(new_ant_model)
-
+          if (verbose == TRUE) {
+            cat("                  ")
+          }
           # compute fit indices, gammas, and residual variances
           # first, fit indices
           model.fit <- lavaan::fitMeasures(modelCheck$lavaan.output, fit.indices)
-          if(verbose == TRUE) {print(model.fit)}
+
           # next, gamma/variances
           # estimate the standardized coefficients of the variables
           standard.coefs <- lavaan::standardizedSolution(modelCheck$lavaan.output, se = FALSE, zstat = FALSE, pvalue = FALSE, remove.def = TRUE)
@@ -422,10 +428,10 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             pheromone = 0 } else {
               # Model fit well enough, so calculate pheromone by either gamma or variance.
               if (pheromone.calculation == "gamma") {#mean of standardized gammas
-                pheromone = round(mean(std.gammas),3)
+                pheromone = round(mean(std.gammas, na.rm = T),3)
               } else {
                 if (pheromone.calculation == "variance") { #mean of r^2 values
-                  pheromone = round(mean(variance.explained),3)
+                  pheromone = round(mean(variance.explained, na.rm = T),3)
                 }
               }
             }
@@ -473,6 +479,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         best.so.far.solution = best.solution
         best.so.far.pheromone = best.pheromone
         best.so.far.fit.indices = best.fit.indices
+        best.so.far.model = modelCheck$lavaan.output
         #re-starts count.
         count = 1
 
@@ -502,20 +509,20 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   print("Compiling results.")
   #ranks items within factor.
-  ranks = c()
-  total.i.per.f = sapply(list.items,length)
-  maximum = cumsum(total.i.per.f)
-  minimum = c(1, (cumsum(total.i.per.f)+1))
-  ratio = include
-  for (f in 1:length(total.i.per.f)) {
-    ranked.items = rank(ratio[minimum[f]:maximum[f]],ties.method = c("max"));print(ranked.items)
-    ranks = c(ranks,ranked.items)
-    names(ranks) = c("Pheromone", "Ranks")
-  }
-
-  results = cbind(round(ratio,3),ranks)
-  dimnames(results) = list(c(item.vector),c("ratio","ranks"))
-  
+  # ranks = c()
+  # total.i.per.f = sapply(list.items,length)
+  # maximum = cumsum(total.i.per.f)
+  # minimum = c(1, (cumsum(total.i.per.f)+1))
+  # ratio = include
+  # for (f in 1:length(total.i.per.f)) {
+  #   ranked.items = rank(ratio[minimum[f]:maximum[f]],ties.method = c("max"));print(ranked.items)
+  #   ranks = c(ranks,ranked.items)
+  #   names(ranks) = c("Pheromone", "Ranks")
+  # }
+  # 
+  # results = cbind(round(ratio,3),ranks)
+  # dimnames(results) = list(c(item.vector),c("ratio","ranks"))
+  # 
   summary <- data.frame(summary[-1,])
   colnames(summary) = c(item.vector, "run", "ant", "count", fit.indices, "mean.gamma", "mean.var.exp", paste0(item.vector, ".Pheromone"))
   
@@ -523,5 +530,6 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                           dimnames=list(NULL,c(names(model.fit),"mean_gamma",item.vector)))
 
   #FINISH FUNCTION.
-  return(list(final.solution, results, summary))
+  # return(list(final.solution, results, summary))
+  return(list(final.solution, summary, 'best.model' = best.so.far.model))
 }
