@@ -4,10 +4,13 @@
 \alias{antcolony_plot}
 \title{ACO Plot Function}
 \usage{
-antcolony_plot(results, ...)
+antcolony_plot(results, verbose = FALSE, ...)
 }
 \arguments{
 \item{results}{The output from `antcolony.lavaan`.}
+
+\item{verbose}{Logical. If true, prints the warnings and errors from `ggplot2`
+regarding the plots being created. Defaults to `FALSE`.}
 
 \item{...}{Other arguments to be passed to the `ggplot2` functions. Currently
 unimplemented.}

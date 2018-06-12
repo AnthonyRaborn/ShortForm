@@ -1,6 +1,8 @@
 #' ACO Plot Function
 #'
 #' @param results The output from `antcolony.lavaan`.
+#' @param verbose Logical. If true, prints the warnings and errors from `ggplot2`
+#' regarding the plots being created. Defaults to `FALSE`.
 #' @param ... Other arguments to be passed to the `ggplot2` functions. Currently
 #' unimplemented.
 #'
@@ -44,7 +46,7 @@
 #' plots[[2]]
 #'
 #'}
-antcolony_plot <- function(results, ...) {
+antcolony_plot <- function(results, verbose = FALSE, ...) {
   summary_results <- results[[2]]
   item_pheromone_names <-
     grep("Pheromone", names(summary_results), value = TRUE)
@@ -69,7 +71,7 @@ antcolony_plot <- function(results, ...) {
   ) +
     ggplot2::geom_area(linetype = 1,
                        size = .1,
-                       color = "black") +
+                       color = "black", na.rm = T) +
     ggplot2::ylab("Total Pheromone") +
     ggplot2::ggtitle("Changes in Pheromone") +
     ggplot2::theme_bw() +
@@ -85,13 +87,13 @@ antcolony_plot <- function(results, ...) {
   gamma_plot <-
     ggplot2::ggplot(summary_results,
                     ggplot2::aes_string(x = "run", y = "mean.gamma")) +
-    ggplot2::geom_smooth(fullrange = TRUE, se = FALSE) +
+    ggplot2::geom_smooth(fullrange = TRUE, se = FALSE, na.rm = T) +
     ggplot2::ylab(expression("Mean " * gamma)) +
     ggplot2::ggtitle(expression("Smoothed Changes in Mean " * gamma)) +
     ggplot2::geom_text(ggplot2::aes(label = ifelse(
       summary_results$run %in% c(1, max(summary_results$run)), 
       round(summary_results$mean.gamma, 3), ""
-    )), vjust = 0) +
+    )), vjust = 0, na.rm = T) +
     ggplot2::theme_bw() +
     ggplot2::theme(
       legend.position = "none",
@@ -105,13 +107,13 @@ antcolony_plot <- function(results, ...) {
   variance_plot <-
     ggplot2::ggplot(summary_results,
                     ggplot2::aes_string(x = "run", y = "mean.var.exp")) +
-    ggplot2::geom_smooth(fullrange = TRUE, se = FALSE) +
+    ggplot2::geom_smooth(fullrange = TRUE, se = FALSE, na.rm = T) +
     ggplot2::ylab(expression("Mean Variance Explained")) +
     ggplot2::ggtitle(expression("Smoothed Changes in Mean Variance Explained")) +
     ggplot2::geom_text(ggplot2::aes(label = ifelse(
       summary_results$run %in% c(1, max(summary_results$run)), 
       round(summary_results$mean.var.exp, 3), ""
-    )), vjust = 0) +
+    )), vjust = 0, na.rm = T) +
     ggplot2::theme_bw() +
     ggplot2::theme(
       legend.position = "none",
@@ -123,5 +125,9 @@ antcolony_plot <- function(results, ...) {
     )
   
   plots <- list(pheromone_plot, gamma_plot, variance_plot)
-  return(plots)
+  if (verbose) {
+    return(plots)
+  } else {
+  return(suppressMessages(suppressWarnings(print(plots))))
+  }
 }
