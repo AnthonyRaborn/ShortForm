@@ -81,6 +81,8 @@ tabuShortForm <-
       # save the external relationships
       vectorModel =  unlist(strsplit(x = initialModel, split = "\\n"))
       externalRelation = vectorModel[grep(" ~ ", vectorModel)]
+      factorRelation = vectorModel[grep(" ~~ ", vectorModel)]
+      
       # reduce the number of items for each factor according to maxItems
       newItemsPerFactor = list()
       for (i in 1:length(itemsPerFactor)) {
@@ -100,8 +102,8 @@ tabuShortForm <-
         newModelSyntax[i] = paste(factors[i], "=~",
                                   paste(newItemsPerFactor[[i]], collapse = " + "))
       }
-      newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
-      
+      newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
+
       # fit the new model
       newModel = modelWarningCheck(
         lavaan::lavaan(
@@ -127,7 +129,10 @@ tabuShortForm <-
       return(newModel)
     }
     
+    cat("Creating initial short form.\n")
     initialShortModel <- randomInitialModel()
+    cat("The initial short form is: \n")
+    cat(paste(initialShortModel$model.syntax, collapse = "\n"))
     best.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
     best.model <- current.model <- initialShortModel$lavaan.output
     tabu.list<-vector("numeric")
@@ -135,6 +140,7 @@ tabuShortForm <-
     factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
                                                        "=~", 'lhs'])
     externalRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
+    factorRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
     
     if (is.list(allItems)) {
       included.items <-
@@ -154,7 +160,7 @@ tabuShortForm <-
     }
     
     # Do iterations
-    print("Current Progress:")
+    cat("\n Current Progress:")
     trackIter = txtProgressBar(
       min = 0,
       max = niter + 1,
@@ -172,7 +178,7 @@ tabuShortForm <-
       
       if (is.list(allItems)) {
         excluded.items = list()
-        for (l in 1:length(included.items)) {
+        for (l in 1:length(allItems)) {
           temp.items = included.items[[l]]
           excluded.items[[l]] = allItems[[l]][which(!(allItems[[l]] %in% temp.items))]
         }
@@ -181,7 +187,53 @@ tabuShortForm <-
       }
       
       if (is.list(allItems)) {
-        
+        if (bifactor) {
+          for (f in 1:(length(factors)-1)) {
+            for (i in 1:numItems[[f]]) {
+              for (j in 1:length(excluded.items[[f]])) {
+                new.items = included.items
+                new.items[[f]][i] = excluded.items[[f]][j]
+                new.items[[length(factors)]] = unique(unlist(new.items[-length(factors)]))
+                newModelSyntax = c()
+                for (k in 1:length(factors)) {
+                  newModelSyntax[k] = paste(factors[k], "=~",
+                                            paste(new.items[[k]], collapse = " + "))
+                }
+                newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
+                newModelSyntax = paste(newModelSyntax, collapse = ' \n ')
+                fitmodel = modelWarningCheck(
+                  lavaan::lavaan(
+                    model = newModelSyntax,
+                    data = originalData,
+                    model.type = model.type,
+                    int.ov.free = int.ov.free,
+                    int.lv.free = int.lv.free,
+                    auto.fix.first = auto.fix.first,
+                    std.lv = std.lv,
+                    auto.fix.single = auto.fix.single,
+                    auto.var = auto.var,
+                    auto.cov.lv.x = auto.cov.lv.x,
+                    auto.th = auto.th,
+                    auto.delta = auto.delta,
+                    auto.cov.y = auto.cov.y,
+                    ordered = ordered,
+                    estimator = estimator
+                  )
+                )
+                
+                if (fitmodel$lavaan.output@Fit@converged &
+                    !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+                  fit.val <- criterion(fitmodel$lavaan.output)
+                } else {
+                  fit.val <- NA
+                }
+                
+                tmp.obj <- c(tmp.obj, fit.val)
+                tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
+                tmp.syntax <- c(tmp.syntax, newModelSyntax)
+                
+              }}}
+        } else {
         for (f in 1:length(factors)) {
           for (i in 1:numItems[[f]]) {
             for (j in 1:length(excluded.items[[f]])) {
@@ -192,8 +244,8 @@ tabuShortForm <-
                 newModelSyntax[k] = paste(factors[k], "=~",
                                           paste(new.items[[k]], collapse = " + "))
               }
-              newModelSyntax = stringr::str_flatten(newModelSyntax, " \n ")
-              newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
+              newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
+              newModelSyntax = paste(newModelSyntax, collapse = ' \n ')
               fitmodel = modelWarningCheck(
                 lavaan::lavaan(
                   model = newModelSyntax,
@@ -226,7 +278,7 @@ tabuShortForm <-
               tmp.syntax <- c(tmp.syntax, newModelSyntax)
               
             }}}
-        
+        }
         
         
       } else {
@@ -236,7 +288,8 @@ tabuShortForm <-
             new.items[i] = excluded.items[e]
             newModelSyntax = paste(factors, "=~",
                                    paste(new.items, collapse = " + "))
-            newModelSyntax = paste(newModelSyntax, "\n", externalRelation)
+            newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
+            newModelSyntax = paste(newModelSyntax, collapse = ' \n ')
             fitmodel = modelWarningCheck(
               lavaan::lavaan(
                 model = newModelSyntax,
@@ -284,8 +337,8 @@ tabuShortForm <-
       
       # Move current state to next model
       current.obj <- (tmp.obj[valid])[indx]
-      current.mod <- (tmp.mod[valid])[[indx]]
-      current.syntax <- (tmp.syntax[valid])[[indx]]
+      current.mod <- (tmp.mod[valid])[indx]
+      current.syntax <- unlist((tmp.syntax[valid])[indx])
       # current.binvec<-(tmp.vec[valid])[[indx]]
       
       # Update Tabu list
