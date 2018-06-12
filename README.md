@@ -1,22 +1,13 @@
 
-# ShortForm
+ShortForm
+=========
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm)
-[![Travis-CI Build
-Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm)
-[![CRAN Downloads Per
-Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm)
-[![CRAN Downloads
-Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm) [![Travis-CI Build Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm) [![CRAN Downloads Per Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm) [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
 
-Automatic Short Form Creation for scales. Currently, the Ant Colony
-Optimization (ACO) Algorithm and the Tabu search are implemented. The
-original R implementation for the ACO algorithm is from Leite, Huang, &
-Marcoulides (2008) <doi:10.1080/00273170802285743>, while the Tabu
-search function was taken from Marcoulides & Falk (2018)
-<doi:10.1080/10705511.2017.1409074>.
+Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from Leite, Huang, & Marcoulides (2008) <doi:10.1080/00273170802285743>, while the Tabu search function was taken from Marcoulides & Falk (2018) <doi:10.1080/10705511.2017.1409074>.
 
-## Installation
+Installation
+------------
 
 ``` r
 # install.packages("devtools")
@@ -24,13 +15,10 @@ devtools::install_github("AnthonyRaborn/ShortForm") # the developmental version
 install.packages("ShortForm") # the CRAN-approved version
 ```
 
-## Usage
+Usage
+-----
 
-Here are some (slightly modified) examples from the help documentation
-using lavaan. Be warned, the algorithms may take some time to converge,
-particularly with large forms, multiple dimensions, and different
-settings. The time for these examples to converge on a low-end laptop is
-printed at the bottom.
+Here are some (slightly modified) examples from the help documentation using lavaan. Be warned, the algorithms may take some time to converge, particularly with large forms, multiple dimensions, and different settings. The time for these examples to converge on a low-end laptop is printed at the bottom.
 
 ### ACO Algorithm
 
@@ -71,34 +59,31 @@ fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
 max.run = 50, verbose = FALSE)
-##  [1] "Run number 1."
-##  [1] "Run number 2."
-##  [1] "Run number 3."
-##  [1] "Run number 4."
-##  [1] "Run number 5."
-##  [1] "Run number 6."
-##  [1] "Run number 7."
-##  [1] "Run number 8."
-##  [1] "Run number 9."
-##  [1] "Run number 10."
-##  [1] "Run number 11."
-##  [1] "Run number 12."
-##  [1] "Run number 13."
-##  [1] "Run number 14."
-##  [1] "Run number 15."
-##  [1] "Run number 16."
-##  [1] "Run number 17."
-##  [1] "Run number 18."
-##  [1] "Run number 19."
-##  [1] "Run number 20."
-##  [1] "Run number 21."
-##  [1] "Run number 22."
-##  [1] "Run number 23."
-##  [1] "Compiling results."
-##   [1] 11 30 11 11 30 18 11 19 24 21 11 11 15 15 15 27 18 24 27 11 20 11 11
-##  [24] 18 11 27 11 15 24 30
-abilityShortForm # print the results of the final short form
-##  [[1]]
+##  
+ Run number 1.           
+ Run number 2.           
+ Run number 3.           
+ Run number 4.           
+ Run number 5.           
+ Run number 6.           
+ Run number 7.           
+ Run number 8.           
+ Run number 9.           
+ Run number 10.           
+ Run number 11.           
+ Run number 12.           
+ Run number 13.           
+ Run number 14.           
+ Run number 15.           
+ Run number 16.           
+ Run number 17.           
+ Run number 18.           
+ Run number 19.           
+ Run number 20.           
+ Run number 21.           
+ Run number 22.           
+ Run number 23.           [1] "Compiling results."
+abilityShortForm[[1]] # print the results of the final short form
 ##       cfi rmsea mean_gamma Item1 Item2 Item3 Item4 Item5 Item6 Item7 Item8
 ##  [1,]   1     0      0.613     0     1     0     0     1     0     0     0
 ##       Item9 Item10 Item11 Item12 Item13 Item14 Item15 Item16 Item17 Item18
@@ -107,44 +92,9 @@ abilityShortForm # print the results of the final short form
 ##  [1,]      1      0      0      0      0      0      0      1      0      0
 ##       Item29 Item30
 ##  [1,]      1      1
-##  
-##  [[2]]
-##         ratio ranks
-##  Item1  0.001    11
-##  Item2  2.042    30
-##  Item3  0.001    11
-##  Item4  0.001    11
-##  Item5  2.042    30
-##  Item6  0.006    18
-##  Item7  0.001    11
-##  Item8  0.023    19
-##  Item9  2.036    24
-##  Item10 1.986    21
-##  Item11 0.001    11
-##  Item12 0.001    11
-##  Item13 0.001    15
-##  Item14 0.001    15
-##  Item15 0.001    15
-##  Item16 2.042    27
-##  Item17 0.006    18
-##  Item18 2.036    24
-##  Item19 2.042    27
-##  Item20 0.001    11
-##  Item21 0.034    20
-##  Item22 0.001    11
-##  Item23 0.001    11
-##  Item24 0.006    18
-##  Item25 0.001    11
-##  Item26 2.042    27
-##  Item27 0.001    11
-##  Item28 0.001    15
-##  Item29 2.036    24
-##  Item30 2.042    30
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but
-requires you to have a valid Mplus installation on the computer. It took
-a total of 6.3 minutes to run this example.
+A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.39 minutes to run this example.
 
 ### Tabu Search Algorithm
 
@@ -200,18 +150,19 @@ Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, 
 
 # check the final model
 lavaan::summary(Tabu_example$best.mod)
-##  lavaan (0.5-23.1097) converged normally after  51 iterations
+##  lavaan (0.6-1) converged normally after  51 iterations
 ##  
 ##    Number of observations                          1000
 ##  
 ##    Estimator                                         ML
-##    Minimum Function Test Statistic               20.483
+##    Model Fit Test Statistic                      20.483
 ##    Degrees of freedom                                24
 ##    P-value (Chi-square)                           0.669
 ##  
 ##  Parameter Estimates:
 ##  
 ##    Information                                 Expected
+##    Information saturated (h1) model          Structured
 ##    Standard Errors                             Standard
 ##  
 ##  Latent Variables:
@@ -301,5 +252,134 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 5.18 minutes to run this example, and a total of
-11.48 minutes to run both together.
+It took a total of 4.21 minutes to run this example.
+
+### Simulated Annealing
+
+``` r
+start.time.SA <- Sys.time()
+library(ShortForm)
+# load simulation data and select columns used in this example
+data(simulated_test_data) 
+saData <- simulated_test_data[,c(1:10)]
+
+# specify an improper model (improper because the data is actually unidimensional)
+saModel <- lavaan::cfa(model = "
+Ability =~ Item1 + Item2 + Item3 + Item4
+FakeAbility =~ Item5 + Item6 + Item7 + Item8
+Ability ~ Outcome
+FakeAbility ~ 0*Outcome",
+data = saData,
+ordered = paste0("Item", 1:8))
+
+# perform the SA algorithm
+set.seed(1)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 100, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = colnames(saData), maxChanges = 3, progressBar = F)
+##  
+##   Current Progress:
+ Current Step = 0 of a maximum 100.  
+ Current Step = 1 of a maximum 100.  
+ Current Step = 2 of a maximum 100.  
+ Current Step = 3 of a maximum 100.  
+ Current Step = 4 of a maximum 100.  
+ Current Step = 5 of a maximum 100.  
+ Current Step = 6 of a maximum 100.  
+ Current Step = 7 of a maximum 100.  
+ Current Step = 8 of a maximum 100.  
+ Current Step = 9 of a maximum 100.  
+ Current Step = 10 of a maximum 100.  
+ Current Step = 11 of a maximum 100.  
+ Current Step = 12 of a maximum 100.  
+ Current Step = 13 of a maximum 100.  
+ Current Step = 14 of a maximum 100.  
+ Current Step = 15 of a maximum 100.  
+ Current Step = 16 of a maximum 100.  
+ Current Step = 17 of a maximum 100.  
+ Current Step = 18 of a maximum 100.  
+ Current Step = 19 of a maximum 100.  
+ Current Step = 20 of a maximum 100.  
+ Current Step = 21 of a maximum 100.  
+ Current Step = 22 of a maximum 100.  
+ Current Step = 23 of a maximum 100.  
+ Current Step = 24 of a maximum 100.  
+ Current Step = 25 of a maximum 100.  
+ Current Step = 26 of a maximum 100.  
+ Current Step = 27 of a maximum 100.  
+ Current Step = 28 of a maximum 100.  
+ Current Step = 29 of a maximum 100.  
+ Current Step = 30 of a maximum 100.  
+ Current Step = 31 of a maximum 100.  
+ Current Step = 32 of a maximum 100.  
+ Current Step = 33 of a maximum 100.  
+ Current Step = 34 of a maximum 100.  
+ Current Step = 35 of a maximum 100.  
+ Current Step = 36 of a maximum 100.  
+ Current Step = 37 of a maximum 100.  
+ Current Step = 38 of a maximum 100.  
+ Current Step = 39 of a maximum 100.  
+ Current Step = 40 of a maximum 100.  
+ Current Step = 41 of a maximum 100.  
+ Current Step = 42 of a maximum 100.  
+ Current Step = 43 of a maximum 100.  
+ Current Step = 44 of a maximum 100.  
+ Current Step = 45 of a maximum 100.  
+ Current Step = 46 of a maximum 100.  
+ Current Step = 47 of a maximum 100.  
+ Current Step = 48 of a maximum 100.  
+ Current Step = 49 of a maximum 100.  
+ Current Step = 50 of a maximum 100.  
+ Current Step = 51 of a maximum 100.  
+ Current Step = 52 of a maximum 100.  
+ Current Step = 53 of a maximum 100.  
+ Current Step = 54 of a maximum 100.  
+ Current Step = 55 of a maximum 100.  
+ Current Step = 56 of a maximum 100.  
+ Current Step = 57 of a maximum 100.  
+ Current Step = 58 of a maximum 100.  
+ Current Step = 59 of a maximum 100.  
+ Current Step = 60 of a maximum 100.  
+ Current Step = 61 of a maximum 100.  
+ Current Step = 62 of a maximum 100.  
+ Current Step = 63 of a maximum 100.  
+ Current Step = 64 of a maximum 100.  
+ Current Step = 65 of a maximum 100.  
+ Current Step = 66 of a maximum 100.  
+ Current Step = 67 of a maximum 100.  
+ Current Step = 68 of a maximum 100.  
+ Current Step = 69 of a maximum 100.  
+ Current Step = 70 of a maximum 100.  
+ Current Step = 71 of a maximum 100.  
+ Current Step = 72 of a maximum 100.  
+ Current Step = 73 of a maximum 100.  
+ Current Step = 74 of a maximum 100.  
+ Current Step = 75 of a maximum 100.  
+ Current Step = 76 of a maximum 100.  
+ Current Step = 77 of a maximum 100.  
+ Current Step = 78 of a maximum 100.  
+ Current Step = 79 of a maximum 100.  
+ Current Step = 80 of a maximum 100.  
+ Current Step = 81 of a maximum 100.  
+ Current Step = 82 of a maximum 100.  
+ Current Step = 83 of a maximum 100.  
+ Current Step = 84 of a maximum 100.  
+ Current Step = 85 of a maximum 100.  
+ Current Step = 86 of a maximum 100.  
+ Current Step = 87 of a maximum 100.  
+ Current Step = 88 of a maximum 100.  
+ Current Step = 89 of a maximum 100.  
+ Current Step = 90 of a maximum 100.  
+ Current Step = 91 of a maximum 100.  
+ Current Step = 92 of a maximum 100.  
+ Current Step = 93 of a maximum 100.  
+ Current Step = 94 of a maximum 100.  
+ Current Step = 95 of a maximum 100.  
+ Current Step = 96 of a maximum 100.  
+ Current Step = 97 of a maximum 100.  
+ Current Step = 98 of a maximum 100.  
+ Current Step = 99 of a maximum 100.
+plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at each step
+```
+
+![](README-Simulated%20Annealing%20example-1.png)
+
+It took a total of 3.25 minutes, and a total of 12.85 minutes to run all three together.
