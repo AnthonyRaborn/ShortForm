@@ -503,7 +503,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       run = run + 1
     }
     if(run == max.run) {
-      stop("Max runs reached! Problems converging onto a solution.")
+      warning("Max runs reached! Problems converging onto a solution.")
     }
   }
 
