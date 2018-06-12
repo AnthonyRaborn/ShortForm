@@ -109,12 +109,24 @@ simulatedAnnealing <-
     
     if (!is.null(maxItems)) {
       # if using the short form option
-      print("Initializing short form creation.")
+      cat("Initializing short form creation.")
       mapply(assign, x = 'allItems', value = list(items), USE.NAMES = FALSE, SIMPLIFY = FALSE, MoreArgs = list(envir = parent.frame()))
-      randomInitialModel = function(initialModelSyntax, maxItems, initialData, bifactorModel = bifactor) {
-        
+      randomInitialModel = function(init.model = initialModel,
+                                    maxItems = numItems,
+                                    initialData = originalData,
+                                    bifactorModel = bifactor) {
         # extract the latent factor syntax
-        mapply(assign, c("factors", "itemsPerFactor"), syntaxExtraction(initialModelSyntaxFile = initialModelSyntax), MoreArgs = list(envir = parent.frame()))
+        mapply(
+          assign,
+          c("factors", "itemsPerFactor"),
+          syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
+          MoreArgs = list(envir = parent.frame())
+        )
+        
+        # save the external relationships
+        vectorModel =  unlist(strsplit(x = initialModel, split = "\\n"))
+        externalRelation = vectorModel[grep(" ~ ", vectorModel)]
+        factorRelation = vectorModel[grep(" ~~ ", vectorModel)]
         
         # reduce the number of items for each factor according to maxItems
         newItemsPerFactor = list()
@@ -122,7 +134,7 @@ simulatedAnnealing <-
           newItemsPerFactor[[i]] = sample(x = unique(unlist(itemsPerFactor[i])), size = unlist(maxItems[i]))
         }
         
-        if (bifactorModel == TRUE){
+        if (bifactorModel == TRUE) {
           # if bifactorModel == TRUE, fix the items so the newItems all load on the bifactor
           # assumes that the bifactor latent variable is the last one
           newItemsPerFactor[[length(itemsPerFactor)]] = unlist(newItemsPerFactor[1:(length(itemsPerFactor) - 1)])
@@ -135,24 +147,27 @@ simulatedAnnealing <-
           newModelSyntax[i] = paste(factors[i], "=~",
                                     paste(newItemsPerFactor[[i]], collapse = " + "))
         }
-        
+        newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
         
         # fit the new model
         newModel = modelWarningCheck(
           lavaan::lavaan(
-            model = newModelSyntax, data = initialData,
+            model = newModelSyntax,
+            data = initialData,
             model.type = model.type,
-            auto.var = auto.var,
-            ordered = ordered,
-            estimator = estimator,
             int.ov.free = int.ov.free,
             int.lv.free = int.lv.free,
             auto.fix.first = auto.fix.first,
+            std.lv = std.lv,
             auto.fix.single = auto.fix.single,
+            auto.var = auto.var,
             auto.cov.lv.x = auto.cov.lv.x,
             auto.th = auto.th,
             auto.delta = auto.delta,
-            auto.cov.y = auto.cov.y)
+            auto.cov.y = auto.cov.y,
+            ordered = ordered,
+            estimator = estimator,
+          )
         )
         newModel$model.syntax = newModelSyntax
         
@@ -162,7 +177,7 @@ simulatedAnnealing <-
                                         maxItems,
                                         initialData = originalData,
                                         bifactorModel = bifactor)
-      print(paste("The initial short form is this:", currentModel$model.syntax))
+      cat(paste("\nThe initial short form is:\n", paste(currentModel$model.syntax, collapse = "\n")))
       bestFit = tryCatch(
         lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic),
         error = function(e, checkMaximize = maximize) {
@@ -181,7 +196,7 @@ simulatedAnnealing <-
           )
       }
       
-      print("Using the short form randomNeighbor function.")
+      cat("\nUsing the short form randomNeighbor function.")
       randomNeighbor <- function(currentModelObject = currentModel, numChanges = numChanges, allItems, data, bifactor = FALSE, initialModelSyntax) {
         
         # take the model syntax from the currentModelObject
@@ -274,7 +289,7 @@ simulatedAnnealing <-
         return(randomNeighborModel)
         
       }
-       print("Finished initializing short form options.")
+       cat("\nFinished initializing short form options.")
     } else {
       # if not using the short form option
       bestFit = tryCatch(
@@ -399,7 +414,7 @@ simulatedAnnealing <-
     
     #### perform algorithm ####
     
-    print("Current Progress:")
+    cat("\n Current Progress:")
     trackStep = txtProgressBar(
       min = 0,
       max = maxSteps - 1,
