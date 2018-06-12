@@ -4,10 +4,22 @@
 * The Simulated Annealing (SA) algorithm has been added to the package, with a single user-facing function `simulatedAnnealing()`. 
 * SA can be used on anything lavaan can run, though the current implementation focuses on traditional confirmatory models using `lavaan::cfa()`. However, there are plans for more user control in the modelling process to allow for other model defaults.
 
+## New functionality: Tabu Search (Short Form)
+* An adaptation of the Tabu search to short form creation has been added.
+
 ## New functionality: ACO Plots
 
 * The `antcolony_lavaan()` function has been modified so that it no longer will print a `summaryfile.txt`. Rather, the function maintains the old summary file as an internal object and returns it after completion,
 * The new function `antcolony_plot()` takes the results from `antcolony_lavaan()` and creates three graphs: (a) a plot showing how pheremone levels change as the algorithm progresses, (b) a plot showing how the mean value of the regression coefficients changes as the algorithm progresses, and (c) a plot showing how the mean variance explained changes as the algorithm progresses.
+
+## New functionality: Bifactor Models
+
+* Each of the short form functions utilizing lavaan (`antcolony.lavaan()`, `simulatedAnnealing()`, `tabuShortForm()`) are capable of handling bifactor models.
+* In theory, this means relatively arbitrary models can be specified as well, but the functions utilize the "~" and "~~" operators for the additional functionality as well as the `bifactor` logical option. No guarantee that an arbitrary model will work beyond those currently tested.
+
+### Minor revisions
+
+* The lavaan-based functions all have more controlled output to the R console. This is most noticeable with the `antcolony.lavaan()` function.
 
 # Package v0.4.0
 ## New functionality: Tabu Search
