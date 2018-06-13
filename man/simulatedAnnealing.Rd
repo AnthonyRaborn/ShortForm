@@ -72,6 +72,7 @@ bestGoal - the best value of the goal function achieved so far
 restartCriteria - if allowed, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
 }
 \examples{
+\dontrun{
 data(exampleAntModel)
 data(simulated_test_data)
 trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
@@ -84,4 +85,5 @@ trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
 originalData = simulated_test_data,
 maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56))
 # lavaan::summary(trial2[[1]]) # shows the resulting model
+}
 }
