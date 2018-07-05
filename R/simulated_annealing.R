@@ -544,6 +544,7 @@ simulatedAnnealing <-
     return(list(
       bestModel = bestModel,
       bestFit = bestFit,
-      allFit = allFit
+      allFit = allFit,
+      bestSyntax = currentModel$model.syntax
     ))
   }
