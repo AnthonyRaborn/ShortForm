@@ -102,7 +102,18 @@ checkModels <-
     if (is.null(currentModel)) {
       return(bestModel)
     }
-    currentFit = lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic)
+    currentFit = tryCatch(
+      lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic),
+      error = function(e, checkMaximize = maximize) {
+        if (length(e) > 0) {
+          if (checkMaximize == TRUE) {
+            return(0)
+          } else {
+            return(Inf)
+          }
+        }
+      }
+    )
     if (maximize == TRUE) {
       if (currentFit > bestFit) {
         bestModel = currentModel
