@@ -183,7 +183,7 @@ simulatedAnnealing <-
         
         return(newModel)
       }
-      currentModel = randomInitialModel(initialModel,
+      currentModel = bestModel = randomInitialModel(initialModel,
                                         maxItems,
                                         initialData = originalData,
                                         bifactorModel = bifactor)
@@ -447,10 +447,10 @@ simulatedAnnealing <-
       }
     
     
-    if (restartCriteria == "consecutive") {
-      restartCriteria <- consecutiveRestart
-    } else if (class(restartCriteria) == "function") {
+    if (class(restartCriteria) == "function") {
       restartCriteria = restartCriteria
+    } else if (restartCriteria == "consecutive") {
+      restartCriteria <- consecutiveRestart
     } else {
       restartCriteria = function() {
         
@@ -459,7 +459,6 @@ simulatedAnnealing <-
         "The restart criteria should to be either \"consecutive\" (the default) or a custom function. It has been set to NULL so the algorithm will not restart at all."
       )
     }
-    
     #### perform algorithm ####
     
     cat("\n Current Progress:")
@@ -538,9 +537,7 @@ simulatedAnnealing <-
       currentStep = currentStep + 1
     }
     
-    if (progress == 'bar') {
-      setTxtProgressBar(trackStep, maxSteps)
-    }
+    
     return(list(
       bestModel = bestModel,
       bestFit = bestFit,
