@@ -3,6 +3,11 @@
 
 * Create an option for an initial short form to feed into the functions as a starting point
 
+## Bugfixes:
+
+* Fixed a situation where simulatedAnnealing returns the initial model
+* Fixed simulatedAnnealing not correctly accepting a user-defined restartCriteria
+
 # Package v0.4.1
 ## New functionality: Simulated Annealing
 
