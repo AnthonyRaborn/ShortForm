@@ -1,13 +1,27 @@
 
-ShortForm
-=========
+# ShortForm
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm) [![Travis-CI Build Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm) [![CRAN Downloads Per Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm) [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm)
+[![Travis-CI Build
+Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm)
+[![CRAN Downloads Per
+Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm)
+[![CRAN Downloads
+Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
 
-Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from [Leite, Huang, & Marcoulides (2008)](doi:10.1080/00273170802285743), while the Tabu search function was taken from [Marcoulides & Falk (2018)](doi:10.1080/10705511.2017.1409074). There does not yet seem to be an application of Simulated Annealing (SA) within psychometrics, but Drezner & Marcoulides, 1999 (in *Multiple Linear Regression Viewpoints*, Volume 25(2); not available online) used SA for multiple regression model selection; this package appears to be the first to implement SA for psychometric models.
+Automatic Short Form Creation for scales. Currently, the Ant Colony
+Optimization (ACO) Algorithm and the Tabu search are implemented. The
+original R implementation for the ACO algorithm is from [Leite, Huang, &
+Marcoulides (2008)](doi:10.1080/00273170802285743), while the Tabu
+search function was taken from [Marcoulides & Falk
+(2018)](doi:10.1080/10705511.2017.1409074). There does not yet seem to
+be an application of Simulated Annealing (SA) within psychometrics, but
+Drezner & Marcoulides, 1999 (in *Multiple Linear Regression Viewpoints*,
+Volume 25(2); not available online) used SA for multiple regression
+model selection; this package appears to be the first to implement SA
+for psychometric models.
 
-Installation
-------------
+## Installation
 
 ``` r
 # install.packages("devtools")
@@ -15,10 +29,13 @@ devtools::install_github("AnthonyRaborn/ShortForm") # the developmental version
 install.packages("ShortForm") # the CRAN-approved version
 ```
 
-Usage
------
+## Usage
 
-Here are some (slightly modified) examples from the help documentation using lavaan. Be warned, the algorithms may take some time to converge, particularly with large forms, multiple dimensions, and different settings. The time for these examples to converge on a low-end laptop is printed at the bottom.
+Here are some (slightly modified) examples from the help documentation
+using lavaan. Be warned, the algorithms may take some time to converge,
+particularly with large forms, multiple dimensions, and different
+settings. The time for these examples to converge on a low-end laptop is
+printed at the bottom.
 
 ### ACO Algorithm
 
@@ -92,13 +109,31 @@ abilityShortForm[[1]] # print the results of the final short form
 ##  [1,]      1      0      0      0      0      0      0      1      0      0
 ##       Item29 Item30
 ##  [1,]      1      1
+antcolony_plot(abilityShortForm) # the plots available
+##  [[1]]
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of 5.76 minutes to run this example.
+![](README-ACO%20example-1.png)<!-- -->
+
+    ##  
+    ##  [[2]]
+
+![](README-ACO%20example-2.png)<!-- -->
+
+    ##  
+    ##  [[3]]
+
+![](README-ACO%20example-3.png)<!-- -->
+
+A similar example can be found in the `antcolony.mplus` function, but
+requires you to have a valid Mplus installation on the computer. It took
+a total of 5.6 minutes to run this example.
 
 ### Tabu Search Algorithm
 
-This example demonstrates how to use the Tabu search for model specification searches when the original model may be misspecified in some way.
+This example demonstrates how to use the Tabu search for model
+specification searches when the original model may be misspecified in
+some way.
 
 ``` r
 start.time.Tabu <- Sys.time()
@@ -153,7 +188,10 @@ Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, 
 
 # check the final model
 lavaan::summary(Tabu_example$best.mod)
-##  lavaan (0.6-1) converged normally after  51 iterations
+##  lavaan 0.6-2 ended normally after 56 iterations
+##  
+##    Optimization method                           NLMINB
+##    Number of free parameters                         20
 ##  
 ##    Number of observations                          1000
 ##  
@@ -255,11 +293,12 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 3.86 minutes to run this example.
+It took a total of 4.88 minutes to run this example.
 
 ### Simulated Annealing
 
-This example demonstrates the use of simulated annealing for creating short forms.
+This example demonstrates the use of simulated annealing for creating
+short forms.
 
 ``` r
 start.time.SA <- Sys.time()
@@ -281,7 +320,7 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 500, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
 ##  Initializing short form creation.
 ##  The initial short form is:
 ##   Ability =~ Item3 + Item4 + Item5 + Item7 + Item2
@@ -289,9 +328,15 @@ SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, 
 ##  Using the short form randomNeighbor function.
 ##  Finished initializing short form options.
 ##   Current Progress:
-plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at each step
+plot(SA_example$allFit, type = "b") # plot showing how the fit value changes at each step
 ```
 
-![](README-Simulated%20Annealing%20example-1.png)
+![](README-Simulated%20Annealing%20example-1.png)<!-- -->
 
-It took a total of 2.52 minutes to run the SA example, and a total of 12.15 minutes to run all three together.
+``` r
+SA_example$bestSyntax # the model syntax that had the best fit found by the algorithm
+##  [1] "Ability =~ Item2 + Item6 + Item4 + Item5 + Item3"
+```
+
+It took a total of 1.28 minutes to run the SA example, and a total of
+11.76 minutes to run all three together.

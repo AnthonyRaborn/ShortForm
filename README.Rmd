@@ -74,6 +74,7 @@ summaryfile = NULL,
 feedbackfile = NULL,
 max.run = 50, verbose = FALSE)
 abilityShortForm[[1]] # print the results of the final short form
+antcolony_plot(abilityShortForm) # the plots available
 ```
 
 A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run this example.
@@ -138,8 +139,9 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
-plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at each step
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 500, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+plot(SA_example$allFit, type = "b") # plot showing how the fit value changes at each step
+SA_example$bestSyntax # the model syntax that had the best fit found by the algorithm
 ```
 
 It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` minutes to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run all three together.
