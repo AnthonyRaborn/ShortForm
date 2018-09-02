@@ -12,7 +12,7 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
   TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
   TRUE), maxChanges = 5, restartCriteria = "consecutive",
   maximumConsecutive = 25, maxItems = NULL, items = NULL,
-  bifactor = FALSE, progress = TRUE, ...)
+  bifactor = FALSE, progress = "bar", ...)
 }
 \arguments{
 \item{initialModel}{The initial model as a character vector with lavaan model.syntax.}
@@ -60,18 +60,29 @@ Simulated annealing mimics the physical process of annealing metals together. [K
 \details{
 ##### Simulated Annealing Outline ####
 initialModel - the initial, full form
+
 currentModel - the model of the current step
+
 maxSteps - the number of steps (iterations)
+
 currentStep - the current step
+
 currentTemp - the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. Should be modifiable. At the least, needs a maxTemp value and values that control the shape (up to a cubic value, maybe?)
+
 randomNeighbor - a function that determines how the form is changed at each step. Probably similar to the Tabu model. Should be able to change one or more parameters
+
 goal - a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energ function
-selectionFunction - a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a U[0,1] variable to determine if accepted or not. A standard version of this is P(goal, goal', currentTemp) = [(1 if goal' better than goal), (exp(-(goal' - goal)/currentTemp) if goal' worse than goal)] (citation: Kirkpatrick et al., 1983). Allowing other functions would be ideal.
+
+selectionFunction - a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a U[0,1] variable to determine if accepted or not. A standard version of this is P(goal, goal', currentTemp) = [(1 if goal' better than goal), (exp(-(goal' - goal)/currentTemp) if goal' worse than goal)] (citation: Kirkpatrick et al., 1983). 
+
 bestModel - the model with the best value of the goal function achieved so far
+
 bestGoal - the best value of the goal function achieved so far
+
 restartCriteria - if allowed, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
 }
 \examples{
+\dontrun{
 data(exampleAntModel)
 data(simulated_test_data)
 trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
@@ -84,4 +95,5 @@ trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
 originalData = simulated_test_data,
 maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56))
 # lavaan::summary(trial2[[1]]) # shows the resulting model
+}
 }
