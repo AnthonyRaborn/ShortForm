@@ -236,7 +236,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   #creates a vector with all items. UNIQUE USED FOR CASES WHEN ITEMS CROSS-LOAD
   item.vector = unique(unlist(list.items, use.names = F))
   if (!is.null(bifactor)) {
-    item.vector[which(item.vector!=bifactor)]
+    item.vector = item.vector[which(item.vector!=bifactor)]
     }
 
   #reads the Lavaan model syntax input into the function
