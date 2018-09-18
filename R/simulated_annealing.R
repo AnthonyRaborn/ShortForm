@@ -226,7 +226,8 @@ simulatedAnnealing <-
                  allItems,
                  data,
                  bifactor = FALSE,
-                 initialModelSyntax) {
+                 initialModelSyntax,
+                 itemsPerFactor = maxItems) {
           # take the model syntax from the currentModelObject
           internalModelObject = currentModelObject$model.syntax
           
@@ -283,7 +284,7 @@ simulatedAnnealing <-
             for (j in 1:numChanges) {
               randomNeighbor.env$currentItems[[i]] =
                 gsub(
-                  pattern = paste0("\\b", changingItems[j], "\\b"),
+                  pattern = paste0(changingItems[j], "\\b"),
                   replacement = replacementItem[j],
                   x = randomNeighbor.env$currentItems[[i]]
                 )
