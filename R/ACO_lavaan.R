@@ -358,7 +358,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         # Check the above messages and set pheromone to zero under certain circumstances
         # the circumstances in question:
         bad.warnings <- c("WARNING: could not compute standard errors",
-                          "WARNING: could not compute scaled test statistic", "WARNING: covariance matrix of latent variables is not positive definite", "WARNING: model has NOT converged")
+                          "WARNING: could not compute scaled test statistic", "WARNING: covariance matrix of latent variables is not positive definite", "WARNING: model has NOT converged", "WARNING: could not invert information matrix", "WARNING: the optimizer warns that a solution has NOT been found")
         bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite","ERROR: initial model-implied matrix (Sigma) is not positive definite", "ERROR: missing observed variables in dataset")
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
           pheromone = 0
