@@ -98,9 +98,6 @@ simulatedAnnealing <-
            progress = 'bar',
            ...) {
     #### initial values ####
-    currentModel = NULL
-    bestModel = NULL
-    currentModel = bestModel = stringr::str_split(initialModel, pattern = "\n")
     currentStep = 0
     consecutive = 0
     allFit = c()
@@ -203,7 +200,7 @@ simulatedAnnealing <-
         paste(currentModel$model.syntax, collapse = "\n")
       ))
       bestFit = tryCatch(
-        lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic),
+        lavaan::fitmeasures(object = bestModel[[1]], fit.measures = fitStatistic),
         error = function(e, checkMaximize = maximize) {
           if (length(e) > 0) {
             if (checkMaximize == TRUE) {
@@ -299,7 +296,9 @@ simulatedAnnealing <-
           }
           
           # create the new model syntax
-          newModelSyntax = currentModelObject$model.syntax
+          newModelSyntax = as.vector(
+            stringr::str_split(currentModelObject$model.syntax, "\n", simplify = T)
+          )
           for (i in 1:length(randomNeighbor.env$factors)) {
             newModelSyntax[i] = paste(
               randomNeighbor.env$factors[i],
