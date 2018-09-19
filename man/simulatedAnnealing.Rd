@@ -35,7 +35,7 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
 lavaan model. The default values are the defaults for lavaan to perform a
 CFA. See \link[lavaan]{lavaan} for more details.}
 
-\item{maxChanges}{An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.}
+\item{maxChanges}{An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.}
 
 \item{restartCriteria}{Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.}
 
