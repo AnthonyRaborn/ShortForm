@@ -2,7 +2,8 @@
 #'
 #' @description Simulated annealing mimics the physical process of annealing metals together. [Kirkpatrick et al. (1983)](http://science.sciencemag.org/content/220/4598/671) introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
 #'
-#' @details ##### Simulated Annealing Outline ####
+#' @details 
+#' ##### Simulated Annealing Outline ####
 #' initialModel - the initial, full form
 #' 
 #' currentModel - the model of the current step
@@ -36,7 +37,7 @@
 #' @param lavaan.model.specs A list which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
 #'  CFA. See \link[lavaan]{lavaan} for more details.
-#' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.
+#' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.
 #' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
 #' @param maximumConsecutive A numeric value used with restartCriteria.
 #' @param maxItems When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.
@@ -99,7 +100,7 @@ simulatedAnnealing <-
     #### initial values ####
     currentModel = NULL
     bestModel = NULL
-    currentModel = bestModel = list(initialModel)
+    currentModel = bestModel = stringr::str_split(initialModel, pattern = "\n")
     currentStep = 0
     consecutive = 0
     allFit = c()
@@ -229,7 +230,7 @@ simulatedAnnealing <-
                  initialModelSyntax,
                  itemsPerFactor = maxItems) {
           # take the model syntax from the currentModelObject
-          internalModelObject = currentModelObject$model.syntax
+          internalModelObject = stringr::str_split(currentModelObject$model.syntax, pattern = "\n", simplify = T)
           
           # extract the latent factor syntax
           randomNeighbor.env <- new.env()
@@ -298,7 +299,7 @@ simulatedAnnealing <-
           }
           
           # create the new model syntax
-          newModelSyntax = c()
+          newModelSyntax = currentModelObject$model.syntax
           for (i in 1:length(randomNeighbor.env$factors)) {
             newModelSyntax[i] = paste(
               randomNeighbor.env$factors[i],
