@@ -81,6 +81,7 @@ logisticTemperature <- function(currentStep, maxSteps) {
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
   if (class(currentModel) == "list") {
+    currentSyntax <- currentModel$model.syntax
     currentModel <- currentModel[[1]]
   }
   if (is.null(currentModel)) {
@@ -89,13 +90,17 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
   currentFit = lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic)
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
-      bestModel = currentModel
+      bestModel = list()
+      bestModel$bestModel = currentModel
+      bestModel$bestSyntax = currentSyntax
     } else {
       bestModel = bestModel
     }
   } else {
     if (currentFit < bestFit) {
-      bestModel = currentModel
+      bestModel = list()
+      bestModel$bestModel = currentModel
+      bestModel$bestSyntax = currentSyntax
     } else {
       bestModel = bestModel
     }
