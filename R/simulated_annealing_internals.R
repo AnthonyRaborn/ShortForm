@@ -123,7 +123,7 @@ modelWarningCheck <- function(expr) {
 }
 
 
-syntaxExtraction = function(initialModelSyntaxFile, items = allItems) {
+syntaxExtraction = function(initialModelSyntaxFile, items) {
   
   # extract the latent factor syntax
   factors = unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op=="=~", 'lhs'])

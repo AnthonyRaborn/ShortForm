@@ -234,7 +234,7 @@ simulatedAnnealing <-
           mapply(
             assign,
             c("factors", "currentItems"),
-            syntaxExtraction(initialModelSyntaxFile = internalModelObject),
+            syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
             MoreArgs = list(envir = randomNeighbor.env)
           )
           
