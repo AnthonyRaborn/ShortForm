@@ -38,7 +38,8 @@ goal <- function(x, fitStatistic = 'cfi', maximize) {
   
   # if using lavaan and a singular fit statistic,
   if (class(x) == "lavaan" & is.character(fitStatistic) & length(fitStatistic) == 1) {
-    energy <- lavaan::fitMeasures(x, fit.measures = fitStatistic)
+    energy <- fitWarningCheck(lavaan::fitMeasures(x, fit.measures = fitStatistic),
+                            maximize)
     
     # if trying to maximize a value, return its negative
     if (maximize == TRUE) {
@@ -87,7 +88,10 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
   if (is.null(currentModel)) {
     return(bestModel)
   }
-  currentFit = lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic)
+  currentFit = fitWarningCheck(
+    lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic),
+    maximize
+    )
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
       bestModel = list()
@@ -142,4 +146,34 @@ syntaxExtraction = function(initialModelSyntaxFile, items) {
                                             pattern = paste0("(\\b", paste0(paste0(unlist(items), collapse = "\\b)|(\\b"), "\\b)"))
   )
   return(list('factors' = factors, 'itemsPerFactor' = itemsPerFactor))
+}
+
+modelWarningCheck <- function(expr) {
+  warn <- err <- c()
+  value <- withCallingHandlers(tryCatch(expr, error = function(e) {
+    err <<- append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", 
+                                                      paste(e))))
+    NULL
+  }), warning = function(w) {
+    warn <<- append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", 
+                                                        paste(w))))
+    invokeRestart("muffleWarning")
+  })
+  list(lavaan.output = value, warnings <- as.character(unlist(warn)), 
+       errors <- as.character(unlist(err)))
+}
+
+fitWarningCheck <- function(expr, maximize) {
+  value <- withCallingHandlers(tryCatch(expr, 
+                                        error = function(e) {
+    if (maximize == T) {
+      return(0)
+    } else {
+      return(Inf)
+    }
+    invokeRestart("muffleWarning")
+  }
+  )
+  )
+  return(value)
 }

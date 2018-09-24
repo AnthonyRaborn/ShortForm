@@ -510,7 +510,8 @@ simulatedAnnealing <-
           numChanges = numChanges,
           data = originalData,
           allItems = allItems,
-          bifactor
+          bifactor,
+          itemsPerFactor
         )
         
       }
