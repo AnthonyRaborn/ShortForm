@@ -46,7 +46,7 @@
 #' plots[[2]]
 #'
 #'}
-antcolony_plot <- function(results, verbose = FALSE, ...) {
+plot.antcolony <- function(results, verbose = FALSE, ...) {
   summary_results <- results[[2]]
   item_pheromone_names <-
     grep("Pheromone", names(summary_results), value = TRUE)
