@@ -537,8 +537,10 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   
   final.solution = matrix(c(best.so.far.fit.indices,best.so.far.pheromone,best.so.far.solution),1,,
                           dimnames=list(NULL,c(names(model.fit),"mean_gamma",item.vector)))
-
+  results = list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax)
+  class(results) = "antcolony"
   #FINISH FUNCTION.
   # return(list(final.solution, results, summary))
-  return(list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax))
+  
+  return(results)
 }

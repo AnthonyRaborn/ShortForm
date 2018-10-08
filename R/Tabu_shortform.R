@@ -363,6 +363,6 @@ tabuShortForm <-
     ret$best.obj <- best.obj
     ret$best.mod <- best.mod
     ret$best.syntax <- best.syntax
-    
+    class(ret) = "tabu"
     return(ret)
   }

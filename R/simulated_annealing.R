@@ -549,11 +549,12 @@ simulatedAnnealing <-
       currentStep = currentStep + 1
     }
     
-    
-    return(list(
+    results = list(
       bestModel = bestModel,
       bestFit = bestFit,
       allFit = allFit,
       bestSyntax = currentModel$model.syntax
-    ))
+    )
+    class(results) = "simulatedAnnealing"
+    return(results)
   }
