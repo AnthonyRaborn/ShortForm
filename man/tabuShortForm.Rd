@@ -7,10 +7,10 @@
 tabuShortForm(initialModel, originalData, numItems, allItems,
   criterion = function(x) lavaan::fitmeasures(object = x, fit.measures =
   "rmsea"), niter = 30, tabu.size = 5,
-  lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv =
-  TRUE, auto.fix.first = FALSE, auto.fix.single = TRUE, auto.var = TRUE,
-  auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE,
-  ordered = NULL, model.type = "cfa", estimator = "default"),
+  lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE,
+  std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single = TRUE, auto.var =
+  TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y
+  = TRUE, ordered = NULL, model.type = "cfa", estimator = "default"),
   bifactor = FALSE)
 }
 \arguments{
