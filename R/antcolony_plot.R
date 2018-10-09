@@ -3,6 +3,7 @@
 
 plot.antcolony <- function(results, verbose = FALSE, type = "all") {
   summary_results <- results[[2]]
+  pheromone_plot = gamma_plot = variance_plot = NULL
   item_pheromone_names <-
     grep("Pheromone", names(summary_results), value = TRUE)
   
@@ -84,7 +85,7 @@ plot.antcolony <- function(results, verbose = FALSE, type = "all") {
     )
   }
   
-  plots <- list(pheromone_plot, gamma_plot, variance_plot)
+  plots <- list("Pheromone" = pheromone_plot, "Gamma" = gamma_plot, "Variance" = variance_plot)
   if (verbose) {
     return(plots)
   } else {
