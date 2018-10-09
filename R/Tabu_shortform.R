@@ -134,7 +134,7 @@ tabuShortForm <-
     initialShortModel <- randomInitialModel()
     cat("The initial short form is: \n")
     cat(paste(initialShortModel$model.syntax, collapse = "\n"))
-    best.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
+    best.obj <- all.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
     best.model <- current.model <- initialShortModel$lavaan.output
     tabu.list<-vector("numeric")
     
@@ -338,6 +338,7 @@ tabuShortForm <-
       
       # Move current state to next model
       current.obj <- (tmp.obj[valid])[indx]
+      all.obj <- c(all.obj, current.obj)
       current.mod <- (tmp.mod[valid])[indx]
       current.syntax <- unlist((tmp.syntax[valid])[indx])
       # current.binvec<-(tmp.vec[valid])[[indx]]
@@ -361,8 +362,9 @@ tabuShortForm <-
     
     ret <- list()
     ret$best.obj <- best.obj
-    ret$best.mod <- best.mod
+    ret$best.mod <- best.mod[[1]]
     ret$best.syntax <- best.syntax
+    ret$all.obj <- all.obj
     class(ret) = "tabu"
     return(ret)
   }

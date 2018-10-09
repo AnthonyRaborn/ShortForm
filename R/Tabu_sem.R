@@ -44,7 +44,7 @@ tabu.sem<-function(init.model,ptab,obj,niter=30,tabu.size=5){
   
   # source(Tabu_internal.R)
   # Initialize objective function and best model
-  best.obj<-current.obj<-obj(init.model)
+  best.obj<-all.obj<-current.obj<-obj(init.model)
   best.model<-current.model<-init.model
   best.binvec<-current.binvec<-ptab
   
@@ -85,6 +85,7 @@ tabu.sem<-function(init.model,ptab,obj,niter=30,tabu.size=5){
     
     # Move current state to next model
     current.obj<-(tmp.obj[valid])[indx]
+    all.obj<-c(all.obj,current.obj)
     current.mod<-(tmp.mod[valid])[[indx]]
     current.binvec<-(tmp.vec[valid])[[indx]]
     
@@ -107,6 +108,8 @@ tabu.sem<-function(init.model,ptab,obj,niter=30,tabu.size=5){
   ret$best.obj<-best.obj
   ret$best.mod<-best.mod
   ret$best.binvec<-best.binvec
+  ret$all.obj<-all.obj
+  class(ret)<-"tabu"
   
   return(ret)
 }
