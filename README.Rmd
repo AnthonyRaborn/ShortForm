@@ -115,6 +115,44 @@ lavaan::summary(Tabu_example$best.mod)
 
 It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example.
 
+The next Tabu example demonstrates how to use it to find a short form of a prespecified length with the same data.
+
+```{r Tabu short form}
+start.time.Tabu <- Sys.time()
+library(ShortForm, quietly = T)
+# load simulation data and select columns used in this example
+data(simulated_test_data) 
+tabuData <- simulated_test_data
+
+# specify the initial model. For the short form, no need to fit it.
+tabuModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12 + Item13 + Item14 + Item15 + Item16 + Item17 + Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24 + Item25 + Item26 + Item27 + Item28 + Item29 + Item30 + Item31 + Item32 + Item33 + Item34 + Item35 + Item36 + Item37 + Item38 + Item39 + Item40 + Item41 + Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48 + Item49 + Item50 + Item51 + Item52 + Item53 + Item54 + Item55 + Item56
+Ability ~ Outcome"
+
+# specify the criterion function that the Tabu Search minimizes
+# since a larger (closer to 1) CFI is better, take the negative of CFI
+# wrap this in a tryCatch in case a model does not converge!
+tabuCriterion = function(x) {
+  tryCatch(-lavaan::fitmeasures(object = x, fit.measures = 'cfi'),
+           error = function(e) Inf)
+}
+
+# set the seed to reproduce this example
+set.seed(1)
+# use the tabuShortForm function
+# reduce form to the best 10 items
+tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
+                           numItems = 10, allItems = paste0("Item", 1:56),
+                           criterion = tabuCriterion,
+                           niter = 20)
+# check the chosen model
+lavaan::summary(tabuShort$best.mod)
+# plot the changes in the objective function over each iteration
+plot(tabuShort)
+```
+
+It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example.
+
 ### Simulated Annealing
 
 This example demonstrates the use of simulated annealing for creating short forms.
@@ -140,7 +178,7 @@ lavaan.model.specs = list(model.type = "cfa",
 # perform the SA algorithm
 set.seed(1)
 SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
-plot(SA_example$allFit, type = "l") # plot showing how the fit value changes at each step
+plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
 It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` minutes to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run all three together.
