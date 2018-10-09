@@ -52,7 +52,7 @@ tabu.sem<-function(init.model,ptab,obj,niter=30,tabu.size=5){
   
   # Do iterations
   for(it in 1:niter){
-    print(paste0("Running iteration ", it, "."))
+    cat(paste0("\rRunning iteration ", it, " of ", niter, ".   "))
     # Loop through all neighbors
     tmp.obj<-vector("numeric")
     tmp.mod<-list()
