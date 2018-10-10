@@ -439,7 +439,7 @@ simulatedAnnealing <-
             goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)
           ) / currentTemp)
           
-          if (probability > runif(1)) {
+          if (probability > stats::runif(1)) {
             newModel = randomNeighborModel
           } else {
             newModel = currentModelObject
