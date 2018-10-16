@@ -9,6 +9,8 @@ This is a resubmission. In this version I have:
 
 * Added a loading message that prints the package version when the package is attached
 
+* Updated the simulatedAnnealing documentation so it is easier on the eyes
+
 ## Test Environments
 
 * local Windows 10 Home install, R 3.5.0
