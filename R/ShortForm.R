@@ -19,3 +19,43 @@ if(getRversion() >= "2.15.1")  {
                            "std.lv"
                            ))
 }
+
+#' Create Package Startup Message
+#'
+#' Makes package startup message.
+#' 
+#' Idea taken from https://github.com/ntguardian/MCHT/blob/master/R/StartupMessage.R
+#'
+#' @import utils
+#' @examples
+#' ShortForm:::ShortFormStartup()
+
+ShortFormStartup <- function() {
+  ShortForm <- c("  #####                             #######                      \n #     # #    #  ####  #####  ##### #        ####  #####  #    # \n #       #    # #    # #    #   #   #       #    # #    # ##  ## \n  #####  ###### #    # #    #   #   #####   #    # #    # # ## # \n       # #    # #    # #####    #   #       #    # #####  #    # \n #     # #    # #    # #   #    #   #       #    # #   #  #    # \n  #####  #    #  ####  #    #   #   #        ####  #    # #    # \n ")
+  version <- paste("\t\t Version", as.character(utils::packageVersion("ShortForm")))
+  penguin <- c("\t\t\t (o<", "\t\t\t //\\", "\t\t\t V_/_ ")
+  
+  message <- c(ShortForm, version, penguin)
+  
+  cat(message, sep = "\n")
+}
+
+#' Package Attach Hook Function
+#'
+#' Hook triggered when package attached.
+#' 
+#' Idea taken from https://github.com/ntguardian/MCHT/blob/master/R/StartupMessage.R
+#'
+#' @param lib a character string giving the library directory where the package
+#'            defining the namespace was found
+#' @param pkg a character string giving the name of the package 
+#' @examples
+#' ShortForm:::.onAttach(.libPaths()[1], "ShortForm")
+
+.onAttach <- function(lib, pkg) {
+  msg <- ShortFormStartup()
+  if (!interactive())
+    msg[1] <- paste("Package 'ShortForm' version", packageVersion("ShortForm"))
+  packageStartupMessage(msg)
+  invisible()
+}
