@@ -9,7 +9,5 @@
 Automated Item Selection Algorithms for Short Forms
 }
 \details{
-See the README on
-\href{https://cran.r-project.org/package=ShortForm/README.html}{CRAN}
-or \href{https://github.com/AnthonyRaborn/ShortForm#readme}{GitHub}
+See the README on \href{https://github.com/AnthonyRaborn/ShortForm#readme}{GitHub} for more information.
 }
