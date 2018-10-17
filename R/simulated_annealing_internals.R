@@ -20,6 +20,8 @@ selectionFunction <-
     
     probability = exp(-(goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)) / currentTemp)
     
+    }
+    
     if (probability > stats::runif(1)) {
       newModel = randomNeighborModel
     } else { 
