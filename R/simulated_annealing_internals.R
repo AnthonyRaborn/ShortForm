@@ -16,9 +16,7 @@ selectionFunction <-
     # check that the current model isn't null
     if (is.null(currentModelObject[[1]])) {
       return(randomNeighborModel)
-    }
-    
-  } else {
+    } else {
     
     probability = exp(-(goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)) / currentTemp)
     
