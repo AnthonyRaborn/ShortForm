@@ -1,12 +1,21 @@
 # Package v0.4.2
-## Goals:
+## Introduction of Function Classes
+* This version introduces classes to each of the main function outputs (`antcolony.lavaan` == "antcolony", `simulatedAnnealing` == "simulatedAnnealing", `tabuShortForm` == "tabu")
+* This will allow for `plot` and `print` methods for each of these functions
 
-* Create an option for an initial short form to feed into the functions as a starting point
+## Broken functionality: antcolony_plot
+* The function `antcolony_plot` was replaced with `plot.antcolony` (aka, a plot method)
 
-## Bugfixes:
+## New functionality: S3 method for plotting
+* With the addition of classes, a plot method and accompanying documentation has been added.
+* Future updates will expand S3 methods for `print()` and `summary()`
 
-* Fixed a situation where simulatedAnnealing returns the initial model
-* Fixed simulatedAnnealing not correctly accepting a user-defined restartCriteria
+## Bugfixes
+* Bugfixes to the main functions when using them to create shortforms of bifactor models. 
+* They should now produce actual bifactor shortforms (in v0.4.1, sometimes the item names would be cut off in later iterations [FIXED] and the relationship between latent variables would be changed when they should have been kept constant [FIXED]).
+
+## Added a package loading message
+* Now, when using an interactive R session, a package message is printed out (with a little Penguin holding it all up)!
 
 # Package v0.4.1
 ## New functionality: Simulated Annealing

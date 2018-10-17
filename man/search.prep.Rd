@@ -5,7 +5,8 @@
 \title{Given a fitted lavaan model (e.g., CFA), prepares a table that contains 
 parameters that can be fixed/freed as part of a model specification search.}
 \usage{
-search.prep(fitted.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
+search.prep(fitted.model, loadings = TRUE, fcov = TRUE,
+  errors = FALSE)
 }
 \arguments{
 \item{fitted.model}{- an object of class "lavaan" that contains the initially fitted model for the search}
@@ -62,3 +63,4 @@ Other Tabu Search: \code{\link{add.param}},
 \author{
 Carl F. Falk
 }
+\concept{Tabu Search}

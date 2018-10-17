@@ -24,9 +24,9 @@ for psychometric models.
 ## Installation
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("AnthonyRaborn/ShortForm") # the developmental version
 install.packages("ShortForm") # the CRAN-approved version
+# install.packages("devtools")
+devtools::install_github("AnthonyRaborn/ShortForm", branch = "devel") # the developmental version
 ```
 
 ## Usage
@@ -41,7 +41,7 @@ printed at the bottom.
 
 ``` r
 start.time.ACO <- Sys.time()
-library(ShortForm)
+library(ShortForm, quietly = T)
 # using simulated test data and the default values for lavaan.model.specs
 # (with one exception), fit a 10-item short form
 # first, read in the original or "full" model
@@ -109,25 +109,25 @@ abilityShortForm[[1]] # print the results of the final short form
 ##  [1,]      1      0      0      0      0      0      0      1      0      0
 ##       Item29 Item30
 ##  [1,]      1      1
-antcolony_plot(abilityShortForm) # the plots available
-##  [[1]]
+plot(abilityShortForm) # the plots for class "antcolony"
+##  $Pheromone
 ```
 
 ![](README-ACO%20example-1.png)<!-- -->
 
     ##  
-    ##  [[2]]
+    ##  $Gamma
 
 ![](README-ACO%20example-2.png)<!-- -->
 
     ##  
-    ##  [[3]]
+    ##  $Variance
 
 ![](README-ACO%20example-3.png)<!-- -->
 
 A similar example can be found in the `antcolony.mplus` function, but
 requires you to have a valid Mplus installation on the computer. It took
-a total of 5.6 minutes to run this example.
+a total of 5.44 minutes to run this example.
 
 ### Tabu Search Algorithm
 
@@ -137,7 +137,7 @@ some way.
 
 ``` r
 start.time.Tabu <- Sys.time()
-library(ShortForm)
+library(ShortForm, quietly = T)
 # load simulation data and select columns used in this example
 data(simulated_test_data) 
 tabuData <- simulated_test_data[,c(1:10)]
@@ -160,35 +160,36 @@ ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=TRUE, errors=
 # perform the Tabu search with 100 iterations and a Tabu list size of 5
 set.seed(1) # reproduceable
 Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 25, tabu.size = 5)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
-##  [1] "Running iteration 1."
-##  [1] "Running iteration 2."
-##  [1] "Running iteration 3."
-##  [1] "Running iteration 4."
-##  [1] "Running iteration 5."
-##  [1] "Running iteration 6."
-##  [1] "Running iteration 7."
-##  [1] "Running iteration 8."
-##  [1] "Running iteration 9."
-##  [1] "Running iteration 10."
-##  [1] "Running iteration 11."
-##  [1] "Running iteration 12."
-##  [1] "Running iteration 13."
-##  [1] "Running iteration 14."
-##  [1] "Running iteration 15."
-##  [1] "Running iteration 16."
-##  [1] "Running iteration 17."
-##  [1] "Running iteration 18."
-##  [1] "Running iteration 19."
-##  [1] "Running iteration 20."
-##  [1] "Running iteration 21."
-##  [1] "Running iteration 22."
-##  [1] "Running iteration 23."
-##  [1] "Running iteration 24."
-##  [1] "Running iteration 25."
+##  
+Running iteration 1 of 25.   
+Running iteration 2 of 25.   
+Running iteration 3 of 25.   
+Running iteration 4 of 25.   
+Running iteration 5 of 25.   
+Running iteration 6 of 25.   
+Running iteration 7 of 25.   
+Running iteration 8 of 25.   
+Running iteration 9 of 25.   
+Running iteration 10 of 25.   
+Running iteration 11 of 25.   
+Running iteration 12 of 25.   
+Running iteration 13 of 25.   
+Running iteration 14 of 25.   
+Running iteration 15 of 25.   
+Running iteration 16 of 25.   
+Running iteration 17 of 25.   
+Running iteration 18 of 25.   
+Running iteration 19 of 25.   
+Running iteration 20 of 25.   
+Running iteration 21 of 25.   
+Running iteration 22 of 25.   
+Running iteration 23 of 25.   
+Running iteration 24 of 25.   
+Running iteration 25 of 25.
 
 # check the final model
 lavaan::summary(Tabu_example$best.mod)
-##  lavaan 0.6-2 ended normally after 56 iterations
+##  lavaan 0.6-3 ended normally after 56 iterations
 ##  
 ##    Optimization method                           NLMINB
 ##    Number of free parameters                         20
@@ -293,7 +294,145 @@ lavaan::summary(Tabu_example$best.mod)
 ##     .Item8             0.198    0.010   20.542    0.000
 ```
 
-It took a total of 4.88 minutes to run this example.
+It took a total of 4.43 minutes to run this example.
+
+The next Tabu example demonstrates how to use it to find a short form of
+a prespecified length with the same data.
+
+``` r
+start.time.Tabu <- Sys.time()
+library(ShortForm, quietly = T)
+# load simulation data and select columns used in this example
+data(simulated_test_data) 
+tabuData <- simulated_test_data
+
+# specify the initial model. For the short form, no need to fit it.
+tabuModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12 + Item13 + Item14 + Item15 + Item16 + Item17 + Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24 + Item25 + Item26 + Item27 + Item28 + Item29 + Item30 + Item31 + Item32 + Item33 + Item34 + Item35 + Item36 + Item37 + Item38 + Item39 + Item40 + Item41 + Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48 + Item49 + Item50 + Item51 + Item52 + Item53 + Item54 + Item55 + Item56
+Ability ~ Outcome"
+
+# specify the criterion function that the Tabu Search minimizes
+# since a larger (closer to 1) CFI is better, take the negative of CFI
+# wrap this in a tryCatch in case a model does not converge!
+tabuCriterion = function(x) {
+  tryCatch(-lavaan::fitmeasures(object = x, fit.measures = 'cfi'),
+           error = function(e) Inf)
+}
+
+# set the seed to reproduce this example
+set.seed(1)
+# use the tabuShortForm function
+# reduce form to the best 10 items
+tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
+                           numItems = 10, allItems = paste0("Item", 1:56),
+                           criterion = tabuCriterion,
+                           niter = 20)
+##  Creating initial short form.
+##  The initial short form is: 
+##  Ability =~ Item15 + Item21 + Item31 + Item49 + Item11 + Item46 + Item48 + Item33 + Item54 + Item3
+##  Ability ~ Outcome
+##   Current Progress:
+  |                                                                       
+  |===                                                              |   5%
+  |                                                                       
+  |======                                                           |  10%
+  |                                                                       
+  |=========                                                        |  14%
+  |                                                                       
+  |============                                                     |  19%
+  |                                                                       
+  |===============                                                  |  24%
+  |                                                                       
+  |===================                                              |  29%
+  |                                                                       
+  |======================                                           |  33%
+  |                                                                       
+  |=========================                                        |  38%
+  |                                                                       
+  |============================                                     |  43%
+  |                                                                       
+  |===============================                                  |  48%
+  |                                                                       
+  |==================================                               |  52%
+  |                                                                       
+  |=====================================                            |  57%
+  |                                                                       
+  |========================================                         |  62%
+  |                                                                       
+  |===========================================                      |  67%
+  |                                                                       
+  |==============================================                   |  71%
+  |                                                                       
+  |==================================================               |  76%
+  |                                                                       
+  |=====================================================            |  81%
+  |                                                                       
+  |========================================================         |  86%
+  |                                                                       
+  |===========================================================      |  90%
+  |                                                                       
+  |==============================================================   |  95%
+  |                                                                       
+  |=================================================================| 100%
+# check the chosen model
+lavaan::summary(tabuShort$best.mod)
+##  lavaan 0.6-3 ended normally after 33 iterations
+##  
+##    Optimization method                           NLMINB
+##    Number of free parameters                         21
+##  
+##    Number of observations                          1000
+##  
+##    Estimator                                         ML
+##    Model Fit Test Statistic                      31.220
+##    Degrees of freedom                                44
+##    P-value (Chi-square)                           0.926
+##  
+##  Parameter Estimates:
+##  
+##    Information                                 Expected
+##    Information saturated (h1) model          Structured
+##    Standard Errors                             Standard
+##  
+##  Latent Variables:
+##                     Estimate  Std.Err  z-value  P(>|z|)
+##    Ability =~                                          
+##      Item1             0.149    0.019    7.892    0.000
+##      Item21            0.174    0.018    9.519    0.000
+##      Item31            0.195    0.018   10.732    0.000
+##      Item49            0.193    0.018   10.639    0.000
+##      Item11            0.175    0.017   10.462    0.000
+##      Item46            0.156    0.018    8.811    0.000
+##      Item48            0.153    0.018    8.563    0.000
+##      Item33            0.121    0.018    6.587    0.000
+##      Item54            0.255    0.018   13.852    0.000
+##      Item3             0.176    0.017   10.155    0.000
+##  
+##  Regressions:
+##                     Estimate  Std.Err  z-value  P(>|z|)
+##    Ability ~                                           
+##      Outcome           0.456    0.082    5.567    0.000
+##  
+##  Variances:
+##                     Estimate  Std.Err  z-value  P(>|z|)
+##     .Item1             0.224    0.011   21.074    0.000
+##     .Item21            0.203    0.010   20.416    0.000
+##     .Item31            0.194    0.010   19.799    0.000
+##     .Item49            0.195    0.010   19.851    0.000
+##     .Item11            0.167    0.008   19.948    0.000
+##     .Item46            0.195    0.009   20.724    0.000
+##     .Item48            0.200    0.010   20.824    0.000
+##     .Item33            0.218    0.010   21.485    0.000
+##     .Item54            0.176    0.010   17.489    0.000
+##     .Item3             0.181    0.009   20.108    0.000
+##     .Ability           1.000
+# plot the changes in the objective function over each iteration
+plot(tabuShort)
+```
+
+![](README-Tabu%20short%20form-1.png)<!-- -->
+
+It took a total of 10.15 minutes to run this example.
 
 ### Simulated Annealing
 
@@ -302,7 +441,7 @@ short forms.
 
 ``` r
 start.time.SA <- Sys.time()
-library(ShortForm)
+library(ShortForm, quietly = T)
 # load simulation data and select columns used in this example
 data(simulated_test_data) 
 saData <- simulated_test_data[,c(1:10)]
@@ -328,15 +467,13 @@ SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, 
 ##  Using the short form randomNeighbor function.
 ##  Finished initializing short form options.
 ##   Current Progress:
-plot(SA_example$allFit, type = "b") # plot showing how the fit value changes at each step
+plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
 ![](README-Simulated%20Annealing%20example-1.png)<!-- -->
 
-``` r
-SA_example$bestSyntax # the model syntax that had the best fit found by the algorithm
-##  [1] "Ability =~ Item2 + Item6 + Item4 + Item5 + Item3"
-```
+It took a total of 5.06 minutes to run the SA example, and a total of
+25.08 minutes to run all three together.
 
 It took a total of 1.28 minutes to run the SA example, and a total of
 11.76 minutes to run all three together.

@@ -266,3 +266,4 @@ Other Ant Colony Algorithms: \code{\link{antcolony.lavaan}}
 \author{
 Walter Leite; Anthony W Raborn, \email{anthony.w.raborn@gmail.com}
 }
+\concept{Ant Colony Algorithms}

@@ -68,3 +68,4 @@ Other Tabu Search: \code{\link{refit.model}},
 \author{
 Carl F. Falk
 }
+\concept{Tabu Search}

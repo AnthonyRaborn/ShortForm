@@ -4,12 +4,13 @@
 \alias{simulatedAnnealing}
 \title{An adaptation of the simulated annealing algorithm for psychometric models.}
 \usage{
-simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
-  temperature = "linear", maximize = TRUE, Kirkpatrick = TRUE,
-  randomNeighbor = TRUE, lavaan.model.specs = list(model.type = "cfa",
-  auto.var = TRUE, estimator = "default", ordered = NULL, int.ov.free = TRUE,
-  int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single =
-  TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
+simulatedAnnealing(initialModel, originalData, maxSteps,
+  fitStatistic = "cfi", temperature = "linear", maximize = TRUE,
+  Kirkpatrick = TRUE, randomNeighbor = TRUE,
+  lavaan.model.specs = list(model.type = "cfa", auto.var = TRUE,
+  estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free =
+  FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single = TRUE,
+  auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
   TRUE), maxChanges = 5, restartCriteria = "consecutive",
   maximumConsecutive = 25, maxItems = NULL, items = NULL,
   bifactor = FALSE, progress = "bar", ...)
@@ -35,19 +36,19 @@ simulatedAnnealing(initialModel, originalData, maxSteps, fitStatistic = "cfi",
 lavaan model. The default values are the defaults for lavaan to perform a
 CFA. See \link[lavaan]{lavaan} for more details.}
 
-\item{maxChanges}{An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.}
+\item{maxChanges}{An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.}
 
 \item{restartCriteria}{Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.}
 
 \item{maximumConsecutive}{A numeric value used with restartCriteria.}
 
-\item{maxItems}{When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.}
+\item{maxItems}{When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to \code{NULL}.}
 
-\item{items}{A character vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.}
+\item{items}{A character vector of item names. Defaults to \code{NULL}. Ignored if \code{maxItems==FALSE}.}
 
-\item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.}
+\item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If \code{TRUE}, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if \code{maxItems==FALSE}.}
 
-\item{progress}{Character. If `'bar'`, the function prints a progress bar indicating how far along it is. If `'text'`, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.}
+\item{progress}{Character. If \code{'bar'}, the function prints a progress bar indicating how far along it is. If \code{'text'}, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }
@@ -55,21 +56,25 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
 }
 \description{
-Simulated annealing mimics the physical process of annealing metals together. [Kirkpatrick et al. (1983)](http://science.sciencemag.org/content/220/4598/671) introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
+Simulated annealing mimics the physical process of annealing metals together. \href{http://science.sciencemag.org/content/220/4598/671}{Kirkpatrick et al. (1983)} introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
 }
 \details{
-##### Simulated Annealing Outline ####
-initialModel - the initial, full form
-currentModel - the model of the current step
-maxSteps - the number of steps (iterations)
-currentStep - the current step
-currentTemp - the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. Should be modifiable. At the least, needs a maxTemp value and values that control the shape (up to a cubic value, maybe?)
-randomNeighbor - a function that determines how the form is changed at each step. Probably similar to the Tabu model. Should be able to change one or more parameters
-goal - a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energ function
-selectionFunction - a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a U[0,1] variable to determine if accepted or not. A standard version of this is P(goal, goal', currentTemp) = [(1 if goal' better than goal), (exp(-(goal' - goal)/currentTemp) if goal' worse than goal)] (citation: Kirkpatrick et al., 1983). Allowing other functions would be ideal.
-bestModel - the model with the best value of the goal function achieved so far
-bestGoal - the best value of the goal function achieved so far
-restartCriteria - if allowed, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
+\strong{Outline of the Pieces of the Simulated Annealing Algorithm}
+\itemize{
+\item initialModel -- the initial, full form
+\item currentModel -- the model of the current step
+\item maxSteps -- the maximum number of steps (iterations)
+\item currentStep -- the current step
+\item currentTemp -- the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly -- generated models
+\item randomNeighbor -- a function that determines how the form is changed at each step. Should be able to change one or more parameters, and should have a way to control how many are changed.
+\item goal -- a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energy function
+\item selectionFunction -- a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a Uniform(0,1) variable to determine if accepted or not. A standard version of this is:
+\figure{SA-goal.jpg}{}
+(Kirkpatrick et al., 1983)
+\item bestModel -- the model with the best value of the goal function achieved so far
+\item bestGoal -- the best value of the goal function achieved so far
+\item restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
+}
 }
 \examples{
 \dontrun{

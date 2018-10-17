@@ -29,3 +29,4 @@ Other Tabu Search: \code{\link{add.param}},
 \author{
 Carl F. Falk
 }
+\concept{Tabu Search}

@@ -47,15 +47,15 @@ tabu.sem <- function(init.model,
                      tabu.size = 5) {
   # source(Tabu_internal.R)
   # Initialize objective function and best model
-  best.obj <- current.obj <- obj(init.model)
-  best.model <- current.model <- init.model
-  best.binvec <- current.binvec <- ptab
+  best.obj<-all.obj<-current.obj<-obj(init.model)
+  best.model<-current.model<-init.model
+  best.binvec<-current.binvec<-ptab
   
   tabu.list <- vector("numeric")
   
   # Do iterations
-  for (it in 1:niter) {
-    print(paste0("Running iteration ", it, "."))
+  for(it in 1:niter){
+    cat(paste0("\rRunning iteration ", it, " of ", niter, ".   "))
     # Loop through all neighbors
     tmp.obj <- vector("numeric")
     tmp.mod <- list()
@@ -87,9 +87,10 @@ tabu.sem <- function(init.model,
     indx <- which.min(tmp.obj[valid])
     
     # Move current state to next model
-    current.obj <- (tmp.obj[valid])[indx]
-    current.mod <- (tmp.mod[valid])[[indx]]
-    current.binvec <- (tmp.vec[valid])[[indx]]
+    current.obj<-(tmp.obj[valid])[indx]
+    all.obj<-c(all.obj,current.obj)
+    current.mod<-(tmp.mod[valid])[[indx]]
+    current.binvec<-(tmp.vec[valid])[[indx]]
     
     # Update Tabu list
     tabu.list <- c(valid[indx], tabu.list)
@@ -106,10 +107,12 @@ tabu.sem <- function(init.model,
     }
   }
   
-  ret <- list()
-  ret$best.obj <- best.obj
-  ret$best.mod <- best.mod
-  ret$best.binvec <- best.binvec
+  ret<-list()
+  ret$best.obj<-best.obj
+  ret$best.mod<-best.mod
+  ret$best.binvec<-best.binvec
+  ret$all.obj<-all.obj
+  class(ret)<-"tabu"
   
   return(ret)
 }

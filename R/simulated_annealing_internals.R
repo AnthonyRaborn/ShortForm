@@ -16,39 +16,24 @@ selectionFunction <-
     # check that the current model isn't null
     if (is.null(currentModelObject[[1]])) {
       return(randomNeighborModel)
+    } else {
+    
+    probability = exp(-(goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)) / currentTemp)
+    
     }
     
-    # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-    if (goal(randomNeighborModel[[1]], fitStatistic, maximize) < goal(currentModelObject[[1]], fitStatistic, maximize)) {
-      consecutive = consecutive + 1
-      return(randomNeighborModel)
-      
-    } else {
-      probability = exp(-(
-        goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)
-      ) / currentTemp)
-      
-      if (probability > runif(1)) {
-        newModel = randomNeighborModel
-      } else {
-        newModel = currentModelObject
-      }
-      
-      consecutive = ifelse(identical(
-        lavaan::parameterTable(newModel[[1]]),
-        lavaan::parameterTable(currentModelObject[[1]])
-      ),
-      consecutive + 1,
-      0)
-      return(newModel)
+    if (probability > stats::runif(1)) {
+      newModel = randomNeighborModel
+    } else { 
+      newModel = currentModelObject
     }
   }
 
 goal <- function(x, fitStatistic = 'cfi', maximize) {
   # if using lavaan and a singular fit statistic,
-  if (class(x) == "lavaan" &
-      is.character(fitStatistic) & length(fitStatistic) == 1) {
-    energy <- lavaan::fitMeasures(x, fit.measures = fitStatistic)
+  if (class(x) == "lavaan" & is.character(fitStatistic) & length(fitStatistic) == 1) {
+    energy <- fitWarningCheck(lavaan::fitMeasures(x, fit.measures = fitStatistic),
+                            maximize)
     
     # if trying to maximize a value, return its negative
     if (maximize == TRUE) {
@@ -90,36 +75,31 @@ logisticTemperature <- function(currentStep, maxSteps) {
   currentTemp <- 1 / (1 + exp((x.new[(currentStep + 1)])))
 }
 
-checkModels <-
-  function(currentModel,
-           fitStatistic,
-           maximize = maximize,
-           bestFit = bestFit,
-           bestModel) {
-    if (class(currentModel) == "list") {
-      currentModel <- currentModel[[1]]
-    }
-    if (is.null(currentModel)) {
-      return(bestModel)
-    }
-    currentFit = tryCatch(
-      lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic),
-      error = function(e, checkMaximize = maximize) {
-        if (length(e) > 0) {
-          if (checkMaximize == TRUE) {
-            return(0)
-          } else {
-            return(Inf)
-          }
-        }
-      }
+checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
+  if (class(currentModel) == "list") {
+    currentSyntax <- currentModel$model.syntax
+    currentModel <- currentModel[[1]]
+  }
+  if (is.null(currentModel)) {
+    return(bestModel)
+  }
+  currentFit = fitWarningCheck(
+    lavaan::fitmeasures(object = currentModel, fit.measures = fitStatistic),
+    maximize
     )
-    if (maximize == TRUE) {
-      if (currentFit > bestFit) {
-        bestModel = currentModel
-      } else {
-        bestModel = bestModel
-      }
+  if (maximize == TRUE) {
+    if (currentFit > bestFit) {
+      bestModel = list()
+      bestModel$bestModel = currentModel
+      bestModel$bestSyntax = currentSyntax
+    } else {
+      bestModel = bestModel
+    }
+  } else {
+    if (currentFit < bestFit) {
+      bestModel = list()
+      bestModel$bestModel = currentModel
+      bestModel$bestSyntax = currentSyntax
     } else {
       if (currentFit < bestFit) {
         bestModel = currentModel
@@ -127,7 +107,8 @@ checkModels <-
         bestModel = bestModel
       }
     }
-    
+  }
+  
     return(bestModel)
   }
 
@@ -157,7 +138,8 @@ modelWarningCheck <- function(expr) {
 }
 
 
-syntaxExtraction = function(initialModelSyntaxFile, items = allItems) {
+syntaxExtraction = function(initialModelSyntaxFile, items) {
+  
   # extract the latent factor syntax
   factors = unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op ==
                                                                "=~", 'lhs'])
@@ -186,29 +168,32 @@ syntaxExtraction = function(initialModelSyntaxFile, items = allItems) {
   return(list('factors' = factors, 'itemsPerFactor' = itemsPerFactor))
 }
 
-# included to quiet R CMD check note about no glbal binding
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c(
-      'allItems',
-      'auto.cov.lv.x',
-      'auto.cov.y',
-      'auto.delta',
-      'auto.fix.first',
-      'auto.fix.single',
-      'auto.th',
-      'auto.var',
-      'bestModel',
-      'currentModel',
-      'estimator',
-      'factors',
-      'int.lv.free',
-      'int.ov.free',
-      'itemsPerFactor',
-      'model.type',
-      'numItems',
-      'runif',
-      'std.lv'
-    )
+modelWarningCheck <- function(expr) {
+  warn <- err <- c()
+  value <- withCallingHandlers(tryCatch(expr, error = function(e) {
+    err <<- append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", 
+                                                      paste(e))))
+    NULL
+  }), warning = function(w) {
+    warn <<- append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", 
+                                                        paste(w))))
+    invokeRestart("muffleWarning")
+  })
+  list(lavaan.output = value, warnings <- as.character(unlist(warn)), 
+       errors <- as.character(unlist(err)))
+}
+
+fitWarningCheck <- function(expr, maximize) {
+  value <- withCallingHandlers(tryCatch(expr, 
+                                        error = function(e) {
+    if (maximize == T) {
+      return(0)
+    } else {
+      return(Inf)
+    }
+    invokeRestart("muffleWarning")
+  }
   )
+  )
+  return(value)
 }

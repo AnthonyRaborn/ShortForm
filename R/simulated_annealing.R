@@ -2,18 +2,20 @@
 #'
 #' @description Simulated annealing mimics the physical process of annealing metals together. [Kirkpatrick et al. (1983)](http://science.sciencemag.org/content/220/4598/671) introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
 #'
-#' @details ##### Simulated Annealing Outline ####
-#' initialModel - the initial, full form
-#' currentModel - the model of the current step
-#' maxSteps - the number of steps (iterations)
-#' currentStep - the current step
-#' currentTemp - the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. Should be modifiable. At the least, needs a maxTemp value and values that control the shape (up to a cubic value, maybe?)
-#' randomNeighbor - a function that determines how the form is changed at each step. Probably similar to the Tabu model. Should be able to change one or more parameters
-#' goal - a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energ function
-#' selectionFunction - a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a U[0,1] variable to determine if accepted or not. A standard version of this is P(goal, goal', currentTemp) = [(1 if goal' better than goal), (exp(-(goal' - goal)/currentTemp) if goal' worse than goal)] (citation: Kirkpatrick et al., 1983). Allowing other functions would be ideal.
-#' bestModel - the model with the best value of the goal function achieved so far
-#' bestGoal - the best value of the goal function achieved so far
-#' restartCriteria - if allowed, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
+#' @details \strong{Outline of the Pieces of the Simulated Annealing Algorithm} 
+#' * initialModel -- the initial, full form
+#' * currentModel -- the model of the current step
+#' * maxSteps -- the maximum number of steps (iterations)
+#' * currentStep -- the current step
+#' * currentTemp -- the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly -- generated models
+#' * randomNeighbor -- a function that determines how the form is changed at each step. Should be able to change one or more parameters, and should have a way to control how many are changed.
+#' * goal -- a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energy function
+#' * selectionFunction -- a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a Uniform(0,1) variable to determine if accepted or not. A standard version of this is:
+#' ![](SA-goal.jpg) 
+#' (Kirkpatrick et al., 1983)
+#' * bestModel -- the model with the best value of the goal function achieved so far
+#' * bestGoal -- the best value of the goal function achieved so far
+#' * restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
 #'
 #' @param initialModel The initial model as a character vector with lavaan model.syntax.
 #' @param originalData The original data frame with variable names.
@@ -26,7 +28,7 @@
 #' @param lavaan.model.specs A list which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
 #'  CFA. See \link[lavaan]{lavaan} for more details.
-#' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor.
+#' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.
 #' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
 #' @param maximumConsecutive A numeric value used with restartCriteria.
 #' @param maxItems When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.
@@ -53,6 +55,7 @@
 #' }
 #' @import lavaan utils
 #' @export
+#' @md
 
 simulatedAnnealing <-
   function(initialModel,
@@ -87,9 +90,6 @@ simulatedAnnealing <-
            progress = 'bar',
            ...) {
     #### initial values ####
-    currentModel = NULL
-    bestModel = NULL
-    currentModel = bestModel = list(initialModel)
     currentStep = 0
     consecutive = 0
     allFit = c()
@@ -118,7 +118,7 @@ simulatedAnnealing <-
         value = list(items),
         USE.NAMES = FALSE,
         SIMPLIFY = FALSE,
-        MoreArgs = list(envir = parent.frame())
+        MoreArgs = list(envir = environment())
       )
       randomInitialModel = function(init.model = initialModel,
                                     maxItems = numItems,
@@ -129,7 +129,7 @@ simulatedAnnealing <-
           assign,
           c("factors", "itemsPerFactor"),
           syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
-          MoreArgs = list(envir = parent.frame())
+          MoreArgs = list(envir = environment())
         )
         
         # save the external relationships
@@ -184,15 +184,15 @@ simulatedAnnealing <-
         return(newModel)
       }
       currentModel = bestModel = randomInitialModel(initialModel,
-                                        maxItems,
-                                        initialData = originalData,
-                                        bifactorModel = bifactor)
+                                                    maxItems,
+                                                    initialData = originalData,
+                                                    bifactorModel = bifactor)
       cat(paste(
         "\nThe initial short form is:\n",
         paste(currentModel$model.syntax, collapse = "\n")
       ))
       bestFit = tryCatch(
-        lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic),
+        lavaan::fitmeasures(object = bestModel[[1]], fit.measures = fitStatistic),
         error = function(e, checkMaximize = maximize) {
           if (length(e) > 0) {
             if (checkMaximize == TRUE) {
@@ -216,16 +216,17 @@ simulatedAnnealing <-
                  allItems,
                  data,
                  bifactor = FALSE,
-                 initialModelSyntax) {
+                 initialModelSyntax,
+                 itemsPerFactor = maxItems) {
           # take the model syntax from the currentModelObject
-          internalModelObject = currentModelObject$model.syntax
+          internalModelObject = stringr::str_split(currentModelObject$model.syntax, pattern = "\n", simplify = T)
           
           # extract the latent factor syntax
           randomNeighbor.env <- new.env()
           mapply(
             assign,
             c("factors", "currentItems"),
-            syntaxExtraction(initialModelSyntaxFile = internalModelObject),
+            syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
             MoreArgs = list(envir = randomNeighbor.env)
           )
           
@@ -273,7 +274,7 @@ simulatedAnnealing <-
             for (j in 1:numChanges) {
               randomNeighbor.env$currentItems[[i]] =
                 gsub(
-                  pattern = paste0("\\b", changingItems[j], "\\b"),
+                  pattern = paste0(changingItems[j], "\\b"),
                   replacement = replacementItem[j],
                   x = randomNeighbor.env$currentItems[[i]]
                 )
@@ -287,7 +288,9 @@ simulatedAnnealing <-
           }
           
           # create the new model syntax
-          newModelSyntax = c()
+          newModelSyntax = as.vector(
+            stringr::str_split(currentModelObject$model.syntax, "\n", simplify = T)
+          )
           for (i in 1:length(randomNeighbor.env$factors)) {
             newModelSyntax[i] = paste(
               randomNeighbor.env$factors[i],
@@ -428,7 +431,7 @@ simulatedAnnealing <-
             goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)
           ) / currentTemp)
           
-          if (probability > runif(1)) {
+          if (probability > stats::runif(1)) {
             newModel = randomNeighborModel
           } else {
             newModel = currentModelObject
@@ -499,7 +502,8 @@ simulatedAnnealing <-
           numChanges = numChanges,
           data = originalData,
           allItems = allItems,
-          bifactor
+          bifactor,
+          itemsPerFactor
         )
         
       }
@@ -537,11 +541,12 @@ simulatedAnnealing <-
       currentStep = currentStep + 1
     }
     
-    
-    return(list(
+    results = list(
       bestModel = bestModel,
       bestFit = bestFit,
       allFit = allFit,
       bestSyntax = currentModel$model.syntax
-    ))
+    )
+    class(results) = "simulatedAnnealing"
+    return(results)
   }

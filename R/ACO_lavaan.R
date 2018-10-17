@@ -235,6 +235,9 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   #creates a vector with all items. UNIQUE USED FOR CASES WHEN ITEMS CROSS-LOAD
   item.vector = unique(unlist(list.items, use.names = F))
+  if (!is.null(bifactor)) {
+    item.vector = item.vector[which(item.vector!=bifactor)]
+    }
 
   #reads the Lavaan model syntax input into the function
   input = unlist(strsplit(antModel, '\n'))
@@ -358,8 +361,13 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         # Check the above messages and set pheromone to zero under certain circumstances
         # the circumstances in question:
         bad.warnings <- c("WARNING: could not compute standard errors",
-                          "WARNING: could not compute scaled test statistic", "WARNING: covariance matrix of latent variables is not positive definite", "WARNING: model has NOT converged")
-        bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite","ERROR: initial model-implied matrix (Sigma) is not positive definite", "ERROR: missing observed variables in dataset")
+                          "WARNING: could not compute scaled test statistic", 
+                          "WARNING: covariance matrix of latent variables is not positive definite", 
+                          "WARNING: model has NOT converged", 
+                          "WARNING: could not invert information matrix", 
+                          "WARNING: the optimizer warns that a solution has NOT been found")
+         bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
+                         "ERROR: missing observed variables in dataset")
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
           pheromone = 0
           if(verbose == TRUE) {
@@ -529,8 +537,10 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   
   final.solution = matrix(c(best.so.far.fit.indices,best.so.far.pheromone,best.so.far.solution),1,,
                           dimnames=list(NULL,c(names(model.fit),"mean_gamma",item.vector)))
-
+  results = list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax)
+  class(results) = "antcolony"
   #FINISH FUNCTION.
   # return(list(final.solution, results, summary))
-  return(list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax))
+  
+  return(results)
 }
