@@ -107,7 +107,8 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
         bestModel = bestModel
       }
     }
-    
+  }
+  
     return(bestModel)
   }
 
