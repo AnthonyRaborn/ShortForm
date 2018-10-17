@@ -12,10 +12,10 @@ tabu.sem(init.model, ptab, obj, niter = 30, tabu.size = 5)
 \item{init.model}{initial fitted model of class lavaan}
 
 \item{ptab}{search table (e.g., created by search.prep) that lists candidate
-parameters that can be modified as part of the search and how the parameters 
+parameters that can be modified as part of the search and how the parameters
 can be modified (fixed to what values)}
 
-\item{obj}{objective function to be MINIMIZED. Any function that takes a 
+\item{obj}{objective function to be MINIMIZED. Any function that takes a
 lavaan object as the sole argument and returns a numeric value can be used.}
 
 \item{niter}{number of Tabu iterations to perform}
@@ -32,7 +32,7 @@ neighbors that are 1 move away from the current model.
 }
 \examples{
 # load simulation data and select columns used in this example
-data(simulated_test_data) 
+data(simulated_test_data)
 tabuData <- simulated_test_data[,c(1:10)]
 
 # specify an improper model (improper because data is unidimensional)
@@ -44,7 +44,7 @@ FakeAbility ~ 0*Outcome"
 
 # run the initial misspecified model for Tabu
 
-init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
+init.model <- lavaan::lavaan(model = tabuModel, data = tabuData,
 auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=TRUE)
 
 # Use search.prep to prepare for the Tabu search

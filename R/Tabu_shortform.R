@@ -1,5 +1,5 @@
 #' Short Form Tabu Search
-#' 
+#'
 #' Given an initial (full) lavaan model string, the original data, a criterion
 #' function to minimize, and some additional specifications,
 #' performs a Tabu model specification search. Currently only supports
@@ -7,11 +7,11 @@
 #'
 #'
 #' @param initialModel The initial model (typically the full form) as a character vector with lavaan model.syntax.
-#' @param originalData The original data frame with variable names. 
+#' @param originalData The original data frame with variable names.
 #' @param numItems A numeric vector indicating the number of items to retain for each factor.
 #' @param allItems For unidimensional models, a character vector of the item names. For multifactor models, a list of the item names, where each element of the list is a factor.
 #' @param criterion A function calculating the objective criterion to minimize. Default is to use the built-in `rmsea` value from `lavaan::fitmeasures()`.
-#' @param niter A numeric value indicating the number of iterations (model specification selections) 
+#' @param niter A numeric value indicating the number of iterations (model specification selections)
 #' to perform. Default is 50.
 #' @param tabu.size A numeric value indicating the size of Tabu list. Default is 5.
 #' @param lavaan.model.specs A list which contains the specifications for the
@@ -22,7 +22,7 @@
 #' @return A named list with the best value of the objective function (`best.obj`) and the best lavaan model object (`best.mod`).
 #' @export
 #'
-#' @examples 
+#' @examples
 #' shortAntModel = '
 #' Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
 #' Ability ~ Outcome
@@ -33,14 +33,15 @@
 #'                              allItems = colnames(simulated_test_data)[3:11],
 #'                              niter = 1, tabu.size = 3)
 #' lavaan::summary(tabuResult$best.mod) # shows the resulting model
-#' 
+#'
 
 tabuShortForm <-
   function(initialModel,
            originalData,
            numItems,
            allItems,
-           criterion = function(x) lavaan::fitmeasures(object = x, fit.measures = 'rmsea'),
+           criterion = function(x)
+             lavaan::fitmeasures(object = x, fit.measures = 'rmsea'),
            niter = 30,
            tabu.size = 5,
            lavaan.model.specs = list(
@@ -59,7 +60,6 @@ tabuShortForm <-
              estimator = "default"
            ),
            bifactor = FALSE) {
-    
     mapply(
       assign,
       names(lavaan.model.specs),
@@ -104,7 +104,7 @@ tabuShortForm <-
                                   paste(newItemsPerFactor[[i]], collapse = " + "))
       }
       newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
-
+      
       # fit the new model
       newModel = modelWarningCheck(
         lavaan::lavaan(
@@ -136,7 +136,7 @@ tabuShortForm <-
     cat(paste(initialShortModel$model.syntax, collapse = "\n"))
     best.obj <- all.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
     best.model <- current.model <- initialShortModel$lavaan.output
-    tabu.list<-vector("numeric")
+    tabu.list <- vector("numeric")
     
     factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
                                                        "=~", 'lhs'])
@@ -151,13 +151,14 @@ tabuShortForm <-
                                  )))
     } else {
       included.items <-
-        unlist(as.vector(stringr::str_extract_all(
-          string = initialShortModel$model.syntax,
-          pattern = paste0("(\\b", paste0(
-            paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"
-          ))
+        unlist(as.vector(
+          stringr::str_extract_all(
+            string = initialShortModel$model.syntax,
+            pattern = paste0("(\\b", paste0(
+              paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"
+            ))
+          )
         ))
-        )
     }
     
     # Do iterations
@@ -189,7 +190,7 @@ tabuShortForm <-
       
       if (is.list(allItems)) {
         if (bifactor) {
-          for (f in 1:(length(factors)-1)) {
+          for (f in 1:(length(factors) - 1)) {
             for (i in 1:numItems[[f]]) {
               for (j in 1:length(excluded.items[[f]])) {
                 new.items = included.items
@@ -197,10 +198,13 @@ tabuShortForm <-
                 new.items[[length(factors)]] = unique(unlist(new.items[-length(factors)]))
                 newModelSyntax = c()
                 for (k in 1:length(factors)) {
-                  newModelSyntax[k] = paste(factors[k], "=~",
+                  newModelSyntax[k] = paste(factors[k],
+                                            "=~",
                                             paste(new.items[[k]], collapse = " + "))
                 }
-                newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
+                newModelSyntax = c(newModelSyntax,
+                                   externalRelation,
+                                   factorRelation)
                 newModelSyntax = paste(newModelSyntax, collapse = ' \n ')
                 fitmodel = modelWarningCheck(
                   lavaan::lavaan(
@@ -233,52 +237,59 @@ tabuShortForm <-
                 tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
                 tmp.syntax <- c(tmp.syntax, newModelSyntax)
                 
-              }}}
+              }
+            }
+          }
         } else {
-        for (f in 1:length(factors)) {
-          for (i in 1:numItems[[f]]) {
-            for (j in 1:length(excluded.items[[f]])) {
-              new.items = included.items
-              new.items[[f]][i] = excluded.items[[f]][j]
-              newModelSyntax = c()
-              for (k in 1:length(factors)) {
-                newModelSyntax[k] = paste(factors[k], "=~",
-                                          paste(new.items[[k]], collapse = " + "))
-              }
-              newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
-              newModelSyntax = paste(newModelSyntax, collapse = ' \n ')
-              fitmodel = modelWarningCheck(
-                lavaan::lavaan(
-                  model = newModelSyntax,
-                  data = originalData,
-                  model.type = model.type,
-                  int.ov.free = int.ov.free,
-                  int.lv.free = int.lv.free,
-                  auto.fix.first = auto.fix.first,
-                  std.lv = std.lv,
-                  auto.fix.single = auto.fix.single,
-                  auto.var = auto.var,
-                  auto.cov.lv.x = auto.cov.lv.x,
-                  auto.th = auto.th,
-                  auto.delta = auto.delta,
-                  auto.cov.y = auto.cov.y,
-                  ordered = ordered,
-                  estimator = estimator
+          for (f in 1:length(factors)) {
+            for (i in 1:numItems[[f]]) {
+              for (j in 1:length(excluded.items[[f]])) {
+                new.items = included.items
+                new.items[[f]][i] = excluded.items[[f]][j]
+                newModelSyntax = c()
+                for (k in 1:length(factors)) {
+                  newModelSyntax[k] = paste(factors[k],
+                                            "=~",
+                                            paste(new.items[[k]], collapse = " + "))
+                }
+                newModelSyntax = c(newModelSyntax,
+                                   externalRelation,
+                                   factorRelation)
+                newModelSyntax = paste(newModelSyntax, collapse = ' \n ')
+                fitmodel = modelWarningCheck(
+                  lavaan::lavaan(
+                    model = newModelSyntax,
+                    data = originalData,
+                    model.type = model.type,
+                    int.ov.free = int.ov.free,
+                    int.lv.free = int.lv.free,
+                    auto.fix.first = auto.fix.first,
+                    std.lv = std.lv,
+                    auto.fix.single = auto.fix.single,
+                    auto.var = auto.var,
+                    auto.cov.lv.x = auto.cov.lv.x,
+                    auto.th = auto.th,
+                    auto.delta = auto.delta,
+                    auto.cov.y = auto.cov.y,
+                    ordered = ordered,
+                    estimator = estimator
+                  )
                 )
-              )
-              
-              if (fitmodel$lavaan.output@Fit@converged &
-                  !any(is.na(fitmodel$lavaan.output@Fit@se))) {
-                fit.val <- criterion(fitmodel$lavaan.output)
-              } else {
-                fit.val <- NA
+                
+                if (fitmodel$lavaan.output@Fit@converged &
+                    !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+                  fit.val <- criterion(fitmodel$lavaan.output)
+                } else {
+                  fit.val <- NA
+                }
+                
+                tmp.obj <- c(tmp.obj, fit.val)
+                tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
+                tmp.syntax <- c(tmp.syntax, newModelSyntax)
+                
               }
-              
-              tmp.obj <- c(tmp.obj, fit.val)
-              tmp.mod <- c(tmp.mod, fitmodel$lavaan.output)
-              tmp.syntax <- c(tmp.syntax, newModelSyntax)
-              
-            }}}
+            }
+          }
         }
         
         

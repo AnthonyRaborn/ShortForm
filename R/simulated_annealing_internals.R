@@ -1,21 +1,22 @@
 
-selectionFunction <- function(currentModelObject = currentModel, randomNeighborModel, currentTemp, maximize, fitStatistic, consecutive){
-  
-  # check if the randomNeighborModel is a valid model for use
-  if (length(randomNeighborModel[[2]]) > 0 | length(randomNeighborModel[[2]]) > 0) {
-    return(currentModelObject)
-  } 
-  
-  # check that the current model isn't null
-  if (is.null(currentModelObject[[1]])) {
-    return(randomNeighborModel)
-  }
-  
-  # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-  if (goal(randomNeighborModel[[1]], fitStatistic, maximize) < goal(currentModelObject[[1]], fitStatistic, maximize)) {
+
+selectionFunction <-
+  function(currentModelObject = currentModel,
+           randomNeighborModel,
+           currentTemp,
+           maximize,
+           fitStatistic,
+           consecutive) {
+    # check if the randomNeighborModel is a valid model for use
+    if (length(randomNeighborModel[[2]]) > 0 |
+        length(randomNeighborModel[[2]]) > 0) {
+      return(currentModelObject)
+    }
     
-    consecutive = consecutive + 1
-    return(randomNeighborModel)
+    # check that the current model isn't null
+    if (is.null(currentModelObject[[1]])) {
+      return(randomNeighborModel)
+    }
     
   } else {
     
@@ -26,16 +27,9 @@ selectionFunction <- function(currentModelObject = currentModel, randomNeighborM
     } else { 
       newModel = currentModelObject
     }
-    
-    consecutive = ifelse(identical(lavaan::parameterTable(newModel[[1]]), 
-                                   lavaan::parameterTable(currentModelObject[[1]])), 
-                         consecutive + 1, 0)
-    return(newModel)
   }
-}
 
 goal <- function(x, fitStatistic = 'cfi', maximize) {
-  
   # if using lavaan and a singular fit statistic,
   if (class(x) == "lavaan" & is.character(fitStatistic) & length(fitStatistic) == 1) {
     energy <- fitWarningCheck(lavaan::fitMeasures(x, fit.measures = fitStatistic),
@@ -59,25 +53,26 @@ goal <- function(x, fitStatistic = 'cfi', maximize) {
   }
 }
 
-consecutiveRestart <- function(maxConsecutiveSelection = 25, consecutive){
-  if (consecutive == maxConsecutiveSelection) {
-    currentModel = bestModel
-    consecutive = 0
+consecutiveRestart <-
+  function(maxConsecutiveSelection = 25, consecutive) {
+    if (consecutive == maxConsecutiveSelection) {
+      currentModel = bestModel
+      consecutive = 0
+    }
   }
-}
 
 linearTemperature <- function(currentStep, maxSteps) {
-  currentTemp <- (maxSteps - (currentStep))/maxSteps
+  currentTemp <- (maxSteps - (currentStep)) / maxSteps
 }
 
 quadraticTemperature <- function(currentStep, maxSteps) {
-  currentTemp <- ((maxSteps - (currentStep))/maxSteps)^2
+  currentTemp <- ((maxSteps - (currentStep)) / maxSteps) ^ 2
 }
 
 logisticTemperature <- function(currentStep, maxSteps) {
   x = 1:maxSteps
-  x.new = scale(x, center = T, scale = maxSteps/12)
-  currentTemp <- 1/(1 + exp((x.new[(currentStep + 1)])))
+  x.new = scale(x, center = T, scale = maxSteps / 12)
+  currentTemp <- 1 / (1 + exp((x.new[(currentStep + 1)])))
 }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
@@ -106,45 +101,69 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
       bestModel$bestModel = currentModel
       bestModel$bestSyntax = currentSyntax
     } else {
-      bestModel = bestModel
+      if (currentFit < bestFit) {
+        bestModel = currentModel
+      } else {
+        bestModel = bestModel
+      }
     }
+    
+    return(bestModel)
   }
-  
-  return(bestModel)
-}
 
 modelWarningCheck <- function(expr) {
   warn <- err <- c()
   value <- withCallingHandlers(
-    tryCatch(expr, error = function(e) {
-      err <<- append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e))))
-      NULL
-    }), warning = function(w) {
-      warn <<- append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
+    tryCatch(
+      expr,
+      error = function(e) {
+        err <<-
+          append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e))))
+        NULL
+      }
+    ),
+    warning = function(w) {
+      warn <<-
+        append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
       invokeRestart("muffleWarning")
-    })
-  list('lavaan.output' = value, 'warnings' <- as.character(unlist(warn)), 'errors' <- as.character(unlist(err)))
+    }
+  )
+  list(
+    'lavaan.output' = value,
+    'warnings' <-
+      as.character(unlist(warn)),
+    'errors' <- as.character(unlist(err))
+  )
 }
 
 
 syntaxExtraction = function(initialModelSyntaxFile, items) {
   
   # extract the latent factor syntax
-  factors = unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op=="=~", 'lhs'])
-  vectorModelSyntax = stringr::str_split(string = initialModelSyntaxFile, pattern = '\\n', simplify = TRUE)
+  factors = unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op ==
+                                                               "=~", 'lhs'])
+  vectorModelSyntax = stringr::str_split(string = initialModelSyntaxFile,
+                                         pattern = '\\n',
+                                         simplify = TRUE)
   factorSyntax = c()
   itemSyntax = c()
-  for (i in 1:length(factors)){
+  for (i in 1:length(factors)) {
     chosenFactorLocation = c(1:length(vectorModelSyntax))[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], " =~ "))]
     factorSyntax[i] = vectorModelSyntax[chosenFactorLocation]
     # remove the factors from the syntax
-    itemSyntax[i] <- gsub(pattern = paste(factors[i], "=~ "), replacement = "", x = factorSyntax[i])
+    itemSyntax[i] <-
+      gsub(
+        pattern = paste(factors[i], "=~ "),
+        replacement = "",
+        x = factorSyntax[i]
+      )
   }
   
   # extract the items for each factor
   itemsPerFactor = stringr::str_extract_all(string = itemSyntax,
-                                            pattern = paste0("(\\b", paste0(paste0(unlist(items), collapse = "\\b)|(\\b"), "\\b)"))
-  )
+                                            pattern = paste0("(\\b", paste0(
+                                              paste0(unlist(items), collapse = "\\b)|(\\b"), "\\b)"
+                                            )))
   return(list('factors' = factors, 'itemsPerFactor' = itemsPerFactor))
 }
 

@@ -459,7 +459,7 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 500, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
 ##  Initializing short form creation.
 ##  The initial short form is:
 ##   Ability =~ Item3 + Item4 + Item5 + Item7 + Item2
@@ -474,3 +474,6 @@ plot(SA_example) # plot showing how the fit value changes at each step
 
 It took a total of 5.06 minutes to run the SA example, and a total of
 25.08 minutes to run all three together.
+
+It took a total of 1.28 minutes to run the SA example, and a total of
+11.76 minutes to run all three together.
