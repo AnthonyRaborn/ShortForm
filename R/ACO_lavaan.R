@@ -344,17 +344,19 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             model = new_ant_model, data = data, sample.cov = sample.cov,
             sample.nobs = sample.nobs,
             model.type = antcolony.lavaan.env$model.type,
-            auto.var = antcolony.lavaan.env$auto.var,
             ordered = antcolony.lavaan.env$ordered,
             estimator = antcolony.lavaan.env$estimator,
             int.ov.free = antcolony.lavaan.env$int.ov.free,
             int.lv.free = antcolony.lavaan.env$int.lv.free,
             auto.fix.first = antcolony.lavaan.env$auto.fix.first,
+            std.lv = antcolony.lavaan.env$std.lv,
             auto.fix.single = antcolony.lavaan.env$auto.fix.single,
+            auto.var = antcolony.lavaan.env$auto.var,
             auto.cov.lv.x = antcolony.lavaan.env$auto.cov.lv.x,
             auto.th = antcolony.lavaan.env$auto.th,
             auto.delta = antcolony.lavaan.env$auto.delta,
             auto.cov.y = antcolony.lavaan.env$auto.cov.y))
+        
         # Save the error and warning messages
         warnings <- modelCheck[[2]]
         errors <- modelCheck[[3]]
@@ -365,7 +367,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                           "WARNING: covariance matrix of latent variables is not positive definite", 
                           "WARNING: model has NOT converged", 
                           "WARNING: could not invert information matrix", 
-                          "WARNING: the optimizer warns that a solution has NOT been found")
+                          "WARNING: the optimizer warns that a solution has NOT been found",
+                          "WARNING: some estimated ov variances are negative")
          bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
                          "ERROR: missing observed variables in dataset")
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
