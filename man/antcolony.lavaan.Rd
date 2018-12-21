@@ -11,7 +11,7 @@ antcolony.lavaan(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   steps = 50, lavaan.model.specs = list(model.type = "cfa", auto.var =
   T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free
   = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x =
-  TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
+  TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F),
   pheromone.calculation = "gamma", fit.indices = c("cfi", "tli",
   "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
