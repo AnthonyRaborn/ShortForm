@@ -17,7 +17,7 @@
 \item{x}{An object with one of the following classes: \code{antcolony},
 \code{tabu}, or \code{simulatedAnnealing}.}
 
-\item{type}{A character string. One of "all", "pheromone", "gamma", or
+\item{type}{A character string. One of "all", "pheromone", "gamma", "beta", or
 "variance". Matched literally. Only used with objects of class \code{antcolony}.}
 
 \item{...}{Not used with the current S3 method implementation.}
@@ -31,10 +31,10 @@ and \code{simulatedAnnealing}).
 Objects of classes \code{tabu} and \code{simulatedAnnealing} produce a 
 single plot which show the changes in the objective function across each 
 iteration of the algorithm. Objects of class \code{antcolony} can produce
-up to three plots which show the changes in the pheromone levels for each
+up to four plots which show the changes in the pheromone levels for each
 item, changes in the average standardized regression coefficients of the
-model, and changes in the amount of variance explained in the model across
-each iteration of the algorithm.
+model (gammas and betas), and changes in the amount of variance explained 
+in the model across each iteration of the algorithm.
 
 These functions do not currently allow users to modify the resulting
 plots directly, but the objects produces are \pkg{ggplot2} objects which

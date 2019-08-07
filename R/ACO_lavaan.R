@@ -101,8 +101,12 @@
 #'  CFA. See \link[lavaan]{lavaan} for more details.
 #'@param pheromone.calculation A character string specifying the method for
 #'  calculating the pheromone strength. Must be one of "\code{gamma}"
-#'  (standardized regression coefficients) or "\code{variance}" (proportion of
-#'  variance explained by model). You must specify the entire string.
+#'  (standardized latent regression coefficients), "\code{beta}" 
+#'  (standardized observed regression coefficients), "\code{regression}"
+#'  (both latent and observed regression coefficients, if they exist)
+#'   or "\code{variance}" (proportion of
+#'  variance explained by model). You must specify the entire string. Default is
+#'  \code{gamma}.
 #'@param fit.indices The fit indices (in lavaan format) extracted for model
 #'  optimization. See \link[lavaan]{lavaan} for more details.
 #'@param fit.statistics.test A character vector of the logical test being used
@@ -122,7 +126,7 @@
 #'  run number, (b) the count number, (c) the ant number, (d) the step number
 #'  (if the current run is successful) or "Failure" (if the current run is
 #'  unsuccessful), and for successful runs (f) the chosen fit statistics (from
-#'  \code{fit.indices}), the average of the gammas (standardized regression
+#'  \code{fit.indices}), the average of the gammas and betas (standardized regression
 #'  coefficients), and the overall variance explained of the current run.
 #'@param max.run The maximum number of ants to run before the algorithm stops.
 #'  This includes failed iterations as well. Default is 1000.
@@ -133,11 +137,11 @@
 #'  information for runs that do converge successfully. Default is \code{FALSE}.
 #'@return A list with four elements: the first containing a named matrix with
 #'  final model's best fit indices, the final pheromone level (either the mean
-#'  of the standardized regression coefficients (gammas), or the mean variance
+#'  of the standardized regression coefficients (gammas, betas, or both), or the mean variance
 #'  explained), and a series of 0/1 values indicating the items selected in the
 #'  final solution,  the second element containing tbe summary matrix of the 
 #'  best fit statistic value(s) for each run, the items chosen for said best fit, 
-#'  the mean gamma and variance explained for the best fit, and the item pheromone 
+#'  the mean gamma, beta, and variance explained for the best fit, and the item pheromone 
 #'  levels after each run, the third containing the best-fitting lavaan model
 #'  object, and the fourth containing the best-fitting model syntax.
 #'  
@@ -200,7 +204,7 @@
 antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                      ants = 20, evaporation = 0.9, antModel, list.items = NULL,
                      full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL, steps = 50,
-                     lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE),
+                     lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F),
                      pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
                      fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
                      summaryfile = NULL,
@@ -212,8 +216,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   antcolony.lavaan.env <- new.env(parent = baseenv())
 
-  if(pheromone.calculation %in% c("gamma","variance") == FALSE) {
-    stop("Pheromone calculation not recognized! Enter either \'gamma\' or \'variance\'." )
+  if(pheromone.calculation %in% c("gamma", "beta", "regression", "variance") == FALSE) {
+    stop("Pheromone calculation not recognized! Enter one of \'gamma\', \'beta\', \'regression\' or \'variance\'." )
   }
   # create initial, empty files to be used
   if(length(summaryfile) > 0){
@@ -221,7 +225,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   }
   
   summary = matrix(nrow = 1, 
-                   ncol = (full + 3 + 2 + length(fit.indices) + full))
+                   ncol = (full + 3 + 3 + length(fit.indices) + full))
   # ncol = number of items + 3 (run, ant, count) + 
   # 2 (mean.gamma, mean.var.exp) + number of fit indices + number of items
   
@@ -344,17 +348,19 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             model = new_ant_model, data = data, sample.cov = sample.cov,
             sample.nobs = sample.nobs,
             model.type = antcolony.lavaan.env$model.type,
-            auto.var = antcolony.lavaan.env$auto.var,
             ordered = antcolony.lavaan.env$ordered,
             estimator = antcolony.lavaan.env$estimator,
             int.ov.free = antcolony.lavaan.env$int.ov.free,
             int.lv.free = antcolony.lavaan.env$int.lv.free,
             auto.fix.first = antcolony.lavaan.env$auto.fix.first,
+            std.lv = antcolony.lavaan.env$std.lv,
             auto.fix.single = antcolony.lavaan.env$auto.fix.single,
+            auto.var = antcolony.lavaan.env$auto.var,
             auto.cov.lv.x = antcolony.lavaan.env$auto.cov.lv.x,
             auto.th = antcolony.lavaan.env$auto.th,
             auto.delta = antcolony.lavaan.env$auto.delta,
             auto.cov.y = antcolony.lavaan.env$auto.cov.y))
+        
         # Save the error and warning messages
         warnings <- modelCheck[[2]]
         errors <- modelCheck[[3]]
@@ -365,7 +371,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                           "WARNING: covariance matrix of latent variables is not positive definite", 
                           "WARNING: model has NOT converged", 
                           "WARNING: could not invert information matrix", 
-                          "WARNING: the optimizer warns that a solution has NOT been found")
+                          "WARNING: the optimizer warns that a solution has NOT been found",
+                          "WARNING: some estimated ov variances are negative")
          bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
                          "ERROR: missing observed variables in dataset")
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
@@ -391,23 +398,26 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           if (verbose == TRUE) {
             cat("                  ")
           }
-          # compute fit indices, gammas, and residual variances
+          # compute fit indices, gammas, betas, and residual variances
           # first, fit indices
           model.fit <- lavaan::fitMeasures(modelCheck$lavaan.output, fit.indices)
 
-          # next, gamma/variances
+          # next, gamma/beta/variances
           # estimate the standardized coefficients of the variables
           standard.coefs <- lavaan::standardizedSolution(modelCheck$lavaan.output, se = FALSE, zstat = FALSE, pvalue = FALSE, remove.def = TRUE)
           # extract the regression coefficients
           std.gammas <- standard.coefs[which(standard.coefs[,2]=="=~"),]$est.std
-
+          std.betas <- standard.coefs[which(standard.coefs[,2]=="~"),]$est.std
+          std.reg.coef <- standard.coefs[which(standard.coefs[,2]=="~"|standard.coefs[,2]=="=~"),]$est.std
+          
           # obtains the variance explained ("rsquare") from lavaan
           variance.explained <- lavaan::lavInspect(modelCheck$lavaan.output, "rsquare")
           mapply(assign, names(model.fit), model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
           
           #saves information about the selected items and the RMSEA they generated for the final ant.
           if (ant == ants && length(summaryfile) > 0){
-            fit.info = matrix(c(select.indicator,run,count,ant,model.fit,mean(std.gammas), mean(variance.explained),
+            fit.info = matrix(c(select.indicator,run,count,ant,model.fit,mean(std.gammas), mean(std.betas),
+                                mean(variance.explained),
                                 round(include,2)),1,)
 
             write.table(fit.info, file = summaryfile, append = T,
@@ -417,7 +427,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           if (ant == ants){
             summary <- rbind(summary,
                              matrix(c(select.indicator,run,count,ant,model.fit,
-                                      mean(std.gammas), mean(variance.explained),
+                                      mean(std.gammas), mean(std.betas), mean(variance.explained),
                                       round(include,2)),1,))
           }
           
@@ -425,7 +435,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           if(length(feedbackfile) > 0){
           feedback = c(paste("<h1>","run:",run,"count:",count,"ant:",ant,"step:",step,"<br>",
                              "Fit Statistics:",model.fit,"<br>",
-                             "GAMMA:",mean(std.gammas), "VAR.EXP:", mean(variance.explained),"</h1>" ) )
+                             "GAMMA:",mean(std.gammas), "BETA:",mean(std.betas), 
+                             "VAR.EXP:", mean(variance.explained),"</h1>" ) )
           write(feedback, file = feedbackfile, append = T)
           }
           
@@ -438,9 +449,16 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
               if (pheromone.calculation == "gamma") {#mean of standardized gammas
                 pheromone = round(mean(std.gammas, na.rm = T),3)
               } else {
+                if (pheromone.calculation == "beta") { #mean of standardized betas
+                pheromone = round(mean(std.betas, na.rm = T),3)
+                } else {
+                  if (pheromone.calculation == "regression") { #mean of all regression coefs
+                    pheromone = round(mean(std.reg.coef, na.rm = T),3)
+                  }
                 if (pheromone.calculation == "variance") { #mean of r^2 values
                   pheromone = round(mean(variance.explained, na.rm = T),3)
                 }
+              }
               }
             }
 
@@ -533,10 +551,10 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # dimnames(results) = list(c(item.vector),c("ratio","ranks"))
   # 
   summary <- data.frame(summary[-1,])
-  colnames(summary) = c(item.vector, "run", "ant", "count", fit.indices, "mean.gamma", "mean.var.exp", paste0(item.vector, ".Pheromone"))
+  colnames(summary) = c(item.vector, "run", "ant", "count", fit.indices, "mean.gamma", "mean.beta", "mean.var.exp", paste0(item.vector, ".Pheromone"))
   
   final.solution = matrix(c(best.so.far.fit.indices,best.so.far.pheromone,best.so.far.solution),1,,
-                          dimnames=list(NULL,c(names(model.fit),"mean_gamma",item.vector)))
+                          dimnames=list(NULL,c(names(model.fit),paste0("mean_", pheromone.calculation), item.vector)))
   results = list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax)
   class(results) = "antcolony"
   #FINISH FUNCTION.

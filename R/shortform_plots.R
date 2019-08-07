@@ -7,10 +7,10 @@
 #' Objects of classes \code{tabu} and \code{simulatedAnnealing} produce a 
 #' single plot which show the changes in the objective function across each 
 #' iteration of the algorithm. Objects of class \code{antcolony} can produce
-#' up to three plots which show the changes in the pheromone levels for each
+#' up to four plots which show the changes in the pheromone levels for each
 #' item, changes in the average standardized regression coefficients of the
-#' model, and changes in the amount of variance explained in the model across
-#' each iteration of the algorithm.
+#' model (gammas and betas), and changes in the amount of variance explained 
+#' in the model across each iteration of the algorithm.
 #' 
 #' These functions do not currently allow users to modify the resulting
 #' plots directly, but the objects produces are \pkg{ggplot2} objects which
@@ -18,7 +18,7 @@
 #' 
 #' @param x An object with one of the following classes: \code{antcolony},
 #' \code{tabu}, or \code{simulatedAnnealing}.
-#' @param type A character string. One of "all", "pheromone", "gamma", or
+#' @param type A character string. One of "all", "pheromone", "gamma", "beta", or
 #' "variance". Matched literally. Only used with objects of class \code{antcolony}.
 #' @param ... Not used with the current S3 method implementation.
 #' @name plot
@@ -27,7 +27,7 @@
 
 plot.antcolony <- function(x, type = "all", ...) {
   summary_results <- x[[2]]
-  pheromone_plot = gamma_plot = variance_plot = NULL
+  pheromone_plot = gamma_plot = beta_plot = variance_plot = NULL
   item_pheromone_names <-
     grep("Pheromone", names(summary_results), value = TRUE)
   
@@ -87,6 +87,28 @@ plot.antcolony <- function(x, type = "all", ...) {
       )
   }
   
+  if (type %in% c("all", "beta")) {
+    beta_plot <-
+      ggplot2::ggplot(summary_results,
+                      ggplot2::aes_string(x = "run", y = "mean.beta")) +
+      ggplot2::geom_smooth(fullrange = TRUE, se = FALSE, na.rm = T) +
+      ggplot2::ylab(expression("Mean " * beta)) +
+      ggplot2::ggtitle(expression("Smoothed Changes in Mean " * beta)) +
+      ggplot2::geom_text(ggplot2::aes(label = ifelse(
+        summary_results$run %in% c(1, max(summary_results$run)), 
+        round(summary_results$mean.beta, 3), ""
+      )), vjust = 0, na.rm = T) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        legend.position = "none",
+        plot.title = ggplot2::element_text(
+          size = 23,
+          face = "bold",
+          hjust = .5
+        )
+      )
+  }
+  
   if (type %in% c("all", "variance")) {
     variance_plot <-
       ggplot2::ggplot(summary_results,
@@ -109,7 +131,8 @@ plot.antcolony <- function(x, type = "all", ...) {
       )
   }
   
-  plots <- list("Pheromone" = pheromone_plot, "Gamma" = gamma_plot, "Variance" = variance_plot)
+  plots <- list("Pheromone" = pheromone_plot, "Gamma" = gamma_plot, 
+                "Beta" = beta_plot, "Variance" = variance_plot)
   return(plots)
   
 }
