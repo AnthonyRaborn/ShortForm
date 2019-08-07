@@ -1,7 +1,7 @@
 Package: ShortForm
 Type: Package
 Title: Automatic Short Form Creation
-Version: 0.4.2
+Version: 0.4.2-9999
 Date: 2018-10-16
 Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", role = c("aut", "cre")), person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
 Description: Performs automatic creation of short forms of scales with an 

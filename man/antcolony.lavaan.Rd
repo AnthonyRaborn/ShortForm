@@ -67,8 +67,12 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 
 \item{pheromone.calculation}{A character string specifying the method for
 calculating the pheromone strength. Must be one of "\code{gamma}"
-(standardized regression coefficients) or "\code{variance}" (proportion of
-variance explained by model). You must specify the entire string.}
+(standardized latent regression coefficients), "\code{beta}" 
+(standardized observed regression coefficients), "\code{regression}"
+(both latent and observed regression coefficients, if they exist)
+ or "\code{variance}" (proportion of
+variance explained by model). You must specify the entire string. Default is
+\code{gamma}.}
 
 \item{fit.indices}{The fit indices (in lavaan format) extracted for model
 optimization. See \link[lavaan]{lavaan} for more details.}
@@ -92,7 +96,7 @@ directory. This file saves the result of each run, which includes (a) the
 run number, (b) the count number, (c) the ant number, (d) the step number
 (if the current run is successful) or "Failure" (if the current run is
 unsuccessful), and for successful runs (f) the chosen fit statistics (from
-\code{fit.indices}), the average of the gammas (standardized regression
+\code{fit.indices}), the average of the gammas and betas (standardized regression
 coefficients), and the overall variance explained of the current run.}
 
 \item{max.run}{The maximum number of ants to run before the algorithm stops.
@@ -107,11 +111,11 @@ information for runs that do converge successfully. Default is \code{FALSE}.}
 \value{
 A list with four elements: the first containing a named matrix with
  final model's best fit indices, the final pheromone level (either the mean
- of the standardized regression coefficients (gammas), or the mean variance
+ of the standardized regression coefficients (gammas, betas, or both), or the mean variance
  explained), and a series of 0/1 values indicating the items selected in the
  final solution,  the second element containing tbe summary matrix of the 
  best fit statistic value(s) for each run, the items chosen for said best fit, 
- the mean gamma and variance explained for the best fit, and the item pheromone 
+ the mean gamma, beta, and variance explained for the best fit, and the item pheromone 
  levels after each run, the third containing the best-fitting lavaan model
  object, and the fourth containing the best-fitting model syntax.
 }
