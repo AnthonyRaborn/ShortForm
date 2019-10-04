@@ -305,7 +305,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
 
           #replaces the lavaan syntax for factor specification.
-          factor.position = grep(paste(factors[factor],"=~"),input,ignore.case=T)
+          factor.position = grep(paste(factors[factor],"[ ]{0,}=~"),input,ignore.case=T)
           input[factor.position]  = paste(factors[factor],"=~", paste(items,collapse =" + "))
           all.items = c(all.items, items)
           #finishes loop
