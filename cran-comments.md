@@ -1,5 +1,5 @@
 ## Resubmission
-This is a resubmission. In this version I have fixed a bug that caused the `antcolony.lavaan` function to 
+This is a resubmission. In this version I have fixed a bug that caused the lavaan-based functions to improperly use the initial model syntax instead of building the intermediate model syntax when the initial model syntax was specified in an untested manner.
 
 ## Test Environments
 

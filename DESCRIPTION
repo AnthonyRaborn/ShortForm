@@ -2,7 +2,7 @@ Package: ShortForm
 Type: Package
 Title: Automatic Short Form Creation
 Version: 0.4.4
-Date: 2019-8-7
+Date: 2019-10-9
 Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", role = c("aut", "cre")), person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
 Description: Performs automatic creation of short forms of scales with an 
     ant colony optimization algorithm and a Tabu search. As implemented in the 

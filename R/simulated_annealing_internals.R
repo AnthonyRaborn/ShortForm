@@ -149,7 +149,7 @@ syntaxExtraction = function(initialModelSyntaxFile, items) {
   factorSyntax = c()
   itemSyntax = c()
   for (i in 1:length(factors)) {
-    chosenFactorLocation = c(1:length(vectorModelSyntax))[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], " =~ "))]
+    chosenFactorLocation = c(1:length(vectorModelSyntax))[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], "[ ]{0,}=~ "))]
     factorSyntax[i] = vectorModelSyntax[chosenFactorLocation]
     # remove the factors from the syntax
     itemSyntax[i] <-
