@@ -81,8 +81,8 @@ tabuShortForm <-
       
       # save the external relationships
       vectorModel =  unlist(strsplit(x = initialModel, split = "\\n"))
-      externalRelation = vectorModel[grep(" ~ ", vectorModel)]
-      factorRelation = vectorModel[grep(" ~~ ", vectorModel)]
+      externalRelation = vectorModel[grep("[ ]{0,}(?<!=)~ ", vectorModel, perl=T)]
+      factorRelation = vectorModel[grep("[ ]{0,}~~ ", vectorModel)]
       
       # reduce the number of items for each factor according to maxItems
       newItemsPerFactor = list()
@@ -104,7 +104,7 @@ tabuShortForm <-
                                   paste(newItemsPerFactor[[i]], collapse = " + "))
       }
       newModelSyntax = c(newModelSyntax, externalRelation, factorRelation)
-      
+      newModelSyntax = paste(newModelSyntax, collapse = "\n")
       # fit the new model
       newModel = modelWarningCheck(
         lavaan::lavaan(
@@ -226,8 +226,7 @@ tabuShortForm <-
                   )
                 )
                 
-                if (fitmodel$lavaan.output@Fit@converged &
-                    !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+                if (fitmodel$lavaan.output@Fit@converged) {
                   fit.val <- criterion(fitmodel$lavaan.output)
                 } else {
                   fit.val <- NA
@@ -276,8 +275,7 @@ tabuShortForm <-
                   )
                 )
                 
-                if (fitmodel$lavaan.output@Fit@converged &
-                    !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+                if (fitmodel$lavaan.output@Fit@converged) {
                   fit.val <- criterion(fitmodel$lavaan.output)
                 } else {
                   fit.val <- NA
@@ -322,8 +320,7 @@ tabuShortForm <-
               )
             )
             
-            if (fitmodel$lavaan.output@Fit@converged &
-                !any(is.na(fitmodel$lavaan.output@Fit@se))) {
+            if (fitmodel$lavaan.output@Fit@converged) {
               fit.val <- criterion(fitmodel$lavaan.output)
             } else {
               fit.val <- NA
@@ -347,6 +344,40 @@ tabuShortForm <-
       # Out of valid models, pick model with best objective function value
       indx <- which.min(tmp.obj[valid])
       
+      # if no valid models, recreate a random short form and start over
+      if (length(indx)==0) {
+        cat("Creating initial short form.\n")
+        initialShortModel <- randomInitialModel()
+        cat("The initial short form is: \n")
+        cat(paste(initialShortModel$model.syntax, collapse = "\n"))
+        best.obj <- all.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
+        best.model <- current.model <- initialShortModel$lavaan.output
+        tabu.list <- vector("numeric")
+        
+        factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
+                                                           "=~", 'lhs'])
+        externalRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
+        factorRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
+        
+        if (is.list(allItems)) {
+          included.items <-
+            stringr::str_extract_all(string = initialShortModel$model.syntax,
+                                     pattern = paste0("(\\b", paste0(
+                                       paste0(unlist(allItems), collapse = "\\b)|(\\b"), "\\b)"
+                                     )))
+        } else {
+          included.items <-
+            unlist(as.vector(
+              stringr::str_extract_all(
+                string = initialShortModel$model.syntax,
+                pattern = paste0("(\\b", paste0(
+                  paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"
+                ))
+              )
+            ))
+        }
+        next
+      }
       # Move current state to next model
       current.obj <- (tmp.obj[valid])[indx]
       all.obj <- c(all.obj, current.obj)
