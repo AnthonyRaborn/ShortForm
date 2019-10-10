@@ -1,21 +1,11 @@
 ## Resubmission
-This is a resubmission. In this version I have:
-
-* Added classes to the results of the major package functions
-
-* Introduced an S3 Plot method
-
-* Fixed bugs related to bifactor models
-
-* Added a loading message that prints the package version when the package is attached
-
-* Updated the simulatedAnnealing documentation so it is easier on the eyes
+This is a resubmission. In this version I have fixed a bug that caused the lavaan-based functions to improperly use the initial model syntax instead of building the intermediate model syntax when the initial model syntax was specified in an untested manner.
 
 ## Test Environments
 
-* local Windows 10 Home install, R 3.5.0
+* local Windows 10 Enterprise install, R 3.6.1
 
-* ubuntu 14.04.5 LTS trusty (travis ci), R 3.5.1
+* Ubuntu 16.04.5 LTS xenial (travis ci), R 3.6.1
 
 ## R CMD check results
 0 errors | 0 warnings | 0 notes
