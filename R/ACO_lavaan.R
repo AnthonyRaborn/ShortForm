@@ -268,9 +268,20 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   previous.solution = include
   step = 1
   
-  # creates objects in the global environment that are fed into the lavaan function in order to fine-tune the model to user specifications
   checkModelSpecs(lavaan.model.specs)
   mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs=list(envir = antcolony.lavaan.env))
+  
+  # create values of "bad warnings" and "bad errors" that result in uninterpretable models
+  bad.warnings <- c("WARNING: could not compute standard errors",
+                    "WARNING: could not compute scaled test statistic", 
+                    "WARNING: covariance matrix of latent variables is not positive definite", 
+                    "WARNING: model has NOT converged", 
+                    "WARNING: could not invert information matrix", 
+                    "WARNING: the optimizer warns that a solution has NOT been found",
+                    "WARNING: some estimated ov variances are negative")
+  bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
+                  "ERROR: missing observed variables in dataset")
+  
   
   #starts loop through iterations.
   while (step <= steps) {
@@ -327,17 +338,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         # Save the error and warning messages
         warnings <- modelCheck[[2]]
         errors <- modelCheck[[3]]
-        # Check the above messages and set pheromone to zero under certain circumstances
-        # the circumstances in question:
-        bad.warnings <- c("WARNING: could not compute standard errors",
-                          "WARNING: could not compute scaled test statistic", 
-                          "WARNING: covariance matrix of latent variables is not positive definite", 
-                          "WARNING: model has NOT converged", 
-                          "WARNING: could not invert information matrix", 
-                          "WARNING: the optimizer warns that a solution has NOT been found",
-                          "WARNING: some estimated ov variances are negative")
-        bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
-                        "ERROR: missing observed variables in dataset")
+        # Check the above messages and set pheromone to zero under 'bad' circumstances
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
           pheromone = 0
           if(verbose == TRUE) {
@@ -370,7 +371,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           mapply(assign, names(modelInfo), modelInfo, MoreArgs=list(envir = antcolony.lavaan.env))
           mapply(assign, names(antcolony.lavaan.env$model.fit), antcolony.lavaan.env$model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
           
-          #saves information about the selected items and the RMSEA they generated for the final ant.
+          #saves information about the selected items and the fit indices they generated for the final ant.
           if (ant == ants && length(summaryfile) > 0){
             fit.info = matrix(c(select.indicator,
                                 run,count,ant,
@@ -417,7 +418,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           if (eval(parse(text=fit.statistics.test), 
                    envir = antcolony.lavaan.env) == FALSE) {
             # Model didn't fit well enough, so set pheromone to 0.
-            pheromone = 0 } else {
+            pheromone = 0 
+            } else {
               # Model fit well enough, so calculate pheromone by either gamma or variance.
               if (pheromone.calculation == "gamma") {#mean of standardized gammas
                 pheromone = round(mean(antcolony.lavaan.env$std.gammas, na.rm = T),3)
@@ -456,25 +458,21 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         #number of steps.
         if (sum(previous.solution != select.indicator) == 0)
         {step = step + 1} else {step = 1}
-        #assigns current solution to previous solution.
+
         previous.solution = select.indicator
         
-        #ends loop through ants.
       }
       
       #implements pheromone evaporation.
       include = include*evaporation
       
       
-      #adjusts pheromone only if the current pheromone is best than the previous.
+      #adjusts pheromone and best.so.far values only if the current pheromone is best than the previous.
       if (best.pheromone > best.so.far.pheromone) {
-        #Adjusts the pheromone levels.
+
         include.pheromone = best.solution * best.pheromone
-        
-        #updates pheromone.
         include = include + include.pheromone
         
-        #updates best so far solution and pheromone, with corresponding RMSEA.
         best.so.far.solution = best.solution
         best.so.far.pheromone = best.pheromone
         best.so.far.fit.indices = best.fit.indices
@@ -483,7 +481,6 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         #re-starts count.
         count = 1
         
-        #end if clause for pheromone adjustment.
       } else {
         
         #advances count.
@@ -495,7 +492,6 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         #updates pheromone.
         include = include + include.pheromone
         
-        #finish else clause.
       }
       
       
@@ -508,22 +504,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   }
   
   print("Compiling results.")
-  #ranks items within factor.
-  # ranks = c()
-  # total.i.per.f = sapply(list.items,length)
-  # maximum = cumsum(total.i.per.f)
-  # minimum = c(1, (cumsum(total.i.per.f)+1))
-  # ratio = include
-  # for (f in 1:length(total.i.per.f)) {
-  #   ranked.items = rank(ratio[minimum[f]:maximum[f]],ties.method = c("max"));print(ranked.items)
-  #   ranks = c(ranks,ranked.items)
-  #   names(ranks) = c("Pheromone", "Ranks")
-  # }
-  # 
-  # results = cbind(round(ratio,3),ranks)
-  # dimnames(results) = list(c(item.vector),c("ratio","ranks"))
-  # 
-  summary <- data.frame(summary[-1,])
+
+    summary <- data.frame(summary[-1,])
   colnames(summary) = c(item.vector, "run", "ant", "count", fit.indices, "mean.gamma", "mean.beta", "mean.var.exp", paste0(item.vector, ".Pheromone"))
   
   final.solution = matrix(c(best.so.far.fit.indices,best.so.far.pheromone,best.so.far.solution),1,,
