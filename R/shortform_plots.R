@@ -131,8 +131,19 @@ plot.antcolony <- function(x, type = "all", ...) {
       )
   }
   
-  plots <- list("Pheromone" = pheromone_plot, "Gamma" = gamma_plot, 
-                "Beta" = beta_plot, "Variance" = variance_plot)
+  if (type == 'all') {
+    plots <- list("Pheromone" = pheromone_plot, "Gamma" = gamma_plot, 
+                  "Beta" = beta_plot, "Variance" = variance_plot)
+  } else if (type == 'pheromone') {
+    plots <- pheromone_plot
+  } else if (type == 'gamma') {
+    plots <- gamma_plot
+  } else if (type == 'beta') {
+    plots <- beta_plot
+  } else {
+    plots <- variance_plot
+  }
+  
   return(plots)
   
 }
