@@ -30,7 +30,9 @@ Imports:
     tidyr,
     stringr
 Depends:
-    R (>= 3.0.0)
+    R (>= 3.5.0)
+Roxygen: list(wrap = FALSE)
+>>>>>>> Incremented Version number and date; increased Depends R version
 URL: https://github.com/AnthonyRaborn/ShortForm
 BugReports: https://github.com/AnthonyRaborn/ShortForm/issues
 Encoding: UTF-8
