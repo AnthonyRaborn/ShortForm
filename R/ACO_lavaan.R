@@ -332,7 +332,8 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             auto.cov.lv.x = antcolony.lavaan.env$auto.cov.lv.x,
             auto.th = antcolony.lavaan.env$auto.th,
             auto.delta = antcolony.lavaan.env$auto.delta,
-            auto.cov.y = antcolony.lavaan.env$auto.cov.y))
+            auto.cov.y = antcolony.lavaan.env$auto.cov.y)
+          )
         
         # Save the error and warning messages
         warnings <- modelCheck[[2]]
@@ -385,14 +386,6 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           }
           
           if (ant == ants){
-            print(summary)
-            print(matrix(c(select.indicator,
-                           run,count,ant,
-                           antcolony.lavaan.env$model.fit,
-                           mean(antcolony.lavaan.env$std.gammas), 
-                           mean(antcolony.lavaan.env$std.betas), 
-                           mean(antcolony.lavaan.env$variance.explained),
-                           round(include,2)),1,))
             summary <- rbind(summary,
                              matrix(c(select.indicator,
                                       run,count,ant,
