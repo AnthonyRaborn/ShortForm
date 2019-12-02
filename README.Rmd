@@ -32,7 +32,7 @@ devtools::install_github("AnthonyRaborn/ShortForm", branch = "devel") # the deve
 Here are some (slightly modified) examples from the help documentation using
 lavaan. Be warned, the algorithms may take some time to converge, particularly
 with large forms, multiple dimensions, and different settings. The time for these
-examples to converge on a low-end laptop is printed at the bottom.
+examples to converge on a laptop with an Intel Core i7 8th Gen processor is printed at the bottom.
 
 ### ACO Algorithm
 
@@ -46,12 +46,7 @@ data(exampleAntModel) # a character vector for a lavaan model
 
 # then, create the list of the items by the factors
 # in this case, all items load onto the general 'Ability' factor
-list.items <- list(c('Item1','Item2','Item3','Item4','Item5',
-'Item6','Item7','Item8','Item9','Item10',
-'Item11','Item12','Item13','Item14','Item15',
-'Item16','Item17','Item18','Item19','Item20',
-'Item21','Item22','Item23','Item24','Item25',
-'Item26','Item27','Item28','Item29','Item30'))
+list.items <- list(paste0("Item", 1:56))
 
 # load the data
 data(simulated_test_data)
@@ -61,11 +56,11 @@ data(simulated_test_data)
 set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
 ants = 5, evaporation = 0.7, antModel = exampleAntModel,
-list.items = list.items, full = 30, i.per.f = 10,
+list.items = list.items, full = 56, i.per.f = 15,
 lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", 
                           ordered = unlist(list.items), int.ov.free = TRUE,
                           int.lv.free = FALSE, auto.fix.first = TRUE, 
-                          auto.fix.single = TRUE, auto.cov.lv.x = TRUE, 
+                          auto.fix.single = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE, 
                           auto.th = TRUE, auto.delta = TRUE, 
                           auto.cov.y = TRUE),
 factors = 'Ability', steps = 3, fit.indices = c('cfi', 'rmsea'),
@@ -74,7 +69,7 @@ summaryfile = NULL,
 feedbackfile = NULL,
 max.run = 50, verbose = FALSE)
 abilityShortForm[[1]] # print the results of the final short form
-plot(abilityShortForm) # the plots for class "antcolony"
+plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
 
 A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run this example.
@@ -86,65 +81,121 @@ This example demonstrates how to use the Tabu search for model specification sea
 ```{r Tabu example}
 start.time.Tabu <- Sys.time()
 library(ShortForm, quietly = T)
-# load simulation data and select columns used in this example
-data(simulated_test_data) 
-tabuData <- simulated_test_data[,c(1:10)]
+set.seed(2)
+# create simulation data from the `psych` package
+# two factors, 12 items total
+# factor loading matrix - not quite simple structure
+fxMatrix <- 
+  matrix(data = c(
+    # first factor loadings
+    rep(x = c(.8, .8, .6, .6), times = 3),
+    # second factor loadings
+    rep(x = c(.2), times = 12)
+    ),
+  ncol = 2)
+# factor correlation matrix - all factors uncorrelated
+PhiMatrix <-
+  matrix(data = c(1,0, 
+                  0,1
+                  ), ncol = 2) 
+tabuData <- 
+  psych::sim(
+    fx = fxMatrix,
+    Phi = PhiMatrix,
+    n = 600,
+    raw = TRUE
+  )$observed # observed is the simulated observed data
 
-# specify an improper model (improper because the data is actually unidimensional)
-tabuModel <- "
-Ability =~ Item1 + Item2 + Item3 + Item4
-FakeAbility =~ Item5 + Item6 + Item7 + Item8
-Ability ~ Outcome
-FakeAbility ~ 0*Outcome
-Ability ~ 0*FakeAbility"
+colnames(tabuData) = paste0("Item", 1:12)
 
+tabuModel <- '
+Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + 0*Item7 + 0*Item8 + 0*Item9 + 0*Item10 + 0*Item11 + 0*Item12
+Trait2 =~ 0*Item1 + 0*Item2 + 0*Item3 + 0*Item4 + 0*Item5 + 0*Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12
+'
 # fit the initial misspecified model for Tabu
 init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
-auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=TRUE)
+                             auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=FALSE)
 
 # use search.prep to prepare for the Tabu search
-ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=TRUE, errors=FALSE)
+ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=FALSE, errors=FALSE)
 
-# perform the Tabu search with 100 iterations and a Tabu list size of 5
-set.seed(1) # reproduceable
-Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 25, tabu.size = 5)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
+Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 20, tabu.size = 10)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
 
 # check the final model
 lavaan::summary(Tabu_example$best.mod)
+
+# plot the change in the objective/criterion function over each run
+plot(Tabu_example)
 ```
 
 It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example.
 
-The next Tabu example demonstrates how to use it to find a short form of a prespecified length with the same data.
+The next Tabu example demonstrates how to use it to find a short form of a prespecified length with different data.
 
 ```{r Tabu short form}
 start.time.Tabu <- Sys.time()
 library(ShortForm, quietly = T)
-# load simulation data and select columns used in this example
-data(simulated_test_data) 
-tabuData <- simulated_test_data
+# set the seed to reproduce this example
+set.seed(3)
+# create simulation data from the `psych` package
+# four factors, 12 items each, 48 total items
+# factor loading matrix - not quite simple structure
+fxMatrix <- 
+ matrix(data = c(rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4*3), # first factor loadings
+                 
+                 rep(0.2, times = 3*4),
+                 rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4*2), # second factor loadings
+                 
+                 rep(0.2, times = 3*4*2),
+                 rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4), # third factor loadings
+                 
+                 rep(0.2, times = 3*4*3),
+                 rep(x = c(.8, .8, .4, .3), times = 3) # fourth factor loadings
+ ),
+ ncol = 4)
+# factor correlation matrix - all factors uncorrelated
+PhiMatrix <-
+ matrix(data = c(1,0,0,0, 
+                 0,1,0,0, 
+                 0,0,1,0, 
+                 0,0,0,1), ncol = 4) 
+tabuData <- 
+ psych::sim(
+   fx = fxMatrix,
+   Phi = PhiMatrix,
+   n = 600,
+   mu = c(-2, -1, 1, 2),
+   raw = TRUE
+ )$observed # observed is the simulated observed data
 
-# specify the initial model. For the short form, no need to fit it.
-tabuModel <- "
-Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12 + Item13 + Item14 + Item15 + Item16 + Item17 + Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24 + Item25 + Item26 + Item27 + Item28 + Item29 + Item30 + Item31 + Item32 + Item33 + Item34 + Item35 + Item36 + Item37 + Item38 + Item39 + Item40 + Item41 + Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48 + Item49 + Item50 + Item51 + Item52 + Item53 + Item54 + Item55 + Item56
-Ability ~ Outcome"
+colnames(tabuData) = paste0("Item", 1:48)
+
+tabuModel <- '
+Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12
+Trait2 =~ Item13 + Item14 + Item15 + Item16 + Item17 + Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24
+Trait3 =~ Item25 + Item26 + Item27 + Item28 + Item29 + Item30 + Item31 + Item32 + Item33 + Item34 + Item35 + Item36
+Trait4 =~ Item37 + Item38 + Item39 + Item40 + Item41 + Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48
+'
 
 # specify the criterion function that the Tabu Search minimizes
-# since a larger (closer to 1) CFI is better, take the negative of CFI
 # wrap this in a tryCatch in case a model does not converge!
+# specify an appropriate error value: since we're minimizing, error value must be large
 tabuCriterion = function(x) {
-  tryCatch(-lavaan::fitmeasures(object = x, fit.measures = 'cfi'),
-           error = function(e) Inf)
+ tryCatch(lavaan::fitmeasures(object = x, fit.measures = 'chisq'),
+          error = function(e) Inf)
 }
 
-# set the seed to reproduce this example
-set.seed(1)
 # use the tabuShortForm function
-# reduce form to the best 10 items
-tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
-                           numItems = 10, allItems = paste0("Item", 1:56),
+# reduce form to the best 12 items, 3 per factor
+tabuShort <- tabu.sem.short(initialModel = tabuModel, originalData = tabuData,
+                           numItems = c(4,4,4,4), 
                            criterion = tabuCriterion,
-                           niter = 20)
+                           niter = 10, tabu.size = 10, verbose = FALSE
+                           )
+
 # check the chosen model
 lavaan::summary(tabuShort$best.mod)
 # plot the changes in the objective function over each iteration
@@ -162,7 +213,7 @@ start.time.SA <- Sys.time()
 library(ShortForm, quietly = T)
 # load simulation data and select columns used in this example
 data(simulated_test_data) 
-saData <- simulated_test_data[,c(1:10)]
+saData <- simulated_test_data[,c(1:12)]
 
 # specify the full model
 saModel <- "
@@ -177,8 +228,8 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 1000, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
 plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
-It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` minutes to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run all three together.
+It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` minutes to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run all four together.
