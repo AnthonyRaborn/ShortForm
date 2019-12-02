@@ -146,7 +146,8 @@ tabuShortForm <-
     
     if (is.list(allItems)) {
       included.items <-
-        stringr::str_extract_all(string = initialShortModel$model.syntax,
+        stringr::str_extract_all(string = unlist(strsplit(initialShortModel$model.syntax,
+                                                          split = "\\n")),
                                  pattern = paste0("(\\b", paste0(
                                    paste0(unlist(allItems), collapse = "\\b)|(\\b"), "\\b)"
                                  )))
