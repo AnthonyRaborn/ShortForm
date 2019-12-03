@@ -249,17 +249,6 @@ tabu.sem.short = function(originalData,
       otherFactors <-
         factors[-j]
       
-      # currentFactorSyntax <-
-      #   strsplit(current.syntax, split = '\n')[[1]][
-      #     grepl(factors[j], 
-      #           strsplit(current.syntax, split = '\n')[[1]])
-      #     ]
-      # otherFactorsSyntax <-
-      #   strsplit(current.syntax, split = '\n')[[1]][
-      #     !grepl(factors[j], 
-      #           strsplit(current.syntax, split = '\n')[[1]])
-      #     ]
-      
       currentItems =
         itemsPerFactor[[ factors[j] ]][
           itemsPerFactor[[ factors[j] ]] %in%
