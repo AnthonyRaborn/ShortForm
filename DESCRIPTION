@@ -27,8 +27,10 @@ Suggests:
 Imports:
     lavaan (>= 0.5-22),
     ggplot2,
+    ggrepel,
     tidyr,
-    stringr
+    stringr,
+    methods
 Depends:
     R (>= 3.5.0)
 Roxygen: list(wrap = FALSE)
