@@ -68,7 +68,7 @@ fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
 max.run = 50, verbose = FALSE)
-abilityShortForm[[1]] # print the results of the final short form
+abilityShortForm # print the results of the final short form
 plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
 
@@ -122,7 +122,7 @@ ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=FALSE, errors
 Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 20, tabu.size = 10)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
 
 # check the final model
-lavaan::summary(Tabu_example$best.mod)
+summary(Tabu_example)
 
 # plot the change in the objective/criterion function over each run
 plot(Tabu_example)
@@ -190,14 +190,14 @@ tabuCriterion = function(x) {
 
 # use the tabuShortForm function
 # reduce form to the best 12 items, 3 per factor
-tabuShort <- tabu.sem.short(initialModel = tabuModel, originalData = tabuData,
+tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
                            numItems = c(4,4,4,4), 
                            criterion = tabuCriterion,
                            niter = 10, tabu.size = 10, verbose = FALSE
                            )
 
 # check the chosen model
-lavaan::summary(tabuShort$best.mod)
+summary(tabuShort)
 # plot the changes in the objective function over each iteration
 plot(tabuShort)
 ```
@@ -229,6 +229,7 @@ lavaan.model.specs = list(model.type = "cfa",
 # perform the SA algorithm
 set.seed(1)
 SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+summary(SA_example)
 plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
