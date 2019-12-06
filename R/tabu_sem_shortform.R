@@ -107,7 +107,7 @@
 #' )
 #' }
 #'
-tabu.sem.short <- function(originalData,
+tabuShortForm <- function(originalData,
                            initialModel,
                            numItems,
                            criterion = function(x) {
@@ -134,6 +134,7 @@ tabu.sem.short <- function(originalData,
                            ),
                            bifactor = FALSE,
                            verbose = FALSE) {
+  start.time = Sys.time()
   mapply(
     assign,
     names(lavaan.model.specs),
@@ -225,8 +226,8 @@ tabu.sem.short <- function(originalData,
   init.model <-
     randomInitialModel()
 
-  best.obj <- all.obj <- current.obj <- criterion(init.model$lavaan.output)
-  best.mod <- current.model <- init.model$lavaan.output
+  best.obj <- all.obj <- current.obj <- criterion(init.model$model.output)
+  best.mod <- current.model <- init.model$model.output
   best.syntax <- current.syntax <- init.model$model.syntax
   names(itemsPerFactor) <- factors
 
@@ -322,7 +323,7 @@ tabu.sem.short <- function(originalData,
               estimator = estimator,
               warn = FALSE
             )
-          )$lavaan.output
+          )$model.output
 
         if (fitmodel@Fit@converged & !any(is.na(fitmodel@Fit@se))) {
           fit.val <- criterion(fitmodel)
@@ -387,13 +388,15 @@ tabu.sem.short <- function(originalData,
     }
   }
 
-  ret <- list()
-  ret$best.obj <- best.obj
-  ret$best.mod <- best.mod
-  ret$best.syntax <- best.syntax
-  ret$all.obj <- all.obj
-  ret$all.syntax <- all.syntax
-  class(ret) <- "tabu"
-
-  return(ret)
+  ret <-
+    new("TS",
+        function_call = match.call(),
+        all_fit = all.obj,
+        best_fit = best.obj,
+        best_model = best.mod,
+        best_syntax = best.syntax,
+        runtime = Sys.time() - start.time
+    )
+  
+  ret
 }

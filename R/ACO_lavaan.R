@@ -294,6 +294,8 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     "ERROR: initial model-implied matrix (Sigma) is not positive definite",
     "ERROR: missing observed variables in dataset"
   )
+  
+  start.time <- Sys.time()
 
 
   # starts loop through iterations.
@@ -499,7 +501,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         best.so.far.solution <- best.solution
         best.so.far.pheromone <- best.pheromone
         best.so.far.fit.indices <- best.fit.indices
-        best.so.far.model <- modelCheck$lavaan.output
+        best.so.far.model <- modelCheck$model.output
         best.so.far.syntax <- new_ant_model
         # re-starts count.
         count <- 1
@@ -532,8 +534,17 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   final.solution <- matrix(c(best.so.far.fit.indices, best.so.far.pheromone, best.so.far.solution), 1, ,
     dimnames = list(NULL, c(names(antcolony.lavaan.env$model.fit), paste0("mean_", pheromone.calculation), item.vector))
   )
-  results <- list(final.solution, summary, "best.model" = best.so.far.model, "best.syntax" = best.so.far.syntax)
-  class(results) <- "antcolony"
+  
+  results <-
+    new(
+      'ACO',
+      function_call = match.call(),
+      summary = summary,
+      final_solution = final.solution,
+      best_model = best.so.far.model,
+      best_syntax = best.so.far.syntax,
+      runtime = Sys.time() - start.time
+    )
 
-  return(results)
+  results
 }

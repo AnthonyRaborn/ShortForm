@@ -46,7 +46,7 @@ tabu.sem <- function(init.model,
                      obj,
                      niter = 30,
                      tabu.size = 5) {
-  # source(Tabu_internal.R)
+  start.time = Sys.time()
   # Initialize objective function and best model
   best.obj <- all.obj <- current.obj <- obj(init.model)
   best.model <- current.model <- init.model
@@ -108,12 +108,15 @@ tabu.sem <- function(init.model,
     }
   }
 
-  ret <- list()
-  ret$best.obj <- best.obj
-  ret$best.mod <- best.mod
-  ret$best.binvec <- best.binvec
-  ret$all.obj <- all.obj
-  class(ret) <- "tabu"
+  ret <-
+    new("TS",
+      function_call = match.call(),
+      all_fit = all.obj,
+      best_fit = best.obj,
+      best_model = best.mod,
+      best_syntax = best.binvec,
+      runtime = Sys.time() - start.time
+  )
 
-  return(ret)
+  ret
 }

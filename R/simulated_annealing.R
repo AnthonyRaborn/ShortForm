@@ -17,22 +17,22 @@
 #' * bestGoal -- the best value of the goal function achieved so far
 #' * restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
 #'
-#' @param initialModel The initial model as a character vector with lavaan model.syntax.
-#' @param originalData The original data frame with variable names.
+#' @param initialModel The initial model as a `character` vector with lavaan model.syntax.
+#' @param originalData The original `data.frame` with variable names.
 #' @param maxSteps The number of iterations for which the algorithm will run.
 #' @param fitStatistic Either a single model fit statistic produced by lavaan, or a user-defined fit statistic function.
-#' @param temperature Either an acceptable character value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".
-#' @param maximize Logical indicating if the goal is to maximize (TRUE) the fitStatistic for model selection.
-#' @param Kirkpatrick Either TRUE to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.
-#' @param randomNeighbor Either TRUE to use the included function for randomNeighbor selection, or a user-defined function for creating random models.
-#' @param lavaan.model.specs A list which contains the specifications for the
+#' @param temperature Either an acceptable `character` value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".
+#' @param maximize Logical indicating if the goal is to maximize (`TRUE`) the fitStatistic for model selection.
+#' @param Kirkpatrick Either `TRUE` to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.
+#' @param randomNeighbor Either `TRUE` to use the included function for randomNeighbor selection, or a user-defined function for creating random models.
+#' @param lavaan.model.specs A `list` which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
 #'  CFA. See \link[lavaan]{lavaan} for more details.
-#' @param maxChanges An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.
+#' @param maxChanges An `integer` value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.
 #' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
-#' @param maximumConsecutive A numeric value used with restartCriteria.
-#' @param maxItems When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to `NULL`.
-#' @param items A character vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
+#' @param maximumConsecutive A positive `integer` value used with restartCriteria.
+#' @param maxItems When creating a short form, a `vector` of the number of items per factor you want the short form to contain. Defaults to `NULL`.
+#' @param items A `character` vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.
 #' @param progress Character. If `'bar'`, the function prints a progress bar indicating how far along it is. If `'text'`, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
@@ -97,6 +97,9 @@ simulatedAnnealing <-
            progress = "bar",
            ...) {
     #### initial values ####
+    if(!exists('originalData')) {
+      stop("Please check that you have included the original data frame or")
+    }
     currentStep <- 0
     consecutive <- 0
     allFit <- c()
@@ -473,6 +476,7 @@ simulatedAnnealing <-
       )
     }
     #### perform algorithm ####
+    start.time <- Sys.time()
 
     cat("\n Current Progress:")
     if (progress == "bar") {
@@ -544,6 +548,7 @@ simulatedAnnealing <-
           }
         }
       )
+
       # restart if the same model was chosen too many times
       restartCriteria(
         maxConsecutiveSelection = maximumConsecutive,
@@ -551,13 +556,22 @@ simulatedAnnealing <-
       )
       currentStep <- currentStep + 1
     }
+    
+    best_fit <-
+      as.numeric(bestFit)
+    names(best_fit) <-
+      names(bestFit)
+    
+    results <-
+      new(
+        'SA',
+        function_call = match.call(),
+        all_fit = allFit,
+        best_fit = best_fit,
+        best_model = bestModel$model.output,
+        best_syntax = bestModel$model.syntax,
+        runtime = Sys.time() - start.time
+      )
 
-    results <- list(
-      bestModel = bestModel,
-      bestFit = bestFit,
-      allFit = allFit,
-      bestSyntax = currentModel$model.syntax
-    )
-    class(results) <- "simulatedAnnealing"
-    return(results)
+    results
   }
