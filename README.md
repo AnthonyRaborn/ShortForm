@@ -50,11 +50,11 @@ library(ShortForm, quietly = T)
 ##   #     # #    # #    # #   #    #   #       #    # #   #  #    # 
 ##    #####  #    #  ####  #    #   #   #        ####  #    # #    # 
 ##   
-##           Version 0.4.4
+##           Version 0.4.5
 ##               (o<
 ##               //\
 ##               V_/_
-##  Package 'ShortForm' version 0.4.4
+##  Package 'ShortForm' version 0.4.5
 # using simulated test data and the default values for lavaan.model.specs
 # (with one exception), fit a 10-item short form
 # first, read in the original or "full" model
@@ -122,19 +122,26 @@ max.run = 50, verbose = FALSE)
  Run number 35.           
  Run number 36.           
  Run number 37.           [1] "Compiling results."
-abilityShortForm[[1]] # print the results of the final short form
-##       cfi rmsea mean_gamma Item1 Item2 Item3 Item4 Item5 Item6 Item7 Item8
-##  [1,]   1     0      0.616     0     1     0     0     0     0     0     0
-##       Item9 Item10 Item11 Item12 Item13 Item14 Item15 Item16 Item17 Item18
-##  [1,]     0      0      0      1      0      0      1      1      0      1
-##       Item19 Item20 Item21 Item22 Item23 Item24 Item25 Item26 Item27 Item28
-##  [1,]      0      0      0      0      0      0      0      1      1      0
-##       Item29 Item30 Item31 Item32 Item33 Item34 Item35 Item36 Item37 Item38
-##  [1,]      1      1      0      0      0      0      0      0      0      0
-##       Item39 Item40 Item41 Item42 Item43 Item44 Item45 Item46 Item47 Item48
-##  [1,]      1      0      0      1      0      1      0      0      0      0
-##       Item49 Item50 Item51 Item52 Item53 Item54 Item55 Item56
-##  [1,]      0      1      0      0      0      0      1      1
+abilityShortForm # print the results of the final short form
+##  Algorithm: Ant Colony Optimization
+##  Total Run Time: 1.856 mins
+##  
+##  Function call:
+##  antcolony.lavaan(data = simulated_test_data, ants = 5, evaporation = 0.7,
+##    antModel = exampleAntModel, list.items = list.items, full = 56, i.per.f = 15,
+##    factors = "Ability", steps = 3, lavaan.model.specs = list(model.type = "cfa",
+##    auto.var = T, estimator = "default", ordered = unlist(list.items), int.ov.free
+##    = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE,
+##    std.lv = FALSE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
+##    auto.cov.y = TRUE), fit.indices = c("cfi", "rmsea"), fit.statistics.test = "(cfi
+##    > 0.90)&(rmsea < 0.10)", summaryfile = NULL, feedbackfile = NULL, max.run = 50,
+##    verbose = FALSE)
+##  
+##  Final Model Syntax:
+##  
+##  Ability =~ Item39 + Item4 + Item2 + Item44 + Item50 + Item15 + Item27 + Item29 +
+##    Item30 + Item26 + Item56 + Item16 + Item12 + Item55 + Item42
+##  Outcome ~ Ability
 plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
 
@@ -142,7 +149,7 @@ plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antco
 
 A similar example can be found in the `antcolony.mplus` function, but
 requires you to have a valid Mplus installation on the computer. It took
-a total of 1.77 minutes to run this example.
+a total of 1.87 minutes to run this example.
 
 ### Tabu Search Algorithm
 
@@ -215,7 +222,10 @@ Running iteration 19 of 20.
 Running iteration 20 of 20.
 
 # check the final model
-lavaan::summary(Tabu_example$best.mod)
+summary(Tabu_example)
+##  Algorithm: Tabu Search
+##  Total Run Time: 2.107 mins
+##  
 ##  lavaan 0.6-5 ended normally after 43 iterations
 ##  
 ##    Estimator                                         ML
@@ -230,139 +240,11 @@ lavaan::summary(Tabu_example$best.mod)
 ##    Degrees of freedom                                49
 ##    P-value (Chi-square)                           0.435
 ##  
-##  Parameter Estimates:
 ##  
-##    Information                                 Expected
-##    Information saturated (h1) model          Structured
-##    Standard errors                             Standard
-##  
-##  Latent Variables:
-##                     Estimate  Std.Err  z-value  P(>|z|)
-##    Trait1 =~                                           
-##      Item1             0.868    0.035   24.971    0.000
-##      Item2             0.875    0.034   25.455    0.000
-##      Item3             0.630    0.036   17.264    0.000
-##      Item4             0.580    0.037   15.595    0.000
-##      Item5             0.889    0.034   25.941    0.000
-##      Item6             0.884    0.035   25.198    0.000
-##      Item7             0.654    0.038   17.254    0.000
-##      Item8             0.688    0.037   18.400    0.000
-##      Item9             0.828    0.034   24.247    0.000
-##      Item10            0.835    0.035   24.138    0.000
-##      Item11            0.581    0.037   15.507    0.000
-##      Item12            0.632    0.039   16.231    0.000
-##    Trait2 =~                                           
-##      Item1             0.000                           
-##      Item2             0.000                           
-##      Item3             0.000                           
-##      Item4             0.000                           
-##      Item5             0.051    0.063    0.815    0.415
-##      Item6             0.070    0.082    0.850    0.396
-##      Item7             0.053    0.069    0.775    0.439
-##      Item8             0.000                           
-##      Item9             0.083    0.096    0.867    0.386
-##      Item10            0.000                           
-##      Item11            0.754    0.800    0.943    0.346
-##      Item12            0.000                           
-##  
-##  Covariances:
-##                     Estimate  Std.Err  z-value  P(>|z|)
-##    Trait1 ~~                                           
-##      Trait2            0.000                           
-##   .Item1 ~~                                            
-##     .Item2             0.000                           
-##     .Item3             0.000                           
-##     .Item4             0.000                           
-##     .Item5             0.000                           
-##     .Item6             0.000                           
-##     .Item7             0.000                           
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item2 ~~                                            
-##     .Item3             0.000                           
-##     .Item4             0.000                           
-##     .Item5             0.000                           
-##     .Item6             0.000                           
-##     .Item7             0.000                           
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item3 ~~                                            
-##     .Item4             0.000                           
-##     .Item5             0.000                           
-##     .Item6             0.000                           
-##     .Item7             0.000                           
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item4 ~~                                            
-##     .Item5             0.000                           
-##     .Item6             0.000                           
-##     .Item7             0.000                           
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item5 ~~                                            
-##     .Item6             0.000                           
-##     .Item7             0.000                           
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item6 ~~                                            
-##     .Item7             0.000                           
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item7 ~~                                            
-##     .Item8             0.000                           
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item8 ~~                                            
-##     .Item9             0.000                           
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item9 ~~                                            
-##     .Item10            0.000                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item10 ~~                                           
-##     .Item11            0.000                           
-##     .Item12            0.000                           
-##   .Item11 ~~                                           
-##     .Item12            0.000                           
-##  
-##  Variances:
-##                     Estimate  Std.Err  z-value  P(>|z|)
-##      Trait1            1.000                           
-##      Trait2            1.000                           
-##     .Item1             0.324    0.022   14.895    0.000
-##     .Item2             0.303    0.021   14.671    0.000
-##     .Item3             0.565    0.034   16.614    0.000
-##     .Item4             0.624    0.037   16.779    0.000
-##     .Item5             0.280    0.019   14.624    0.000
-##     .Item6             0.311    0.021   14.709    0.000
-##     .Item7             0.601    0.036   16.646    0.000
-##     .Item8             0.567    0.034   16.477    0.000
-##     .Item9             0.315    0.022   14.282    0.000
-##     .Item10            0.344    0.023   15.225    0.000
-##     .Item11            0.039    1.207    0.032    0.975
-##     .Item12            0.669    0.040   16.720    0.000
+##  Final Model Syntax:
+##  Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9
+##    + Item10 + Item11 + Item12
+##  Trait2 =~ Item5 + Item6 + Item7 + Item9 + Item11
 
 # plot the change in the objective/criterion function over each run
 plot(Tabu_example)
@@ -370,7 +252,7 @@ plot(Tabu_example)
 
 ![](README-Tabu%20example-1.png)<!-- -->
 
-It took a total of 2.14 minutes to run this example.
+It took a total of 2.11 minutes to run this example.
 
 The next Tabu example demonstrates how to use it to find a short form of
 a prespecified length with different data.
@@ -433,7 +315,7 @@ tabuCriterion = function(x) {
 
 # use the tabuShortForm function
 # reduce form to the best 12 items, 3 per factor
-tabuShort <- tabu.sem.short(initialModel = tabuModel, originalData = tabuData,
+tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
                            numItems = c(4,4,4,4), 
                            criterion = tabuCriterion,
                            niter = 10, tabu.size = 10, verbose = FALSE
@@ -451,7 +333,10 @@ Running iteration 9 of 10.
 Running iteration 10 of 10.
 
 # check the chosen model
-lavaan::summary(tabuShort$best.mod)
+summary(tabuShort)
+##  Algorithm: Tabu Search
+##  Total Run Time: 1.212 mins
+##  
 ##  lavaan 0.6-5 ended normally after 18 iterations
 ##  
 ##    Estimator                                         ML
@@ -466,76 +351,19 @@ lavaan::summary(tabuShort$best.mod)
 ##    Degrees of freedom                                98
 ##    P-value (Chi-square)                           1.000
 ##  
-##  Parameter Estimates:
 ##  
-##    Information                                 Expected
-##    Information saturated (h1) model          Structured
-##    Standard errors                             Standard
-##  
-##  Latent Variables:
-##                     Estimate  Std.Err  z-value  P(>|z|)
-##    Trait1 =~                                           
-##      Item3             0.541    0.046   11.871    0.000
-##      Item4             0.454    0.047    9.706    0.000
-##      Item12            0.401    0.046    8.634    0.000
-##      Item11            0.452    0.042   10.726    0.000
-##    Trait2 =~                                           
-##      Item15            0.511    0.044   11.705    0.000
-##      Item16            0.425    0.045    9.449    0.000
-##      Item19            0.512    0.045   11.344    0.000
-##      Item20            0.508    0.043   11.866    0.000
-##    Trait3 =~                                           
-##      Item36            0.492    0.043   11.482    0.000
-##      Item31            0.596    0.044   13.509    0.000
-##      Item34            0.772    0.041   18.784    0.000
-##      Item35            0.502    0.043   11.775    0.000
-##    Trait4 =~                                           
-##      Item41            0.760    0.040   18.809    0.000
-##      Item40            0.515    0.041   12.482    0.000
-##      Item43            0.581    0.042   13.707    0.000
-##      Item44            0.517    0.042   12.226    0.000
-##  
-##  Covariances:
-##                     Estimate  Std.Err  z-value  P(>|z|)
-##    Trait1 ~~                                           
-##      Trait2            0.889    0.056   15.756    0.000
-##      Trait3            0.826    0.048   17.202    0.000
-##      Trait4            0.892    0.046   19.562    0.000
-##    Trait2 ~~                                           
-##      Trait3            0.811    0.044   18.267    0.000
-##      Trait4            0.842    0.043   19.570    0.000
-##    Trait3 ~~                                           
-##      Trait4            0.687    0.040   17.019    0.000
-##  
-##  Variances:
-##                     Estimate  Std.Err  z-value  P(>|z|)
-##     .Item3             0.764    0.051   14.981    0.000
-##     .Item4             0.900    0.056   16.095    0.000
-##     .Item12            0.924    0.056   16.435    0.000
-##     .Item11            0.699    0.045   15.663    0.000
-##     .Item15            0.721    0.047   15.219    0.000
-##     .Item16            0.834    0.052   16.148    0.000
-##     .Item19            0.783    0.051   15.405    0.000
-##     .Item20            0.688    0.045   15.131    0.000
-##     .Item36            0.739    0.047   15.730    0.000
-##     .Item31            0.731    0.049   14.926    0.000
-##     .Item34            0.431    0.042   10.302    0.000
-##     .Item35            0.726    0.046   15.630    0.000
-##     .Item41            0.448    0.040   11.179    0.000
-##     .Item40            0.680    0.044   15.559    0.000
-##     .Item43            0.687    0.046   15.085    0.000
-##     .Item44            0.721    0.046   15.647    0.000
-##      Trait1            1.000                           
-##      Trait2            1.000                           
-##      Trait3            1.000                           
-##      Trait4            1.000
+##  Final Model Syntax:
+##  Trait1 =~ Item3 + Item4 + Item12 + Item11
+##  Trait2 =~ Item15 + Item16 + Item19 + Item20
+##  Trait3 =~ Item36 + Item31 + Item34 + Item35
+##  Trait4 =~ Item41 + Item40 + Item43 + Item44
 # plot the changes in the objective function over each iteration
 plot(tabuShort)
 ```
 
 ![](README-Tabu%20short%20form-1.png)<!-- -->
 
-It took a total of 1.14 minutes to run this example.
+It took a total of 1.22 minutes to run this example.
 
 ### Simulated Annealing
 
@@ -570,10 +398,35 @@ SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, 
 ##  Using the short form randomNeighbor function.
 ##  Finished initializing short form options.
 ##   Current Progress:
+summary(SA_example)
+##  Algorithm: Simulated Annealing
+##  Total Run Time: 2.251 mins
+##  
+##  lavaan 0.6-5 ended normally after 15 iterations
+##  
+##    Estimator                                       DWLS
+##    Optimization method                           NLMINB
+##    Number of free parameters                         11
+##                                                        
+##    Number of observations                          1000
+##                                                        
+##  Model Test User Model:
+##                                                Standard      Robust
+##    Test Statistic                                10.432      12.721
+##    Degrees of freedom                                 9           9
+##    P-value (Chi-square)                           0.317       0.176
+##    Scaling correction factor                                  0.825
+##    Shift parameter                                            0.079
+##      for the simple second-order correction 
+##  
+##  
+##  Final Model Syntax:
+##  Ability =~ Item7 + Item2 + Item6 + Item5 + Item3
+##  Ability ~ Outcome
 plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
 ![](README-Simulated%20Annealing%20example-1.png)<!-- -->
 
-It took a total of 2.05 minutes to run the SA example, and a total of
-7.1 minutes to run all four together.
+It took a total of 2.27 minutes to run the SA example, and a total of
+7.47 minutes to run all four together.
