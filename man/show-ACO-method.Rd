@@ -7,6 +7,9 @@
 \usage{
 \S4method{show}{ACO}(object)
 }
+\arguments{
+\item{object}{An S4 object of class `ACO`}
+}
 \description{
 Print method for class `ACO`
 }

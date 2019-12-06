@@ -5,7 +5,12 @@
 \alias{plot,SA,ANY-method}
 \title{Plot method for class `SA`}
 \usage{
-\S4method{plot}{SA,ANY}(x, y, type = "all", ...)
+\S4method{plot}{SA,ANY}(x, y, ...)
+}
+\arguments{
+\item{x, y}{An S4 object of class `SA`.}
+
+\item{...}{Not used.}
 }
 \description{
 Plot method for class `SA`

@@ -9,7 +9,7 @@
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
 #'
-#' @importFrom methods new
+#' @importFrom methods new show
 #'
 #' @return An S4 object of class `ACO`.
 #' @export
@@ -27,6 +27,9 @@ setClass('ACO',
 )
 
 #' Print method for class `ACO`
+#' 
+#' @param object An S4 object of class `ACO`
+#' 
 #' @export
 setMethod('show',
           signature = 'ACO',
@@ -58,6 +61,12 @@ setMethod('show',
           )
 
 #' Plot method for class `ACO`
+#' 
+#' @param x,y An S4 object of class `ACO`
+#' @param type A `character` value specifying the plot type. One of `'all'` 
+#' (for all plots), `'pheromone'`, `'gamma'`, `'beta'`, or `'variance'`.
+#' @param ... Not used.
+#' 
 #' @export
 setMethod('plot',
           signature = 'ACO',
@@ -205,6 +214,9 @@ setMethod('plot',
           )
 
 #' Summary method for class `ACO`
+#' 
+#' @param object An S4 object of class `ACO`
+#' 
 #' @export
 setMethod('summary',
           signature = 'ACO',
