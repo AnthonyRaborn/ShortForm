@@ -29,12 +29,12 @@
 #' "
 #'
 #' data(simulated_test_data)
-#' tabuResult <- tabu.sem.short(
+#' tabuResult <- tabuShortForm(
 #'   initialModel = shortAntModel,
 #'   originalData = simulated_test_data, numItems = 7,
 #'   niter = 1, tabu.size = 3
 #' )
-#' lavaan::summary(tabuResult$best.mod) # shows the resulting model
+#' summary(tabuResult) # shows the resulting model
 #' \dontrun{
 #' # create simulation data from the `psych` package
 #' # four factors, 12 items each, 48 total items
@@ -99,7 +99,7 @@
 #'
 #' # use the tabuShortForm function
 #' # reduce form to the best 10 items
-#' tabuShort <- tabu.sem.short(
+#' tabuShort <- tabuShortForm(
 #'   initialModel = tabuModel, originalData = tabuData,
 #'   numItems = c(3, 3, 3, 3),
 #'   criterion = tabuCriterion,

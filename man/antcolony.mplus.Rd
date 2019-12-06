@@ -217,18 +217,20 @@ Step 6. Return to step 2 until convergence criterion is reached.
 # use MplusAutomation to find a 15-item short form of a simulated 56-item unidimensional test
 # first, create the list of the items by the factors
 # in this case, all items load onto the general 'Ability' factor
-list.items <- list(c('Item1','Item2', 'Item3', 'Item4', 'Item5',
-                     'Item6', 'Item7', 'Item8', 'Item9', 'Item10',
-                     'Item11','Item12','Item13','Item14','Item15',
-                     'Item16','Item17','Item18','Item19','Item20',
-                     'Item21','Item22','Item23','Item24','Item25',
-                     'Item26','Item27','Item28','Item29','Item30',
-                     'Item31','Item32','Item33','Item34', 'Item35',
-                     'Item36','Item37','Item38','Item39','Item40',
-                     'Item41','Item42','Item43','Item44','Item45',
-                     'Item46','Item47','Item48','Item49','Item50',
-                     'Item51','Item52','Item53','Item54','Item55',
-                     'Item56'))
+list.items <- list(c(
+  "Item1", "Item2", "Item3", "Item4", "Item5",
+  "Item6", "Item7", "Item8", "Item9", "Item10",
+  "Item11", "Item12", "Item13", "Item14", "Item15",
+  "Item16", "Item17", "Item18", "Item19", "Item20",
+  "Item21", "Item22", "Item23", "Item24", "Item25",
+  "Item26", "Item27", "Item28", "Item29", "Item30",
+  "Item31", "Item32", "Item33", "Item34", "Item35",
+  "Item36", "Item37", "Item38", "Item39", "Item40",
+  "Item41", "Item42", "Item43", "Item44", "Item45",
+  "Item46", "Item47", "Item48", "Item49", "Item50",
+  "Item51", "Item52", "Item53", "Item54", "Item55",
+  "Item56"
+))
 # then, load the data
 data(simulated_test_data)
 
@@ -262,14 +264,16 @@ initial.MplusAutomation.model <- MplusAutomation::mplusObject(
 )
 
 # finally, call the function with some minor changes to the default values.
-abilityShortForm = antcolony.mplus(ants = 3, evaporation = 0.7,
-mplus = initial.MplusAutomation.model,list.items = list.items, full = 56,
-i.per.f = 15, factors = 'Ability', steps = 3, max.run = 50, resultfile = NULL,
-summaryfile = 'C:/Users/lordmaxwell/Desktop/summary.txt',
-min.CFI = 0.95, min.TLI = 0.95, max.RMSEA = 0.06,
-feedbackfile = 'C:/Users/lordmaxwell/Desktop/iteration.html', Mplus.Automation=TRUE,
-dataOut = 'exampleModel.dat',
-modelOut = 'exampleModel.inp')
+abilityShortForm <- antcolony.mplus(
+  ants = 3, evaporation = 0.7,
+  mplus = initial.MplusAutomation.model, list.items = list.items, full = 56,
+  i.per.f = 15, factors = "Ability", steps = 3, max.run = 50, resultfile = NULL,
+  summaryfile = "C:/Users/lordmaxwell/Desktop/summary.txt",
+  min.CFI = 0.95, min.TLI = 0.95, max.RMSEA = 0.06,
+  feedbackfile = "C:/Users/lordmaxwell/Desktop/iteration.html", Mplus.Automation = TRUE,
+  dataOut = "exampleModel.dat",
+  modelOut = "exampleModel.inp"
+)
 }
 }
 \references{
