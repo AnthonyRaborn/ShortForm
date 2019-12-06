@@ -64,24 +64,24 @@ modelWarningCheck <- function(expr) {
       invokeRestart("muffleWarning")
     }
   )
-  list(lavaan.output = value, warnings <- as.character(unlist(warn)), errors <- as.character(unlist(err)))
+  list(model.output = value, warnings <- as.character(unlist(warn)), errors <- as.character(unlist(err)))
 }
 
 modelInfoExtract <- function(modelCheckObj, fitIndices) {
 
   # first, fit indices
-  model.fit <- lavaan::fitMeasures(modelCheckObj$lavaan.output, fitIndices)
+  model.fit <- lavaan::fitMeasures(modelCheckObj$model.output, fitIndices)
 
   # next, gamma/beta/variances
   # estimate the standardized coefficients of the variables
-  standard.coefs <- lavaan::standardizedSolution(modelCheckObj$lavaan.output, se = FALSE, zstat = FALSE, pvalue = FALSE, remove.def = TRUE)
+  standard.coefs <- lavaan::standardizedSolution(modelCheckObj$model.output, se = FALSE, zstat = FALSE, pvalue = FALSE, remove.def = TRUE)
   # extract the regression coefficients
   std.gammas <- standard.coefs[which(standard.coefs[, 2] == "=~"), ]$est.std
   std.betas <- standard.coefs[which(standard.coefs[, 2] == "~"), ]$est.std
   std.reg.coef <- standard.coefs[which(standard.coefs[, 2] == "~" | standard.coefs[, 2] == "=~"), ]$est.std
 
   # obtains the variance explained ("rsquare") from lavaan
-  variance.explained <- lavaan::lavInspect(modelCheckObj$lavaan.output, "rsquare")
+  variance.explained <- lavaan::lavInspect(modelCheckObj$model.output, "rsquare")
 
   return(list(
     "model.fit" = model.fit,
