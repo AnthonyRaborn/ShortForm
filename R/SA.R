@@ -8,7 +8,7 @@
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
 #'
-#' @importFrom methods new
+#' @importFrom methods new show
 #'
 #' @return An S4 object of class `SA`.
 #' @export
@@ -26,6 +26,9 @@ setClass('SA',
 )
 
 #' Print method for class `SA`
+#' 
+#' @param object An S4 object of class `SA`.
+#' 
 #' @export
 setMethod('show',
           signature = 'SA',
@@ -57,10 +60,14 @@ setMethod('show',
 )
 
 #' Plot method for class `SA`
+#' 
+#' @param x,y An S4 object of class `SA`.
+#' @param ... Not used.
+#' 
 #' @export
 setMethod('plot',
           signature = 'SA',
-          definition = function(x, y, type = 'all', ...) {
+          definition = function(x, y, ...) {
             val <- data.frame(
               "Iteration" = 1:length(x@all_fit),
               "Fit" = as.numeric(x@all_fit)
@@ -87,6 +94,9 @@ setMethod('plot',
           )
 
 #' Summary method for class `SA`
+#' 
+#' @param object An S4 object of class `SA`.
+#' 
 #' @export
 setMethod('summary',
           signature = 'SA',

@@ -9,7 +9,7 @@ setClassUnion("charactorORdata.frame", c("character","data.frame"))
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
 #'
-#' @importFrom methods new
+#' @importFrom methods new show
 #'
 #' @return An S4 object of class `TS`.
 #' @export
@@ -27,6 +27,9 @@ setClass('TS',
 )
 
 #' Print method for class `TS`
+#' 
+#' @param object An S4 object of class `TS`.
+#' 
 #' @export
 setMethod('show',
           signature = 'TS',
@@ -91,10 +94,14 @@ setMethod('show',
 )
 
 #' Plot method for class `TS`
+#' 
+#' @param x,y An S4 object of class `TS`.
+#' @param ... Not used.
+#' 
 #' @export
 setMethod('plot',
           signature = 'TS',
-          definition = function(x, y, type = 'all', ...) {
+          definition = function(x, y, ...) {
             val <- x@all_fit
             
             val <- as.data.frame.matrix(
@@ -126,6 +133,9 @@ setMethod('plot',
 )
 
 #' Summary method for class `TS`
+#' 
+#' @param object An S4 object of class `TS`.
+#' 
 #' @export
 setMethod('summary',
           signature = 'TS',

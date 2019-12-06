@@ -7,6 +7,9 @@
 \usage{
 \S4method{summary}{ACO}(object)
 }
+\arguments{
+\item{object}{An S4 object of class `ACO`}
+}
 \description{
 Summary method for class `ACO`
 }

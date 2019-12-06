@@ -7,6 +7,9 @@
 \usage{
 \S4method{show}{SA}(object)
 }
+\arguments{
+\item{object}{An S4 object of class `SA`.}
+}
 \description{
 Print method for class `SA`
 }
