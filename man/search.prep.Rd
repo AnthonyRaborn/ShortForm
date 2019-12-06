@@ -2,7 +2,7 @@
 % Please edit documentation in R/Tabu_searchprep.R
 \name{search.prep}
 \alias{search.prep}
-\title{Given a fitted lavaan model (e.g., CFA), prepares a table that contains 
+\title{Given a fitted lavaan model (e.g., CFA), prepares a table that contains
 parameters that can be fixed/freed as part of a model specification search.}
 \usage{
 search.prep(fitted.model, loadings = TRUE, fcov = TRUE,
@@ -21,14 +21,14 @@ search.prep(fitted.model, loadings = TRUE, fcov = TRUE,
 A \code{data.frame} with lavaan-formatted parameter values.
 }
 \description{
-Given a fitted lavaan model (e.g., CFA), prepares a table that contains 
+Given a fitted lavaan model (e.g., CFA), prepares a table that contains
 parameters that can be fixed/freed as part of a model specification search.
 }
 \examples{
 \dontrun{
 # load simulation data and select columns used in this example
-data(simulated_test_data) 
-tabuData <- simulated_test_data[,c(1:10)]
+data(simulated_test_data)
+tabuData <- simulated_test_data[, c(1:10)]
 
 # specify an improper model (improper because data is unidimensional)
 tabuModel <- "
@@ -39,14 +39,16 @@ FakeAbility ~ 0*Outcome"
 
 # run the initial misspecified model for Tabu
 
-init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
-auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=TRUE)
+init.model <- lavaan::lavaan(
+  model = tabuModel, data = tabuData,
+  auto.var = TRUE, auto.fix.first = FALSE, std.lv = TRUE, auto.cov.lv.x = TRUE
+)
 
 # Use search.prep to prepare for the Tabu search
-ptab <- search.prep(fitted.model = init.model,loadings=TRUE,fcov=TRUE,errors=FALSE)
+ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 
 # add an additional (mispecified) parameter
-additional.param <- 'Item1 ~~ 0.5*Item3'
+additional.param <- "Item1 ~~ 0.5*Item3"
 ptab <- add.param(fitted.model = init.model, ptab = ptab, syntax = additional.param)
 
 # Perform Tabu Search

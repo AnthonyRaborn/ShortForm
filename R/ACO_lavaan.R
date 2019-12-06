@@ -202,7 +202,7 @@
 #'   max.run = 500
 #' )
 #'
-#' abilityShortForm[[1]] # print the results of the final short form
+#' abilityShortForm # print the results of the final short form
 #' }
 #' @import lavaan utils
 #' @export

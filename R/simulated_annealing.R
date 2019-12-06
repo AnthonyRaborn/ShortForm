@@ -51,14 +51,14 @@
 #'   originalData = simulated_test_data, maxSteps = 3,
 #'   fitStatistic = "rmsea", maximize = FALSE
 #' )
-#' # lavaan::summary(trial1[[1]]) # shows the resulting model
+#' summary(trial1) # shows the resulting model
 #'
 #' trial2 <- simulatedAnnealing(
 #'   initialModel = exampleAntModel,
 #'   originalData = simulated_test_data,
 #'   maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56)
 #' )
-#' # lavaan::summary(trial2[[1]]) # shows the resulting model
+#' summary(trial2) # shows the resulting model
 #' }
 #' @import lavaan utils
 #' @export

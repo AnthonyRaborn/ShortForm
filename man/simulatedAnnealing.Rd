@@ -16,35 +16,35 @@ simulatedAnnealing(initialModel, originalData, maxSteps,
   bifactor = FALSE, progress = "bar", ...)
 }
 \arguments{
-\item{initialModel}{The initial model as a character vector with lavaan model.syntax.}
+\item{initialModel}{The initial model as a \code{character} vector with lavaan model.syntax.}
 
-\item{originalData}{The original data frame with variable names.}
+\item{originalData}{The original \code{data.frame} with variable names.}
 
 \item{maxSteps}{The number of iterations for which the algorithm will run.}
 
 \item{fitStatistic}{Either a single model fit statistic produced by lavaan, or a user-defined fit statistic function.}
 
-\item{temperature}{Either an acceptable character value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".}
+\item{temperature}{Either an acceptable \code{character} value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".}
 
-\item{maximize}{Logical indicating if the goal is to maximize (TRUE) the fitStatistic for model selection.}
+\item{maximize}{Logical indicating if the goal is to maximize (\code{TRUE}) the fitStatistic for model selection.}
 
-\item{Kirkpatrick}{Either TRUE to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.}
+\item{Kirkpatrick}{Either \code{TRUE} to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.}
 
-\item{randomNeighbor}{Either TRUE to use the included function for randomNeighbor selection, or a user-defined function for creating random models.}
+\item{randomNeighbor}{Either \code{TRUE} to use the included function for randomNeighbor selection, or a user-defined function for creating random models.}
 
-\item{lavaan.model.specs}{A list which contains the specifications for the
+\item{lavaan.model.specs}{A \code{list} which contains the specifications for the
 lavaan model. The default values are the defaults for lavaan to perform a
 CFA. See \link[lavaan]{lavaan} for more details.}
 
-\item{maxChanges}{An integer value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.}
+\item{maxChanges}{An \code{integer} value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.}
 
 \item{restartCriteria}{Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.}
 
-\item{maximumConsecutive}{A numeric value used with restartCriteria.}
+\item{maximumConsecutive}{A positive \code{integer} value used with restartCriteria.}
 
-\item{maxItems}{When creating a short form, a vector of the number of items per factor you want the short form to contain. Defaults to \code{NULL}.}
+\item{maxItems}{When creating a short form, a \code{vector} of the number of items per factor you want the short form to contain. Defaults to \code{NULL}.}
 
-\item{items}{A character vector of item names. Defaults to \code{NULL}. Ignored if \code{maxItems==FALSE}.}
+\item{items}{A \code{character} vector of item names. Defaults to \code{NULL}. Ignored if \code{maxItems==FALSE}.}
 
 \item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If \code{TRUE}, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if \code{maxItems==FALSE}.}
 
@@ -80,15 +80,21 @@ Simulated annealing mimics the physical process of annealing metals together. \h
 \dontrun{
 data(exampleAntModel)
 data(simulated_test_data)
-trial1 <- simulatedAnnealing(initialModel = lavaan::cfa(model = exampleAntModel,
-                                                        data = simulated_test_data),
-                             originalData = simulated_test_data, maxSteps = 3,
-                             fitStatistic = 'rmsea', maximize = FALSE)
-# lavaan::summary(trial1[[1]]) # shows the resulting model
+trial1 <- simulatedAnnealing(
+  initialModel = lavaan::cfa(
+    model = exampleAntModel,
+    data = simulated_test_data
+  ),
+  originalData = simulated_test_data, maxSteps = 3,
+  fitStatistic = "rmsea", maximize = FALSE
+)
+summary(trial1) # shows the resulting model
 
-trial2 <- simulatedAnnealing(initialModel = exampleAntModel,
-originalData = simulated_test_data,
-maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56))
-# lavaan::summary(trial2[[1]]) # shows the resulting model
+trial2 <- simulatedAnnealing(
+  initialModel = exampleAntModel,
+  originalData = simulated_test_data,
+  maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56)
+)
+summary(trial2) # shows the resulting model
 }
 }
