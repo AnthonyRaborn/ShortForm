@@ -50,11 +50,11 @@ library(ShortForm, quietly = T)
 ##   #     # #    # #    # #   #    #   #       #    # #   #  #    # 
 ##    #####  #    #  ####  #    #   #   #        ####  #    # #    # 
 ##   
-##           Version 0.4.5
+##           Version 0.5.0
 ##               (o<
 ##               //\
 ##               V_/_
-##  Package 'ShortForm' version 0.4.5
+##  Package 'ShortForm' version 0.5.0
 # using simulated test data and the default values for lavaan.model.specs
 # (with one exception), fit a 10-item short form
 # first, read in the original or "full" model
@@ -124,7 +124,7 @@ max.run = 50, verbose = FALSE)
  Run number 37.           [1] "Compiling results."
 abilityShortForm # print the results of the final short form
 ##  Algorithm: Ant Colony Optimization
-##  Total Run Time: 1.856 mins
+##  Total Run Time: 1.853 mins
 ##  
 ##  Function call:
 ##  antcolony.lavaan(data = simulated_test_data, ants = 5, evaporation = 0.7,
@@ -224,7 +224,7 @@ Running iteration 20 of 20.
 # check the final model
 summary(Tabu_example)
 ##  Algorithm: Tabu Search
-##  Total Run Time: 2.107 mins
+##  Total Run Time: 2.109 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 43 iterations
 ##  
@@ -252,7 +252,7 @@ plot(Tabu_example)
 
 ![](README-Tabu%20example-1.png)<!-- -->
 
-It took a total of 2.11 minutes to run this example.
+It took a total of 2.12 minutes to run this example.
 
 The next Tabu example demonstrates how to use it to find a short form of
 a prespecified length with different data.
@@ -335,7 +335,7 @@ Running iteration 10 of 10.
 # check the chosen model
 summary(tabuShort)
 ##  Algorithm: Tabu Search
-##  Total Run Time: 1.212 mins
+##  Total Run Time: 1.126 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 18 iterations
 ##  
@@ -363,7 +363,7 @@ plot(tabuShort)
 
 ![](README-Tabu%20short%20form-1.png)<!-- -->
 
-It took a total of 1.22 minutes to run this example.
+It took a total of 1.13 minutes to run this example.
 
 ### Simulated Annealing
 
@@ -390,7 +390,7 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = FALSE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
 ##  Initializing short form creation.
 ##  The initial short form is:
 ##   Ability =~ Item9 + Item4 + Item7 + Item1 + Item2
@@ -400,7 +400,7 @@ SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, 
 ##   Current Progress:
 summary(SA_example)
 ##  Algorithm: Simulated Annealing
-##  Total Run Time: 2.251 mins
+##  Total Run Time: 2.263 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 15 iterations
 ##  
@@ -412,21 +412,21 @@ summary(SA_example)
 ##                                                        
 ##  Model Test User Model:
 ##                                                Standard      Robust
-##    Test Statistic                                10.432      12.721
+##    Test Statistic                                 4.607       5.617
 ##    Degrees of freedom                                 9           9
-##    P-value (Chi-square)                           0.317       0.176
-##    Scaling correction factor                                  0.825
-##    Shift parameter                                            0.079
+##    P-value (Chi-square)                           0.867       0.778
+##    Scaling correction factor                                  0.831
+##    Shift parameter                                            0.076
 ##      for the simple second-order correction 
 ##  
 ##  
 ##  Final Model Syntax:
-##  Ability =~ Item7 + Item2 + Item6 + Item5 + Item3
+##  Ability =~ Item9 + Item4 + Item7 + Item1 + Item2
 ##  Ability ~ Outcome
 plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
 ![](README-Simulated%20Annealing%20example-1.png)<!-- -->
 
-It took a total of 2.27 minutes to run the SA example, and a total of
-7.47 minutes to run all four together.
+It took a total of 2.28 minutes to run the SA example, and a total of
+7.4 minutes to run all four together.
