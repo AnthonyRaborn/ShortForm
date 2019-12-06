@@ -90,16 +90,16 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
       bestModel <- list()
-      bestModel$bestModel <- currentModel
-      bestModel$bestSyntax <- currentSyntax
+      bestModel$model.output <- currentModel
+      bestModel$model.syntax <- currentSyntax
     } else {
       bestModel <- bestModel
     }
   } else {
     if (currentFit < bestFit) {
       bestModel <- list()
-      bestModel$bestModel <- currentModel
-      bestModel$bestSyntax <- currentSyntax
+      bestModel$model.output <- currentModel
+      bestModel$model.syntax <- currentSyntax
     } else {
       if (currentFit < bestFit) {
         bestModel <- currentModel
@@ -130,7 +130,7 @@ modelWarningCheck <- function(expr) {
     }
   )
   list(
-    "lavaan.output" = value,
+    "model.output" = value,
     "warnings" <-
       as.character(unlist(warn)),
     "errors" <- as.character(unlist(err))
@@ -188,7 +188,7 @@ modelWarningCheck <- function(expr) {
     invokeRestart("muffleWarning")
   })
   list(
-    lavaan.output = value, warnings <- as.character(unlist(warn)),
+    model.output = value, warnings <- as.character(unlist(warn)),
     errors <- as.character(unlist(err))
   )
 }
