@@ -221,7 +221,7 @@ setMethod('summary',
             line3 = paste0(
               stringr::str_wrap(
                 c("\nFinal Model Syntax:", 
-                  unlist(strsplit(abilityShortForm@best_syntax, "\n"))), 
+                  unlist(strsplit(object@best_syntax, "\n"))), 
                 exdent = 2), 
               collapse = "\n"
             )
