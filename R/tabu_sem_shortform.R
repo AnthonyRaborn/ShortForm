@@ -111,7 +111,7 @@ tabuShortForm <- function(originalData,
                            initialModel,
                            numItems,
                            criterion = function(x) {
-                             tryCatch(lavaan::fitmeasures(object = x, fit.measures = "cfi"),
+                             tryCatch(-lavaan::fitmeasures(object = x, fit.measures = "cfi"),
                                error = function(e) Inf
                              )
                            },
