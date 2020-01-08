@@ -442,45 +442,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
               }
             }
           }
-          # move below to outside of %dopar%
-          # adjusts count based on outcomes and selects best solution.
-          # if (pheromone >= best.pheromone) {
-          #   
-          #   # updates solution.
-          #   best.solution <- select.indicator
-          #   # updates best RMSEA.
-          #   best.fit.indices <- antcolony.lavaan.env$model.fit
-          #   # updates best pheromone
-          #   best.pheromone <- pheromone
-          # }
-          
-          # Move to next ant.
-          
+
           # end else clause for converged solutions
         }
-        # move below to outside of %dopar%
-        # evaluates the criterion to stop the interactions
-        # the criterion is that the scale selected cannot change in the specified
-        # number of steps.
-        # if (sum(previous.solution != select.indicator) == 0) {
-        #   step <- step + 1
-        # } else {
-        #   step <- 1
-        # }
-        
-        # previous.solution <- select.indicator
-        # returnMatrix = matrix(c(
-        #   select.indicator,
-        #   run, count, ant,
-        #   antcolony.lavaan.env$model.fit,
-        #   pheromone,
-        #   mean(antcolony.lavaan.env$std.gammas),
-        #   mean(antcolony.lavaan.env$std.betas),
-        #   mean(antcolony.lavaan.env$variance.explained)
-        # ), 1, )
-        # colnames(returnMatrix) = c(item.vector, "run", "count", "ant",
-        # names(antcolony.lavaan.env$model.fit), "pheromone", "mean.std.gammas",
-        # "mean.std.betas", "mean.var.exp")
+
         returnMatrix = list(
           'solution' = select.indicator,
           'run' = run,
@@ -498,7 +463,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         returnMatrix
       }
       
-      # antResults <- as.data.frame(antResults)
       # implements pheromone evaporation.
       include <- include * evaporation
       
@@ -523,7 +487,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         if (!all(sapply(antResults[-1,'solution'], FUN = identical, antResults[1, 'solution']))) {
           # re-starts count.
           count <- 1
-          # step <- step + ants
         }
       } else {
 
