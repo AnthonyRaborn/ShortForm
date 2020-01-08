@@ -5,8 +5,14 @@
 \title{Adds a parameter to the given search table. Checks whether parameter
 is involved in any (in)equality constraints in a fitted lavaan model}
 \usage{
-add.param(fitted.model, ptab, syntax, nullval = NULL, free = NULL,
-  block = NULL)
+add.param(
+  fitted.model,
+  ptab,
+  syntax,
+  nullval = NULL,
+  free = NULL,
+  block = NULL
+)
 }
 \arguments{
 \item{fitted.model}{fitted lavaan model}
@@ -64,8 +70,9 @@ trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, ta
 \url{https://doi.org/10.1080/10705511.2017.1409074}
 }
 \seealso{
-Other Tabu Search: \code{\link{refit.model}},
-  \code{\link{search.prep}}
+Other Tabu Search: 
+\code{\link{refit.model}()},
+\code{\link{search.prep}()}
 }
 \author{
 Carl F. Falk

@@ -5,18 +5,31 @@
 \title{A function to implement the ant colony optimization algorithm for short form
 specification searches with the package \link[lavaan]{lavaan}.}
 \usage{
-antcolony.lavaan(data = NULL, sample.cov = NULL, sample.nobs = NULL,
-  ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-  full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL,
-  steps = 50, lavaan.model.specs = list(model.type = "cfa", auto.var =
-  T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free
-  = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x =
-  TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F),
-  pheromone.calculation = "gamma", fit.indices = c("cfi", "tli",
-  "rmsea"),
+antcolony.lavaan(
+  data = NULL,
+  sample.cov = NULL,
+  sample.nobs = NULL,
+  ants = 20,
+  evaporation = 0.9,
+  antModel,
+  list.items = NULL,
+  full = NULL,
+  i.per.f = NULL,
+  factors = NULL,
+  bifactor = NULL,
+  steps = 50,
+  lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default",
+    ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
+    auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
+    auto.cov.y = TRUE, std.lv = F),
+  pheromone.calculation = "gamma",
+  fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-  summaryfile = NULL, feedbackfile = NULL, max.run = 1000,
-  verbose = FALSE)
+  summaryfile = NULL,
+  feedbackfile = NULL,
+  max.run = 1000,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{data}{The data being used in data frame format. Default value is
@@ -193,7 +206,7 @@ This function sends a specified number of ants per iteration, which
 # notice that in this example we are recreating the original model
 abilityShortForm <- antcolony.lavaan(
   data = lavaan::HolzingerSwineford1939,
-  ants = 1, evaporation = 0.7,
+  ants = 2, evaporation = 0.7,
   antModel = " visual  =~ x1 + x2 + x3
              textual =~ x4 + x5 + x6
              speed   =~ x7 + x8 + x9 ",
@@ -201,7 +214,7 @@ abilityShortForm <- antcolony.lavaan(
     "x1",
     "x2", "x3"
   ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
-    c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 1, fit.indices =
+    c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
     c("cfi"), fit.statistics.test = "(cfi > 0.6)", summaryfile =
     NULL, feedbackfile = NULL, max.run = 2
 )
@@ -247,7 +260,8 @@ abilityShortForm # print the results of the final short form
 \seealso{
 \code{\link{antcolony.mplus}}
 
-Other Ant Colony Algorithms: \code{\link{antcolony.mplus}}
+Other Ant Colony Algorithms: 
+\code{\link{antcolony.mplus}()}
 }
 \author{
 Anthony W Raborn, \email{anthony.w.raborn@gmail.com}

@@ -7,13 +7,30 @@ specification searches, either using MPlus directly via
 \code{\link[base]{system}} calls or using Mplus indirectly with the package
 \link[MplusAutomation]{MplusAutomation}.}
 \usage{
-antcolony.mplus(ants = 20, evaporation = 0.95, mplus = NULL,
-  list.items = NULL, full = NULL, i.per.f = NULL, factors = NULL,
-  steps = 50, max.run = 1000, resultfile = NULL,
-  summaryfile = "summary.txt", min.CFI = 0.95, min.TLI = 0.95,
-  max.RMSEA = 0.06, feedbackfile = "iteration.html", loc.gammas,
-  loc.variances, predictors, var.predictors, Mplus.Automation = FALSE,
-  dataOut = "tempModel.dat", modelOut = "tempModel.inp")
+antcolony.mplus(
+  ants = 20,
+  evaporation = 0.95,
+  mplus = NULL,
+  list.items = NULL,
+  full = NULL,
+  i.per.f = NULL,
+  factors = NULL,
+  steps = 50,
+  max.run = 1000,
+  resultfile = NULL,
+  summaryfile = "summary.txt",
+  min.CFI = 0.95,
+  min.TLI = 0.95,
+  max.RMSEA = 0.06,
+  feedbackfile = "iteration.html",
+  loc.gammas,
+  loc.variances,
+  predictors,
+  var.predictors,
+  Mplus.Automation = FALSE,
+  dataOut = "tempModel.dat",
+  modelOut = "tempModel.inp"
+)
 }
 \arguments{
 \item{ants}{A numeric value indicating the number of ants to send send (short
@@ -265,7 +282,8 @@ abilityShortForm <- antcolony.mplus(
 \seealso{
 \code{\link{antcolony.lavaan}}
 
-Other Ant Colony Algorithms: \code{\link{antcolony.lavaan}}
+Other Ant Colony Algorithms: 
+\code{\link{antcolony.lavaan}()}
 }
 \author{
 Walter Leite; Anthony W Raborn, \email{anthony.w.raborn@gmail.com}

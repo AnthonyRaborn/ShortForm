@@ -23,8 +23,9 @@ internally for model refitting.
 \url{https://doi.org/10.1080/10705511.2017.1409074}
 }
 \seealso{
-Other Tabu Search: \code{\link{add.param}},
-  \code{\link{search.prep}}
+Other Tabu Search: 
+\code{\link{add.param}()},
+\code{\link{search.prep}()}
 }
 \author{
 Carl F. Falk
