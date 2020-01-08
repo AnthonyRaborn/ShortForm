@@ -162,7 +162,7 @@
 #'     "x1",
 #'     "x2", "x3"
 #'   ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
-#'     c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 1, fit.indices =
+#'     c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
 #'     c("cfi"), fit.statistics.test = "(cfi > 0.6)", summaryfile =
 #'     NULL, feedbackfile = NULL, max.run = 2
 #' )
@@ -236,7 +236,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     write(x = "", file = summaryfile)
   }
 
-  summary <- matrix(
+  summaryObject <- matrix(
     nrow = 1,
     ncol = (full + 3 + 3 + length(fit.indices) + full)
   )
@@ -314,8 +314,8 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
 
   # starts loop through iterations.
-  while (step <= steps) {
-    if (run <= max.run) {
+  # while (step <= steps) {
+    while (run <= max.run) {
       cat(paste("\r Run number ", run, ".           ", sep = ""))
       # sends a number of ants per time.
       
@@ -523,12 +523,12 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         if (!all(sapply(antResults[-1,'solution'], FUN = identical, antResults[1, 'solution']))) {
           # re-starts count.
           count <- 1
-          step <- step + ants
+          # step <- step + ants
         }
       } else {
 
         # advances count.
-        count <- count + 1
+        count <- count + ants
 
         # adds more pheromone to the best so far solution.
         include.pheromone <- best.so.far.solution * best.so.far.pheromone
@@ -540,9 +540,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
       # ends loop.
       run <- run + 1
-      summary <- 
+      summaryObject <- 
         rbind(
-          summary,
+          summaryObject,
           matrix(
             c(
               as.numeric(antResults[[bestAnt, 'solution']]),
@@ -558,21 +558,21 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
            nrow = 1
            )
         )
+        if (count >= steps) {
+          # warning("Max runs reached! Problems converging onto a solution.")
+          break
+        }
         
     }
-    if (run == max.run) {
-      warning("Max runs reached! Problems converging onto a solution.")
-      break
-      }
-  }
+  # }
   
   foreach::registerDoSEQ()
   parallel::stopCluster(cl)
 
   print("Compiling results.")
 
-  summary <- data.frame(summary[-1, ])
-  colnames(summary) <- 
+  summaryObject <- data.frame(summaryObject[-1, ])
+  colnames(summaryObject) <- 
     c(item.vector,
       "run",
       "ant",
@@ -584,15 +584,21 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       paste0(item.vector, ".Pheromone")
       )
 
-  final.solution <- matrix(c(best.so.far.fit.indices, best.so.far.pheromone, best.so.far.solution), 1, ,
-    dimnames = list(NULL, c(names(antcolony.lavaan.env$model.fit), paste0("mean_", pheromone.calculation), item.vector))
+  final.solution <- 
+    matrix(
+      c(best.so.far.fit.indices, best.so.far.pheromone, best.so.far.solution), 
+      1, 
+      dimnames = list(
+        NULL, 
+        c(names(best.so.far.fit.indices), paste0("mean_", pheromone.calculation), item.vector)
+        )
   )
   
   results <-
     new(
       'ACO',
       function_call = match.call(),
-      summary = summary,
+      summary = summaryObject,
       final_solution = final.solution,
       best_model = best.so.far.model,
       best_syntax = best.so.far.syntax,
