@@ -8,7 +8,7 @@ tabuShortForm(
   originalData,
   initialModel,
   numItems,
-  criterion = function(x) {     tryCatch(lavaan::fitmeasures(object = x, fit.measures =
+  criterion = function(x) {     tryCatch(-lavaan::fitmeasures(object = x, fit.measures =
     "cfi"), error = function(e) Inf) },
   niter = 20,
   tabu.size = 5,
