@@ -206,7 +206,7 @@ This function sends a specified number of ants per iteration, which
 # notice that in this example we are recreating the original model
 abilityShortForm <- antcolony.lavaan(
   data = lavaan::HolzingerSwineford1939,
-  ants = 1, evaporation = 0.7,
+  ants = 2, evaporation = 0.7,
   antModel = " visual  =~ x1 + x2 + x3
              textual =~ x4 + x5 + x6
              speed   =~ x7 + x8 + x9 ",
@@ -214,7 +214,7 @@ abilityShortForm <- antcolony.lavaan(
     "x1",
     "x2", "x3"
   ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
-    c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 1, fit.indices =
+    c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
     c("cfi"), fit.statistics.test = "(cfi > 0.6)", summaryfile =
     NULL, feedbackfile = NULL, max.run = 2
 )
