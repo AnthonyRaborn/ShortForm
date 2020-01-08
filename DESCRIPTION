@@ -30,7 +30,10 @@ Imports:
     ggrepel,
     tidyr,
     stringr,
-    methods
+    methods,
+    doParallel,
+    parallel,
+    foreach
 Depends:
     R (>= 3.5.0)
 Roxygen: list(wrap = FALSE)
