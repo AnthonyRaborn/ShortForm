@@ -98,7 +98,7 @@ simulatedAnnealing <-
            ...) {
     #### initial values ####
     if(!exists('originalData')) {
-      stop("Please check that you have included the original data frame or")
+      stop("Please check that you have included the original data frame!")
     }
     currentStep <- 0
     consecutive <- 0
