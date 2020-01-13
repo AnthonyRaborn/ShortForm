@@ -113,7 +113,7 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
 }
 
 modelWarningCheck <- function(expr) {
-  warn <- err <- c()
+  warn = err = c('none')
   value <- withCallingHandlers(
     tryCatch(
       expr,
@@ -131,9 +131,8 @@ modelWarningCheck <- function(expr) {
   )
   list(
     "model.output" = value,
-    "warnings" <-
-      as.character(unlist(warn)),
-    "errors" <- as.character(unlist(err))
+    "warnings" = as.character(unlist(warn)),
+    "errors" = as.character(unlist(err))
   )
 }
 
