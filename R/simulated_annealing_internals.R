@@ -113,7 +113,7 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
 }
 
 modelWarningCheck <- function(expr) {
-  warn = err = c('none')
+  warn <- err <- c('none')
   value <- withCallingHandlers(
     tryCatch(
       expr,
