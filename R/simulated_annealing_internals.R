@@ -77,8 +77,8 @@ logisticTemperature <- function(currentStep, maxSteps) {
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
   if (class(currentModel) == "list") {
-    currentSyntax <- currentModel$model.syntax
-    currentModel <- currentModel[[1]]
+    currentSyntax <- currentModel@model.syntax
+    currentModel <- currentModel@model.output
   }
   if (is.null(currentModel)) {
     return(bestModel)
@@ -90,16 +90,16 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
       bestModel <- list()
-      bestModel$model.output <- currentModel
-      bestModel$model.syntax <- currentSyntax
+      bestModel@model.output <- currentModel
+      bestModel@model.syntax <- currentSyntax
     } else {
       bestModel <- bestModel
     }
   } else {
     if (currentFit < bestFit) {
       bestModel <- list()
-      bestModel$model.output <- currentModel
-      bestModel$model.syntax <- currentSyntax
+      bestModel@model.output <- currentModel
+      bestModel@model.syntax <- currentSyntax
     } else {
       if (currentFit < bestFit) {
         bestModel <- currentModel
@@ -112,7 +112,7 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
   return(bestModel)
 }
 
-modelWarningCheck <- function(expr) {
+modelWarningCheck <- function(expr, modelSyntax) {
   warn <- err <- c('none')
   value <- withCallingHandlers(
     tryCatch(
@@ -129,10 +129,13 @@ modelWarningCheck <- function(expr) {
       invokeRestart("muffleWarning")
     }
   )
-  list(
+  
+  new(
+    'modelCheck',
     "model.output" = value,
     "warnings" = as.character(unlist(warn)),
-    "errors" = as.character(unlist(err))
+    "errors" = as.character(unlist(err)),
+    'model.syntax' = modelSyntax
   )
 }
 
@@ -169,27 +172,6 @@ syntaxExtraction <- function(initialModelSyntaxFile, items) {
     ))
   )
   return(list("factors" = factors, "itemsPerFactor" = itemsPerFactor))
-}
-
-modelWarningCheck <- function(expr) {
-  warn <- err <- c()
-  value <- withCallingHandlers(tryCatch(expr, error = function(e) {
-    err <<- append(err, regmatches(paste(e), gregexpr(
-      "ERROR: [A-z ]{1,}",
-      paste(e)
-    )))
-    NULL
-  }), warning = function(w) {
-    warn <<- append(warn, regmatches(paste(w), gregexpr(
-      "WARNING: [A-z ]{1,}",
-      paste(w)
-    )))
-    invokeRestart("muffleWarning")
-  })
-  list(
-    model.output = value, warnings <- as.character(unlist(warn)),
-    errors <- as.character(unlist(err))
-  )
 }
 
 fitWarningCheck <- function(expr, maximize) {
