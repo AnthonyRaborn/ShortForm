@@ -95,6 +95,7 @@ simulatedAnnealing <-
            items = NULL,
            bifactor = FALSE,
            progress = "bar",
+           setChains = 8,
            ...) {
     #### initial values ####
     if(!exists('originalData')) {
@@ -189,9 +190,10 @@ simulatedAnnealing <-
             auto.cov.y = auto.cov.y,
             ordered = ordered,
             estimator = estimator,
-          )
+          ),
+          modelSyntax = newModelSyntax
         )
-        newModel$model.syntax <- newModelSyntax
+        # newModel$model.syntax <- newModelSyntax
 
         return(newModel)
       }
@@ -202,10 +204,10 @@ simulatedAnnealing <-
       )
       cat(paste(
         "\nThe initial short form is:\n",
-        paste(currentModel$model.syntax, collapse = "\n")
+        paste(currentModel@model.syntax, collapse = "\n")
       ))
       bestFit <- tryCatch(
-        lavaan::fitmeasures(object = bestModel[[1]], fit.measures = fitStatistic),
+        lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
         error = function(e, checkMaximize = maximize) {
           if (length(e) > 0) {
             if (checkMaximize == TRUE) {
@@ -232,7 +234,7 @@ simulatedAnnealing <-
                  initialModelSyntax,
                  itemsPerFactor = maxItems) {
           # take the model syntax from the currentModelObject
-          internalModelObject <- stringr::str_split(currentModelObject$model.syntax, pattern = "\n", simplify = T)
+          internalModelObject <- stringr::str_split(currentModelObject@model.syntax, pattern = "\n", simplify = T)
 
           # extract the latent factor syntax
           randomNeighbor.env <- new.env()
@@ -302,7 +304,7 @@ simulatedAnnealing <-
 
           # create the new model syntax
           newModelSyntax <- as.vector(
-            stringr::str_split(currentModelObject$model.syntax, "\n", simplify = T)
+            stringr::str_split(currentModelObject@model.syntax, "\n", simplify = T)
           )
           for (i in 1:length(randomNeighbor.env$factors)) {
             newModelSyntax[i] <- paste(
@@ -332,10 +334,11 @@ simulatedAnnealing <-
               auto.th = auto.th,
               auto.delta = auto.delta,
               auto.cov.y = auto.cov.y
-            )
+            ),
+            modelSyntax = newModelSyntax
           )
 
-          randomNeighborModel$model.syntax <- newModelSyntax
+          # randomNeighborModel$model.syntax <- newModelSyntax
           return(randomNeighborModel)
         }
       cat("\nFinished initializing short form options.")
@@ -357,9 +360,9 @@ simulatedAnnealing <-
         function(currentModelObject = currentModel,
                  numChanges = numChanges,
                  data) {
-          if (class(currentModelObject) == "list") {
-            currentModelObject <- currentModelObject[[1]]
-          }
+          # if (class(currentModelObject) == "list") {
+          #   currentModelObject <- currentModelObject
+          # }
 
           # using lavaan functions, construct a full parameter table
           paramTable <- lavaan::parTable(currentModelObject)
@@ -392,10 +395,13 @@ simulatedAnnealing <-
           prevModel$model <- paramTable
           # randomNeighborModel <- try(do.call(eval(parse(text = "lavaan::lavaan")), prevModel[-1]), silent = TRUE)
 
-          randomNeighborModel <- modelWarningCheck(lavaan::lavaan(
-            model = prevModel$model,
-            data = data
-          ))
+          randomNeighborModel <- modelWarningCheck(
+            lavaan::lavaan(
+              model = prevModel$model,
+              data = data
+              ),
+            modelSyntax = prevModel$model
+            )
 
           return(randomNeighborModel)
         }
@@ -425,23 +431,23 @@ simulatedAnnealing <-
                fitStatistic,
                consecutive) {
         # check if the randomNeighborModel is a valid model for use
-        if (length(randomNeighborModel[[2]]) > 0 |
-          length(randomNeighborModel[[2]]) > 0) {
+        if (randomNeighborModel@warnings != "none" |
+          randomNeighborModel@errors != "none") {
           return(currentModelObject)
         }
 
         # check that the current model isn't null
-        if (is.null(currentModelObject[[1]])) {
+        if (is.null(currentModelObject@model.output)) {
           return(randomNeighborModel)
         }
 
         # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-        if (goal(randomNeighborModel[[1]], fitStatistic, maximize) < goal(currentModelObject[[1]], fitStatistic, maximize)) {
+        if (goal(randomNeighborModel@model.output, fitStatistic, maximize) < goal(currentModelObject@model.output, fitStatistic, maximize)) {
           consecutive <- consecutive + 1
           return(randomNeighborModel)
         } else {
           probability <- exp(-(
-            goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)
+            goal(randomNeighborModel@model.output, fitStatistic, maximize) - goal(currentModelObject@model.output, fitStatistic, maximize)
           ) / currentTemp)
 
           if (probability > stats::runif(1)) {
@@ -452,8 +458,8 @@ simulatedAnnealing <-
 
           consecutive <- ifelse(
             identical(
-              lavaan::parameterTable(newModel[[1]]),
-              lavaan::parameterTable(currentModelObject[[1]])
+              lavaan::parameterTable(newModel@model.output),
+              lavaan::parameterTable(currentModelObject@model.output)
             ),
             consecutive + 1,
             0
@@ -475,103 +481,175 @@ simulatedAnnealing <-
         "The restart criteria should to be either \"consecutive\" (the default) or a custom function. It has been set to NULL so the algorithm will not restart at all."
       )
     }
+    #### prepare parallel processing ####
+    
+    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+    
+    if (nzchar(chk) && chk == "TRUE") {
+      # use 2 cores in CRAN/Travis/AppVeyor
+      num_workers <- 2L
+    } else {
+      # use all cores in devtools::test()
+      num_workers <- parallel::detectCores()
+    }
+    
+    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+    doParallel::registerDoParallel(cl)
+    `%dopar%` <- foreach::`%dopar%`
+    syntaxExtraction <- function(initialModelSyntaxFile, items) {
+      
+      # extract the latent factor syntax
+      factors <- unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op ==
+                                                                    "=~", "lhs"])
+      vectorModelSyntax <- stringr::str_split(
+        string = initialModelSyntaxFile,
+        pattern = "\\n",
+        simplify = TRUE
+      )
+      factorSyntax <- c()
+      itemSyntax <- c()
+      for (i in 1:length(factors)) {
+        chosenFactorLocation <- c(1:length(vectorModelSyntax))[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], "[ ]{0,}=~ "))]
+        factorSyntax[i] <- vectorModelSyntax[chosenFactorLocation]
+        # remove the factors from the syntax
+        itemSyntax[i] <-
+          gsub(
+            pattern = paste(factors[i], "=~ "),
+            replacement = "",
+            x = factorSyntax[i]
+          )
+      }
+      
+      # extract the items for each factor
+      itemsPerFactor <- stringr::str_extract_all(
+        string = itemSyntax,
+        pattern = paste0("(\\b", paste0(
+          paste0(unlist(items), collapse = "\\b)|(\\b"), "\\b)"
+        ))
+      )
+      return(list("factors" = factors, "itemsPerFactor" = itemsPerFactor))
+    }
+    
+    chains = setChains
     #### perform algorithm ####
     start.time <- Sys.time()
 
     cat("\n Current Progress:")
-    if (progress == "bar") {
-      trackStep <- txtProgressBar(
-        min = 0,
-        max = maxSteps - 1,
-        initial = 1,
-        style = 3
-      )
-    }
-
-
-    while (currentStep < maxSteps) {
-      if (progress == "bar") {
-        setTxtProgressBar(trackStep, currentStep)
-      } else if (progress == "text") {
-        cat(paste0(
-          "\r Current Step = ",
-          currentStep,
-          " of a maximum ",
-          maxSteps,
-          ".  "
-        ))
-      }
-      # how many changes to make?
-      numChanges <- sample(1:maxChanges, size = 1)
-      # generate random model
-      if (is.null(maxItems) & randomNeighbor == TRUE) {
-        randomNeighborModel <- randomNeighborFull(
-          currentModelObject = currentModel,
-          numChanges = numChanges,
-          data = originalData
-        )
-      } else if (randomNeighbor == TRUE) {
-        randomNeighborModel <- randomNeighborShort(
-          currentModelObject = currentModel,
-          numChanges = numChanges,
-          data = originalData,
-          allItems = allItems,
-          bifactor,
-          itemsPerFactor
-        )
-      }
-      # select between random model and current model
-      currentModel <- selectionFunction(
-        currentModel = currentModel,
-        randomNeighborModel = randomNeighborModel,
-        currentTemp = temperatureFunction(currentStep, maxSteps),
-        maximize = maximize,
-        fitStatistic = fitStatistic,
-        consecutive = consecutive
-      )
-      # recored fit
-      allFit[currentStep + 1] <- tryCatch(
-        lavaan::fitmeasures(object = currentModel[[1]], fit.measures = fitStatistic),
-        error = function(e) {
-          if (length(e) > 0) {
-            bestFit
+    # if (progress == "bar") {
+    #   trackStep <- txtProgressBar(
+    #     min = 0,
+    #     max = maxSteps - 1,
+    #     initial = 1,
+    #     style = 3
+    #   )
+    # }
+    allModel <- currentModel
+    allFit[1] <- bestFit
+    
+    chainResults <-
+      foreach::foreach(1:chains, .inorder = F, .combine = rbind) %dopar% {
+        while (currentStep < maxSteps) {
+          
+          # if (progress == "bar") {
+          #   setTxtProgressBar(trackStep, currentStep)
+          # } else if (progress == "text") {
+            cat(paste0(
+              "\r Current Step = ",
+              currentStep,
+              " of a maximum ",
+              maxSteps,
+              ".  "
+            ), file = stdout())
+          # }
+          # how many changes to make?
+          numChanges <- sample(1:maxChanges, size = 1)
+          # generate random model
+          if (is.null(maxItems) & randomNeighbor == TRUE) {
+            randomNeighborModel <- randomNeighborFull(
+              currentModelObject = currentModel,
+              numChanges = numChanges,
+              data = originalData
+            )
+          } else if (randomNeighbor == TRUE) {
+            randomNeighborModel <- randomNeighborShort(
+              currentModelObject = currentModel,
+              numChanges = numChanges,
+              data = originalData,
+              allItems = allItems,
+              bifactor,
+              itemsPerFactor
+            )
           }
+          # select between random model and current model
+          currentModel <- selectionFunction(
+            currentModel = currentModel,
+            randomNeighborModel = randomNeighborModel,
+            currentTemp = temperatureFunction(currentStep, maxSteps),
+            maximize = maximize,
+            fitStatistic = fitStatistic,
+            consecutive = consecutive
+          )
+          # recored fit
+          allFit[currentStep + 1] <- tryCatch(
+          # allFit <- tryCatch(
+            lavaan::fitmeasures(object = currentModel@model.output, fit.measures = fitStatistic),
+            error = function(e) {
+              if (length(e) > 0) {
+                bestFit
+              }
+            }
+          )
+          # check for current best model
+          bestModel <- checkModels(currentModel, fitStatistic, maximize, bestFit, bestModel)
+          bestFit <- tryCatch(
+            lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
+            error = function(e) {
+              if (length(e) > 0) {
+                bestFit
+              }
+            }
+          )
+          
+          allModel <- c(allModel, currentModel)
+    
+          # restart if the same model was chosen too many times
+          restartCriteria(
+            maxConsecutiveSelection = maximumConsecutive,
+            consecutive = consecutive
+          )
+          currentStep <- currentStep + 1
+          
         }
-      )
-      # check for current best model
-      bestModel <- checkModels(currentModel, fitStatistic, maximize, bestFit, bestModel)
-      bestFit <- tryCatch(
-        lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic),
-        error = function(e) {
-          if (length(e) > 0) {
-            bestFit
-          }
-        }
-      )
-
-      # restart if the same model was chosen too many times
-      restartCriteria(
-        maxConsecutiveSelection = maximumConsecutive,
-        consecutive = consecutive
-      )
-      currentStep <- currentStep + 1
-    }
+        returnList <-
+          list(
+            'allModel' = allModel,
+            'allFit' = allFit,
+            'bestModel' = bestModel,
+            'bestFit' = bestFit
+          )
+      }
+    
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
     
     best_fit <-
-      as.numeric(bestFit)
+      max(as.numeric(chainResults[,'bestFit']))
+      
     names(best_fit) <-
-      names(bestFit)
+      names(chainResults[1,4][[1]])
     
     results <-
       new(
         'SA',
         function_call = match.call(),
-        all_fit = allFit,
+        chain_results = chainResults,
+        all_fit = chainResults[,'allFit'],
         best_fit = best_fit,
-        best_model = bestModel$model.output,
-        best_syntax = bestModel$model.syntax,
+        best_model = bestModel@model.output,
+        best_syntax = bestModel@model.syntax,
         runtime = Sys.time() - start.time
       )
 
     results
   }
+

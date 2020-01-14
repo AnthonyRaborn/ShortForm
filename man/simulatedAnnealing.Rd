@@ -24,6 +24,7 @@ simulatedAnnealing(
   items = NULL,
   bifactor = FALSE,
   progress = "bar",
+  setChains = 8,
   ...
 )
 }
