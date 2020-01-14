@@ -1,6 +1,7 @@
 #' An S4 class for the Simulated Annealing Algorithm
 #'
 #' @slot function_call The original function call.
+#' @slot chain_results A `matrix` of the chain results.
 #' @slot all_fit A summary `vector` indicating the model fit results for
 #' each iteration.
 #' @slot best_fit The best model fit result using the selected `fitStatistic`. 
@@ -17,6 +18,7 @@ setClass('SA',
          slots =
            list(
              function_call = 'call',
+             chain_results = 'matrix',
              all_fit = 'vector',
              best_fit = 'numeric',
              best_model = 'lavaan',
