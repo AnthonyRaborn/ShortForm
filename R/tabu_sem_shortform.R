@@ -216,9 +216,9 @@ tabuShortForm <- function(originalData,
         auto.cov.y = auto.cov.y,
         ordered = ordered,
         estimator = estimator,
-      )
+      ),
+      newModelSyntax
     )
-    newModel$model.syntax <- newModelSyntax
 
     return(newModel)
   }
@@ -226,9 +226,9 @@ tabuShortForm <- function(originalData,
   init.model <-
     randomInitialModel()
 
-  best.obj <- all.obj <- current.obj <- criterion(init.model$model.output)
-  best.mod <- current.model <- init.model$model.output
-  best.syntax <- current.syntax <- init.model$model.syntax
+  best.obj <- all.obj <- current.obj <- criterion(init.model@model.output)
+  best.mod <- current.model <- init.model@model.output
+  best.syntax <- current.syntax <- init.model@model.syntax
   names(itemsPerFactor) <- factors
 
   if (verbose == TRUE) {
@@ -323,7 +323,7 @@ tabuShortForm <- function(originalData,
               estimator = estimator,
               warn = FALSE
             )
-          )$model.output
+          )@model.output
 
         if (fitmodel@Fit@converged & !any(is.na(fitmodel@Fit@se))) {
           fit.val <- criterion(fitmodel)
