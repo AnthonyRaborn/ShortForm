@@ -366,12 +366,13 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             auto.th = antcolony.lavaan.env$auto.th,
             auto.delta = antcolony.lavaan.env$auto.delta,
             auto.cov.y = antcolony.lavaan.env$auto.cov.y
-          )
+          ),
+          modelSyntax = new_ant_model
         )
         
         # Save the error and warning messages
-        warnings <- modelCheck[[2]]
-        errors <- modelCheck[[3]]
+        warnings <- modelCheck@warnings
+        errors <- modelCheck@errors
         # Check the above messages and set pheromone to zero under 'bad' circumstances
         if (any(errors %in% bad.errors) || any(warnings %in% bad.warnings)) {
           pheromone <- 0
@@ -456,7 +457,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           'mean.std.gammas' = mean(antcolony.lavaan.env$std.gammas),
           'mean.std.betas' = mean(antcolony.lavaan.env$std.betas),
           'mean.var.exp' = mean(antcolony.lavaan.env$variance.explained),
-          'model.output' = modelCheck$model.output,
+          'model.output' = modelCheck@model.output,
           'model.syntax' = new_ant_model
         )
         
