@@ -31,7 +31,7 @@ Imports:
     tidyr,
     stringr,
     methods,
-    doParallel,
+    doSNOW,
     parallel,
     foreach
 Depends:
