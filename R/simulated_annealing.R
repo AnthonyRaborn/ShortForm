@@ -34,7 +34,7 @@
 #' @param maxItems When creating a short form, a `vector` of the number of items per factor you want the short form to contain. Defaults to `NULL`.
 #' @param items A `character` vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.
-#' @param progress Character. If `'bar'`, the function prints a progress bar indicating how far along it is. If `'text'`, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.
+#' @param setChains Numeric. Sets the number of parallel chains to run. Default to `1`, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than `1` result in the chains running on parallel processes using the `doSNOW` and `foreach` packages.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
 #' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
@@ -94,12 +94,15 @@ simulatedAnnealing <-
            maxItems = NULL,
            items = NULL,
            bifactor = FALSE,
-           progress = "bar",
-           setChains = 8,
+           setChains = 1,
            ...) {
     #### initial values ####
     if(!exists('originalData')) {
       stop("Please check that you have included the original data frame!")
+    }
+    if(!is.numeric(setChains)|setChains<1) {
+      warning("The value for setChains was not valid. Defaulting to setChains=1.")
+      setChains = 1
     }
     currentStep <- 0
     consecutive <- 0
@@ -482,20 +485,30 @@ simulatedAnnealing <-
       )
     }
     #### prepare parallel processing ####
-    
-    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-    
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      num_workers <- 2L
+    if (setChains > 1) {
+      chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+      
+      if (nzchar(chk) && chk == "TRUE") {
+        # use 2 cores in CRAN/Travis/AppVeyor
+        num_workers <- 2L
+      } else {
+        # use all cores in devtools::test()
+        num_workers <- parallel::detectCores()
+      }
     } else {
-      # use all cores in devtools::test()
-      num_workers <- parallel::detectCores()
+      num_workers <- 1L
     }
     
     cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-    doParallel::registerDoParallel(cl)
+    doSNOW::registerDoSNOW(cl)
     `%dopar%` <- foreach::`%dopar%`
+    # pb <- txtProgressBar(max = maxSteps, style = 3)
+    progress <- function(n) {
+      cat(paste("\r Chain number ", n, " complete.", sep = ""))
+      # setTxtProgressBar(pb, n)
+    }
+    opts <- list(progress = progress)
+    
     syntaxExtraction <- function(initialModelSyntaxFile, items) {
       
       # extract the latent factor syntax
@@ -531,6 +544,7 @@ simulatedAnnealing <-
     }
     
     chains = setChains
+    
     #### perform algorithm ####
     start.time <- Sys.time()
 
@@ -547,7 +561,8 @@ simulatedAnnealing <-
     allFit[1] <- bestFit
     
     chainResults <-
-      foreach::foreach(1:chains, .inorder = F, .combine = rbind) %dopar% {
+      foreach::foreach(chain = 1:chains, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
+
         while (currentStep < maxSteps) {
           
           # if (progress == "bar") {
@@ -632,18 +647,34 @@ simulatedAnnealing <-
     foreach::registerDoSEQ()
     parallel::stopCluster(cl)
     
-    best_fit <-
-      max(as.numeric(chainResults[,'bestFit']))
+    if (setChains > 1) {
+      best_fit <-
+        max(as.numeric(chainResults[,'bestFit']))
       
-    names(best_fit) <-
-      names(chainResults[1,4][[1]])
+      names(best_fit) <-
+        names(chainResults[1,4][[1]])
+      
+      all_fit <-
+        chainResults[,'allFit']
+    } else {
+      best_fit <-
+        as.numeric(chainResults$bestFit)
+      
+      names(best_fit) <-
+        names(chainResults$bestFit)
+      
+      all_fit <-
+        chainResults$allFit
+    }
+    
     
     results <-
       new(
         'SA',
         function_call = match.call(),
+        chains = setChains,
         chain_results = chainResults,
-        all_fit = chainResults[,'allFit'],
+        all_fit = all_fit,
         best_fit = best_fit,
         best_model = bestModel@model.output,
         best_syntax = bestModel@model.syntax,
