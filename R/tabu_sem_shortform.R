@@ -322,7 +322,8 @@ tabuShortForm <- function(originalData,
               ordered = ordered,
               estimator = estimator,
               warn = FALSE
-            )
+            ),
+            newModelSyntax
           )@model.output
 
         if (fitmodel@Fit@converged & !any(is.na(fitmodel@Fit@se))) {
