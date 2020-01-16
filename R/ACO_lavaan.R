@@ -130,11 +130,9 @@
 #'  coefficients), and the overall variance explained of the current run.
 #' @param max.run The maximum number of ants to run before the algorithm stops.
 #'  This includes failed iterations as well. Default is 1000.
-#' @param verbose An option for increasing the amount of information displayed
-#'  while the function runs. If \code{TRUE}, the function will display steps,
-#'  ants, counts, and current run for each attempt as well as printing
-#'  \code{"Failed iteration!"} for runs that do not converge and the model fit
-#'  information for runs that do converge successfully. Default is \code{FALSE}.
+#' @param parallel An option for using parallel processing. If \code{TRUE}, the 
+#'  function will utilize all available cores (up to the number of ants). Default 
+#'  is \code{TRUE}.
 #' @return A list with four elements: the first containing a named matrix with
 #'  final model's best fit indices, the final pheromone level (either the mean
 #'  of the standardized regression coefficients (gammas, betas, or both), or the mean variance
@@ -221,7 +219,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                              pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
                              fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
                              summaryfile = NULL,
-                             feedbackfile = NULL, max.run = 1000, verbose = FALSE) {
+                             feedbackfile = NULL, max.run = 1000, parallel = T) {
   if (!requireNamespace("lavaan", quietly = TRUE)) {
     stop("The `lavaan` package is required to use this function. Please install `lavaan`, then try to use this function again.")
   }
@@ -297,18 +295,30 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
   
-  if (nzchar(chk) && chk == "TRUE") {
-    # use 2 cores in CRAN/Travis/AppVeyor
-    num_workers <- 2L
+  if (parallel) {
+    if (nzchar(chk) && chk == "TRUE") {
+      # use 2 cores in CRAN/Travis/AppVeyor
+      num_workers <- 2L
+    } else {
+      # use all cores in devtools::test()
+      num_workers <- parallel::detectCores()
+    }
   } else {
-    # use all cores in devtools::test()
-    num_workers <- parallel::detectCores()
+    num_workers = 1
+    
   }
   
   cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-  doParallel::registerDoParallel(cl)
+  # doParallel::registerDoParallel(cl)
+  doSNOW::registerDoSNOW(cl)
   `%dopar%` <- foreach::`%dopar%`
   ant = 0L
+  # pb <- txtProgressBar(max = max.run, style = 3)
+  progress <- function(n) {
+    cat(paste("\r Run number ", run, " and ant number ", n, ".           ", sep = ""))
+    # setTxtProgressBar(pb, n)
+  }
+  opts <- list(progress = progress)
   
   start.time <- Sys.time()
 
@@ -316,14 +326,14 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # starts loop through iterations.
   # while (step <= steps) {
     while (run <= max.run) {
-      cat(paste("\r Run number ", run, ".           ", sep = ""))
+      # cat(paste("\r Run number ", run, ".           ", sep = ""))
       # sends a number of ants per time.
       
       antResults <-
-        foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind) %dopar% {
-        if (verbose == TRUE) {
-          cat(paste("\r Step = ", step, " and Ant = ", ant, " and Count = ", count, " and Run = ", run, ".   ", sep = ""))
-        }
+        foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
+        # if (verbose == TRUE) { # doesn't actually work with parallel
+        #   cat(paste("\r Step = ", step, " and Ant = ", ant, " and Count = ", count, " and Run = ", run, ".   ", sep = ""))
+        # }
         
         # selects items for all factors.
         newModelList <- antcolonyNewModel(
@@ -376,9 +386,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         # Check the above messages and set pheromone to zero under 'bad' circumstances
         if (any(errors %in% bad.errors) || any(warnings %in% bad.warnings)) {
           pheromone <- 0
-          if (verbose == TRUE) {
-            cat("Failed iteration!")
-          }
+          # if (verbose == TRUE) {
+          #   cat("Failed iteration!")
+          # }
           
           # writes feedback about non-convergence and non-positive definite.
           if (length(summaryfile) > 0) {
@@ -396,9 +406,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           }
           # finishes if for non-convergent cases.
         } else {
-          if (verbose == TRUE) {
-            cat("                  ")
-          }
+          # if (verbose == TRUE) {
+          #   cat("                  ")
+          # }
           # compute fit indices, gammas, betas, and residual variances
           modelInfo <- modelInfoExtract(
             modelCheckObj = modelCheck,
