@@ -28,7 +28,7 @@ antcolony.lavaan(
   summaryfile = NULL,
   feedbackfile = NULL,
   max.run = 1000,
-  verbose = FALSE
+  parallel = T
 )
 }
 \arguments{
@@ -115,11 +115,9 @@ coefficients), and the overall variance explained of the current run.}
 \item{max.run}{The maximum number of ants to run before the algorithm stops.
 This includes failed iterations as well. Default is 1000.}
 
-\item{verbose}{An option for increasing the amount of information displayed
-while the function runs. If \code{TRUE}, the function will display steps,
-ants, counts, and current run for each attempt as well as printing
-\code{"Failed iteration!"} for runs that do not converge and the model fit
-information for runs that do converge successfully. Default is \code{FALSE}.}
+\item{parallel}{An option for using parallel processing. If \code{TRUE}, the 
+function will utilize all available cores (up to the number of ants). Default 
+is \code{TRUE}.}
 }
 \value{
 A list with four elements: the first containing a named matrix with

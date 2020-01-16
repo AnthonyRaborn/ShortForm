@@ -15,7 +15,9 @@ An S4 class for the Simulated Annealing Algorithm
 \describe{
 \item{\code{function_call}}{The original function call.}
 
-\item{\code{chain_results}}{A `matrix` of the chain results.}
+\item{\code{chains}}{The number of chains used.}
+
+\item{\code{chain_results}}{A `matrix` (for multiple chains) or a `list` (for a single chain) of the chain results.}
 
 \item{\code{all_fit}}{A summary `vector` indicating the model fit results for
 each iteration.}

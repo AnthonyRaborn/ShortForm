@@ -23,8 +23,7 @@ simulatedAnnealing(
   maxItems = NULL,
   items = NULL,
   bifactor = FALSE,
-  progress = "bar",
-  setChains = 8,
+  setChains = 1,
   ...
 )
 }
@@ -61,7 +60,7 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 
 \item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If \code{TRUE}, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if \code{maxItems==FALSE}.}
 
-\item{progress}{Character. If \code{'bar'}, the function prints a progress bar indicating how far along it is. If \code{'text'}, prints the current step value. Otherwise, nothing is printed to indicate the progress of the function.}
+\item{setChains}{Numeric. Sets the number of parallel chains to run. Default to \code{1}, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than \code{1} result in the chains running on parallel processes using the \code{doSNOW} and \code{foreach} packages.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }
