@@ -55,7 +55,7 @@ data(simulated_test_data)
 # 'ordered' element of the lavaan.model.specs list.
 set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
-ants = 5, evaporation = 0.7, antModel = exampleAntModel,
+ants = 10, evaporation = 0.9, antModel = exampleAntModel,
 list.items = list.items, full = 56, i.per.f = 15,
 lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", 
                           ordered = unlist(list.items), int.ov.free = TRUE,
@@ -63,16 +63,16 @@ lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default
                           auto.fix.single = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE, 
                           auto.th = TRUE, auto.delta = TRUE, 
                           auto.cov.y = TRUE),
-factors = 'Ability', steps = 3, fit.indices = c('cfi', 'rmsea'),
+factors = 'Ability', steps = 50, fit.indices = c('cfi', 'rmsea'),
 fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
-max.run = 50, verbose = FALSE)
+max.run = 100, parallel = T)
 abilityShortForm # print the results of the final short form
 plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
 
-A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run this example.
+A similar example can be found in the `antcolony.mplus` function, but requires you to have a valid Mplus installation on the computer. It took a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` `r attr(round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2), 'units')` to run this example.
 
 ### Tabu Search Algorithm
 
@@ -128,7 +128,7 @@ summary(Tabu_example)
 plot(Tabu_example)
 ```
 
-It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example.
+It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` `r attr(round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2), 'units')` to run this example.
 
 The next Tabu example demonstrates how to use it to find a short form of a prespecified length with different data.
 
@@ -202,7 +202,7 @@ summary(tabuShort)
 plot(tabuShort)
 ```
 
-It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` minutes to run this example.
+It took a total of `r round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2)` `r attr(round(as.difftime(Sys.time() - start.time.Tabu, units = "mins"),2), 'units')` to run this example.
 
 ### Simulated Annealing
 
@@ -213,7 +213,7 @@ start.time.SA <- Sys.time()
 library(ShortForm, quietly = T)
 # load simulation data and select columns used in this example
 data(simulated_test_data) 
-saData <- simulated_test_data[,c(1:12)]
+saData <- simulated_test_data[,c(1:32)]
 
 # specify the full model
 saModel <- "
@@ -221,16 +221,16 @@ Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9
 Ability ~ Outcome
 "
 lavaan.model.specs = list(model.type = "cfa",
-  auto.var = TRUE, estimator = "default", ordered = paste0("Item", 1:10), int.ov.free = TRUE,
+  auto.var = TRUE, estimator = "default", ordered = paste0("Item", 1:32), int.ov.free = TRUE,
   int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single =
   TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
   TRUE)
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:32), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, setChains = 4)
 summary(SA_example)
 plot(SA_example) # plot showing how the fit value changes at each step
 ```
 
-It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` minutes to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` minutes to run all four together.
+It took a total of `r round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2)` `r attr(round(as.difftime(Sys.time() - start.time.SA, units = "mins"),2), 'units')` to run the SA example, and a total of `r round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2)` `r attr(round(as.difftime(Sys.time() - start.time.ACO, units = "mins"),2), 'units')` to run all four together.
