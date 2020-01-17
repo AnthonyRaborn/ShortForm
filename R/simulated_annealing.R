@@ -173,7 +173,7 @@ simulatedAnnealing <-
             paste(newItemsPerFactor[[i]], collapse = " + ")
           )
         }
-        newModelSyntax <- c(newModelSyntax, externalRelation, factorRelation)
+        newModelSyntax <- paste0(newModelSyntax, externalRelation, factorRelation, collapse = "\n")
 
         # fit the new model
         newModel <- modelWarningCheck(
@@ -552,34 +552,17 @@ simulatedAnnealing <-
     #### perform algorithm ####
     start.time <- Sys.time()
 
-    cat("\n Current Progress:")
-    # if (progress == "bar") {
-    #   trackStep <- txtProgressBar(
-    #     min = 0,
-    #     max = maxSteps - 1,
-    #     initial = 1,
-    #     style = 3
-    #   )
-    # }
-    allModel <- currentModel
-    allFit[1] <- bestFit
+    cat("\n Current Progress: \n")
+
+    allModel <- currentModel@model.syntax
+    allFit <- bestFit
     
     chainResults <-
       foreach::foreach(chain = 1:chains, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
 
         while (currentStep < maxSteps) {
           
-          # if (progress == "bar") {
-          #   setTxtProgressBar(trackStep, currentStep)
-          # } else if (progress == "text") {
-            cat(paste0(
-              "\r Current Step = ",
-              currentStep,
-              " of a maximum ",
-              maxSteps,
-              ".  "
-            ), file = stdout())
-          # }
+
           # how many changes to make?
           numChanges <- sample(1:maxChanges, size = 1)
           # generate random model
@@ -668,7 +651,7 @@ simulatedAnnealing <-
         names(chainResults$bestFit)
       
       all_fit <-
-        chainResults$allFit
+        as.numeric(chainResults$allFit)
     }
     
     
@@ -680,7 +663,7 @@ simulatedAnnealing <-
         chain_results = chainResults,
         all_fit = all_fit,
         best_fit = best_fit,
-        best_model = bestModel@model.output,
+        best_model = bestModel,
         best_syntax = bestModel@model.syntax,
         runtime = Sys.time() - start.time
       )
