@@ -491,26 +491,44 @@ simulatedAnnealing <-
     #### prepare parallel processing ####
     if (setChains > 1) {
       chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+      progress <- function(n) {
+        cat(paste("Chain number ", n, " complete. \n", sep = ""))
+      }
       
       if (nzchar(chk) && chk == "TRUE") {
         # use 2 cores in CRAN/Travis/AppVeyor
         num_workers <- 2L
       } else {
-        # use all cores in devtools::test()
-        num_workers <- parallel::detectCores()
+        if (setChains <= parallel::detectCores()) {
+          num_workers <- setChains
+        } else { 
+          # use all cores in devtools::test()
+          num_workers <- parallel::detectCores()
+          }
       }
+      cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+      doSNOW::registerDoSNOW(cl)
+      
     } else {
       num_workers <- 1L
+      # pb <- txtProgressBar(max = maxSteps, style = 3)
+      # progress <- function(n) {
+      #   setTxtProgressBar(pb, n)
+      # }
+      progress <- function(currentStep, maxSteps) {
+        cat(paste0(
+          "\r Current Step = ",
+          currentStep,
+          " of a maximum ",
+          maxSteps,
+          ".  "
+        ), file = stdout())
+      }
+      
+      
     }
     
-    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-    doSNOW::registerDoSNOW(cl)
     `%dopar%` <- foreach::`%dopar%`
-    # pb <- txtProgressBar(max = maxSteps, style = 3)
-    progress <- function(n) {
-      cat(paste("\r Chain number ", n, " complete.", sep = ""))
-      # setTxtProgressBar(pb, n)
-    }
     opts <- list(progress = progress)
     
     syntaxExtraction <- function(initialModelSyntaxFile, items) {
@@ -631,10 +649,11 @@ simulatedAnnealing <-
           )
       }
     
-    foreach::registerDoSEQ()
-    parallel::stopCluster(cl)
     
     if (setChains > 1) {
+      foreach::registerDoSEQ()
+      parallel::stopCluster(cl)
+      
       best_fit <-
         max(as.numeric(chainResults[,'bestFit']))
       
