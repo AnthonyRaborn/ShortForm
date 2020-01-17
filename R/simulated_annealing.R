@@ -434,8 +434,10 @@ simulatedAnnealing <-
                fitStatistic,
                consecutive) {
         # check if the randomNeighborModel is a valid model for use
-        if (randomNeighborModel@warnings != "none" |
-          randomNeighborModel@errors != "none") {
+        if ( 
+          length(randomNeighborModel@warnings) > 1 |
+          length(randomNeighborModel@errors) > 1 
+          ) {
           return(currentModelObject)
         }
 
@@ -445,13 +447,15 @@ simulatedAnnealing <-
         }
 
         # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-        if (goal(randomNeighborModel@model.output, fitStatistic, maximize) < goal(currentModelObject@model.output, fitStatistic, maximize)) {
+        if (goal(randomNeighborModel@model.output, fitStatistic, maximize) > goal(currentModelObject@model.output, fitStatistic, maximize)) {
           consecutive <- consecutive + 1
           return(randomNeighborModel)
         } else {
           probability <- exp(-(
             goal(randomNeighborModel@model.output, fitStatistic, maximize) - goal(currentModelObject@model.output, fitStatistic, maximize)
           ) / currentTemp)
+          
+          if (is.nan(probability)) probability = 0
 
           if (probability > stats::runif(1)) {
             newModel <- randomNeighborModel
