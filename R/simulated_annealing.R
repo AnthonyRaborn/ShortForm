@@ -630,7 +630,7 @@ simulatedAnnealing <-
             }
           )
           
-          allModel <- c(allModel, currentModel)
+          allModel <- c(allModel, currentModel@model.syntax)
     
           # restart if the same model was chosen too many times
           restartCriteria(
