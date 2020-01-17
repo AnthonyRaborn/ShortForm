@@ -9,7 +9,7 @@ setClassUnion("matrixORlist", c("matrix", "list"))
 #' @slot all_fit A summary `vector` indicating the model fit results for
 #' each iteration.
 #' @slot best_fit The best model fit result using the selected `fitStatistic`. 
-#' @slot best_model A `lavaan` object of the final solution.
+#' @slot best_model A `modelCheck` object of the final solution.
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
 #'
@@ -26,7 +26,7 @@ setClass('SA',
              chain_results = 'matrixORlist',
              all_fit = 'vector',
              best_fit = 'numeric',
-             best_model = 'lavaan',
+             best_model = 'modelCheck',
              best_syntax = 'character',
              runtime = 'ANY'
            )
