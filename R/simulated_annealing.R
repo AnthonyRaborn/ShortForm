@@ -173,7 +173,7 @@ simulatedAnnealing <-
             paste(newItemsPerFactor[[i]], collapse = " + ")
           )
         }
-        newModelSyntax <- c(newModelSyntax, externalRelation, factorRelation)
+        newModelSyntax <- paste0(newModelSyntax, externalRelation, factorRelation, collapse = "\n")
 
         # fit the new model
         newModel <- modelWarningCheck(
@@ -434,8 +434,10 @@ simulatedAnnealing <-
                fitStatistic,
                consecutive) {
         # check if the randomNeighborModel is a valid model for use
-        if (randomNeighborModel@warnings != "none" |
-          randomNeighborModel@errors != "none") {
+        if ( 
+          length(randomNeighborModel@warnings) > 1 |
+          length(randomNeighborModel@errors) > 1 
+          ) {
           return(currentModelObject)
         }
 
@@ -445,13 +447,15 @@ simulatedAnnealing <-
         }
 
         # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-        if (goal(randomNeighborModel@model.output, fitStatistic, maximize) < goal(currentModelObject@model.output, fitStatistic, maximize)) {
+        if (goal(randomNeighborModel@model.output, fitStatistic, maximize) > goal(currentModelObject@model.output, fitStatistic, maximize)) {
           consecutive <- consecutive + 1
           return(randomNeighborModel)
         } else {
           probability <- exp(-(
             goal(randomNeighborModel@model.output, fitStatistic, maximize) - goal(currentModelObject@model.output, fitStatistic, maximize)
           ) / currentTemp)
+          
+          if (is.nan(probability)) probability = 0
 
           if (probability > stats::runif(1)) {
             newModel <- randomNeighborModel
@@ -487,26 +491,44 @@ simulatedAnnealing <-
     #### prepare parallel processing ####
     if (setChains > 1) {
       chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+      progress <- function(n) {
+        cat(paste("Chain number ", n, " complete. \n", sep = ""))
+      }
       
       if (nzchar(chk) && chk == "TRUE") {
         # use 2 cores in CRAN/Travis/AppVeyor
         num_workers <- 2L
       } else {
-        # use all cores in devtools::test()
-        num_workers <- parallel::detectCores()
+        if (setChains <= parallel::detectCores()) {
+          num_workers <- setChains
+        } else { 
+          # use all cores in devtools::test()
+          num_workers <- parallel::detectCores()
+          }
       }
+      cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+      doSNOW::registerDoSNOW(cl)
+      
     } else {
       num_workers <- 1L
+      # pb <- txtProgressBar(max = maxSteps, style = 3)
+      # progress <- function(n) {
+      #   setTxtProgressBar(pb, n)
+      # }
+      progress <- function(currentStep, maxSteps) {
+        cat(paste0(
+          "\r Current Step = ",
+          currentStep,
+          " of a maximum ",
+          maxSteps,
+          ".  "
+        ), file = stdout())
+      }
+      
+      
     }
     
-    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-    doSNOW::registerDoSNOW(cl)
     `%dopar%` <- foreach::`%dopar%`
-    # pb <- txtProgressBar(max = maxSteps, style = 3)
-    progress <- function(n) {
-      cat(paste("\r Chain number ", n, " complete.", sep = ""))
-      # setTxtProgressBar(pb, n)
-    }
     opts <- list(progress = progress)
     
     syntaxExtraction <- function(initialModelSyntaxFile, items) {
@@ -548,34 +570,17 @@ simulatedAnnealing <-
     #### perform algorithm ####
     start.time <- Sys.time()
 
-    cat("\n Current Progress:")
-    # if (progress == "bar") {
-    #   trackStep <- txtProgressBar(
-    #     min = 0,
-    #     max = maxSteps - 1,
-    #     initial = 1,
-    #     style = 3
-    #   )
-    # }
-    allModel <- currentModel
-    allFit[1] <- bestFit
+    cat("\n Current Progress: \n")
+
+    allModel <- currentModel@model.syntax
+    allFit <- bestFit
     
     chainResults <-
       foreach::foreach(chain = 1:chains, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
 
         while (currentStep < maxSteps) {
           
-          # if (progress == "bar") {
-          #   setTxtProgressBar(trackStep, currentStep)
-          # } else if (progress == "text") {
-            cat(paste0(
-              "\r Current Step = ",
-              currentStep,
-              " of a maximum ",
-              maxSteps,
-              ".  "
-            ), file = stdout())
-          # }
+
           # how many changes to make?
           numChanges <- sample(1:maxChanges, size = 1)
           # generate random model
@@ -625,7 +630,7 @@ simulatedAnnealing <-
             }
           )
           
-          allModel <- c(allModel, currentModel)
+          allModel <- c(allModel, currentModel@model.syntax)
     
           # restart if the same model was chosen too many times
           restartCriteria(
@@ -644,10 +649,11 @@ simulatedAnnealing <-
           )
       }
     
-    foreach::registerDoSEQ()
-    parallel::stopCluster(cl)
     
     if (setChains > 1) {
+      foreach::registerDoSEQ()
+      parallel::stopCluster(cl)
+      
       best_fit <-
         max(as.numeric(chainResults[,'bestFit']))
       
@@ -664,7 +670,7 @@ simulatedAnnealing <-
         names(chainResults$bestFit)
       
       all_fit <-
-        chainResults$allFit
+        as.numeric(chainResults$allFit)
     }
     
     
@@ -676,7 +682,7 @@ simulatedAnnealing <-
         chain_results = chainResults,
         all_fit = all_fit,
         best_fit = best_fit,
-        best_model = bestModel@model.output,
+        best_model = bestModel,
         best_syntax = bestModel@model.syntax,
         runtime = Sys.time() - start.time
       )

@@ -1,31 +1,31 @@
 
 
-selectionFunction <-
-  function(currentModelObject = currentModel,
-           randomNeighborModel,
-           currentTemp,
-           maximize,
-           fitStatistic,
-           consecutive) {
-    # check if the randomNeighborModel is a valid model for use
-    if (length(randomNeighborModel[[2]]) > 0 |
-      length(randomNeighborModel[[2]]) > 0) {
-      return(currentModelObject)
-    }
-
-    # check that the current model isn't null
-    if (is.null(currentModelObject[[1]])) {
-      return(randomNeighborModel)
-    } else {
-      probability <- exp(-(goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)) / currentTemp)
-    }
-
-    if (probability > stats::runif(1)) {
-      newModel <- randomNeighborModel
-    } else {
-      newModel <- currentModelObject
-    }
-  }
+# selectionFunction <-
+#   function(currentModelObject = currentModel,
+#            randomNeighborModel,
+#            currentTemp,
+#            maximize,
+#            fitStatistic,
+#            consecutive) {
+#     # check if the randomNeighborModel is a valid model for use
+#     if (length(randomNeighborModel[[2]]) > 0 |
+#       length(randomNeighborModel[[2]]) > 0) {
+#       return(currentModelObject)
+#     }
+# 
+#     # check that the current model isn't null
+#     if (is.null(currentModelObject[[1]])) {
+#       return(randomNeighborModel)
+#     } else {
+#       probability <- exp(-(goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)) / currentTemp)
+#     }
+# 
+#     if (probability > stats::runif(1)) {
+#       newModel <- randomNeighborModel
+#     } else {
+#       newModel <- currentModelObject
+#     }
+#   }
 
 goal <- function(x, fitStatistic = "cfi", maximize) {
   # if using lavaan and a singular fit statistic,
@@ -34,6 +34,10 @@ goal <- function(x, fitStatistic = "cfi", maximize) {
       lavaan::fitMeasures(x, fit.measures = fitStatistic),
       maximize
     )
+    
+    if (is.na(energy)) {
+      energy = Inf
+    }
 
     # if trying to maximize a value, return its negative
     if (maximize == TRUE) {

@@ -9,7 +9,7 @@ setClassUnion("matrixORlist", c("matrix", "list"))
 #' @slot all_fit A summary `vector` indicating the model fit results for
 #' each iteration.
 #' @slot best_fit The best model fit result using the selected `fitStatistic`. 
-#' @slot best_model A `lavaan` object of the final solution.
+#' @slot best_model A `modelCheck` object of the final solution.
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
 #'
@@ -26,7 +26,7 @@ setClass('SA',
              chain_results = 'matrixORlist',
              all_fit = 'vector',
              best_fit = 'numeric',
-             best_model = 'lavaan',
+             best_model = 'modelCheck',
              best_syntax = 'character',
              runtime = 'ANY'
            )
@@ -74,32 +74,42 @@ setMethod('show',
 #' @param ... Not used.
 #' 
 #' @export
+#' @importFrom graphics legend lines par
 setMethod('plot',
           signature = 'SA',
           definition = function(x, y, ...) {
-            val <- data.frame(
-              "Iteration" = 1:length(x@all_fit),
-              "Fit" = as.numeric(x@all_fit)
+
+            temp <- as.data.frame(x@all_fit)
+            
+            availableColors <-
+              c("black", "#DF536B", "#61D04F", "#2297E6", "#28E2E5", "#D03AF5", "#EEC21F", "gray62")
+            
+            par(oma = c(0,0,0,5))
+            plot(
+              temp[,1], 
+              col = availableColors[1],
+              type = 'l', 
+              ylim = c(min(temp), max(temp)),
+              bty = "L",
+              main = "Model Fit Results per Chain",
+              ylab = "Fit Statistic",
+              xlab = "Chain Step"
             )
             
-            
-            plot <-
-              ggplot2::ggplot(val, ggplot2::aes_string(x = "Iteration", y = "Fit")) +
-              ggplot2::geom_line() +
-              ggplot2::ylab(paste0("Model Fit Value: ", names(x@best_fit))) +
-              ggplot2::ggtitle(expression("Changes in Model Fit Value per Iteration")) +
-              ggplot2::theme_classic() +
-              ggplot2::theme(
-                legend.position = "none",
-                plot.title = ggplot2::element_text(
-                  size = 16,
-                  face = "bold",
-                  hjust = .5
-                )
-              )
-            
-            plot
-          }
+            if (2 <= ncol(temp) & ncol(temp) <=8 ) {
+              
+              for (i in 2:ncol(temp)) {
+                lines(temp[,i], col = availableColors[i])
+              }
+              legend(
+                par()$usr[2], par()$usr[4],
+                legend = paste0("Chain ", 1:ncol(temp)), 
+                col = availableColors[1:ncol(temp)],
+                lty = 1,
+                bty = 'n',
+                xpd = NA)
+              }
+            }
           )
 
 #' Summary method for class `SA`

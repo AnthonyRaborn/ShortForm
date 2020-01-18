@@ -24,7 +24,7 @@ each iteration.}
 
 \item{\code{best_fit}}{The best model fit result using the selected `fitStatistic`.}
 
-\item{\code{best_model}}{A `lavaan` object of the final solution.}
+\item{\code{best_model}}{A `modelCheck` object of the final solution.}
 
 \item{\code{best_syntax}}{A `character` vector of the final solution model syntax.}
 
