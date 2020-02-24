@@ -35,7 +35,9 @@ goal <- function(x, fitStatistic = "cfi", maximize) {
       maximize
     )
     
-    if (is.na(energy)) {
+    if (is.na(energy) & maximize == TRUE) {
+      energy = -Inf
+    } else if (is.na(energy)) {
       energy = Inf
     }
 

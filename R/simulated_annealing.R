@@ -104,7 +104,7 @@ simulatedAnnealing <-
       warning("The value for setChains was not valid. Defaulting to setChains=1.")
       setChains = 1
     }
-    currentStep <- 0
+    currentStep <- 1
     consecutive <- 0
     allFit <- c()
 
@@ -135,7 +135,7 @@ simulatedAnnealing <-
         MoreArgs = list(envir = environment())
       )
       randomInitialModel <- function(init.model = initialModel,
-                                     maxItems = numItems,
+                                     maxItems,
                                      initialData = originalData,
                                      bifactorModel = bifactor) {
         # extract the latent factor syntax
@@ -173,7 +173,9 @@ simulatedAnnealing <-
             paste(newItemsPerFactor[[i]], collapse = " + ")
           )
         }
-        newModelSyntax <- paste0(newModelSyntax, externalRelation, factorRelation, collapse = "\n")
+        newModelSyntax <- paste0(newModelSyntax, externalRelation, factorRelation, sep = "\n")
+        newModelSyntax <-
+          stringr::str_replace_all(newModelSyntax, "\n\n", "\n")
 
         # fit the new model
         newModel <- modelWarningCheck(
@@ -481,8 +483,8 @@ simulatedAnnealing <-
     } else if (restartCriteria == "consecutive") {
       restartCriteria <- consecutiveRestart
     } else {
-      restartCriteria <- function() {
-
+      restartCriteria <- function(maxConsecutiveSelection, consecutive) {
+        
       }
       warning(
         "The restart criteria should to be either \"consecutive\" (the default) or a custom function. It has been set to NULL so the algorithm will not restart at all."

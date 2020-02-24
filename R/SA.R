@@ -1,5 +1,27 @@
 setClassUnion("matrixORlist", c("matrix", "list"))
+setClassUnion("lavaanORNULL", c("lavaan", "NULL"))
 
+#' An S4 class for the modelCheck object
+#'
+#' @slot model.output A `lavaan` object.
+#' @slot warnings A `character` vector of any warnings.
+#' @slot errors A `character` vector of any errors.
+#' @slot model.syntax A `character` vector of the modelCheck model syntax.
+#'
+#' @importFrom methods new show
+#'
+#' @return An S4 object of class `ACO`.
+#' @export
+#'
+setClass('modelCheck',
+         slots =
+           list(
+             model.output = 'lavaanORNULL',
+             warnings = 'character',
+             errors = 'character',
+             model.syntax = 'character'
+           )
+)
 
 #' An S4 class for the Simulated Annealing Algorithm
 #'
@@ -89,7 +111,7 @@ setMethod('plot',
               temp[,1], 
               col = availableColors[1],
               type = 'l', 
-              ylim = c(min(temp), max(temp)),
+              ylim = c(min(temp, na.rm = T), max(temp, na.rm = T)),
               bty = "L",
               main = "Model Fit Results per Chain",
               ylab = "Fit Statistic",
@@ -128,7 +150,7 @@ setMethod('summary',
               attr(object@runtime, "units"),
               "\n"
             )
-            line2 = c(capture.output(print(object@best_model)), "\n")
+            line2 = c(capture.output(print(object@best_model@model.output)), "\n")
             line3 = paste0(
               stringr::str_wrap(
                 c("\nFinal Model Syntax:", 

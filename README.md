@@ -71,7 +71,7 @@ data(simulated_test_data)
 # 'ordered' element of the lavaan.model.specs list.
 set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
-ants = 5, evaporation = 0.7, antModel = exampleAntModel,
+ants = 10, evaporation = 0.9, antModel = exampleAntModel,
 list.items = list.items, full = 56, i.per.f = 15,
 lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", 
                           ordered = unlist(list.items), int.ov.free = TRUE,
@@ -79,68 +79,31 @@ lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default
                           auto.fix.single = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE, 
                           auto.th = TRUE, auto.delta = TRUE, 
                           auto.cov.y = TRUE),
-factors = 'Ability', steps = 3, fit.indices = c('cfi', 'rmsea'),
+factors = 'Ability', steps = 50, fit.indices = c('cfi', 'rmsea'),
 fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
-max.run = 50, verbose = FALSE)
-##  
- Run number 1.           
- Run number 2.           
- Run number 3.           
- Run number 4.           
- Run number 5.           
- Run number 6.           
- Run number 7.           
- Run number 8.           
- Run number 9.           
- Run number 10.           
- Run number 11.           
- Run number 12.           
- Run number 13.           
- Run number 14.           
- Run number 15.           
- Run number 16.           
- Run number 17.           
- Run number 18.           
- Run number 19.           
- Run number 20.           
- Run number 21.           
- Run number 22.           
- Run number 23.           
- Run number 24.           
- Run number 25.           
- Run number 26.           
- Run number 27.           
- Run number 28.           
- Run number 29.           
- Run number 30.           
- Run number 31.           
- Run number 32.           
- Run number 33.           
- Run number 34.           
- Run number 35.           
- Run number 36.           
- Run number 37.           [1] "Compiling results."
+max.run = 100, parallel = T)
+##   Run number 1 and ant number 1.            Run number 1 and ant number 2.            Run number 1 and ant number 3.            Run number 1 and ant number 4.            Run number 1 and ant number 5.            Run number 1 and ant number 6.            Run number 1 and ant number 7.            Run number 1 and ant number 8.            Run number 1 and ant number 9.            Run number 1 and ant number 10.            Run number 2 and ant number 1.            Run number 2 and ant number 2.            Run number 2 and ant number 3.            Run number 2 and ant number 4.            Run number 2 and ant number 5.            Run number 2 and ant number 6.            Run number 2 and ant number 7.            Run number 2 and ant number 8.            Run number 2 and ant number 9.            Run number 2 and ant number 10.            Run number 3 and ant number 1.            Run number 3 and ant number 2.            Run number 3 and ant number 3.            Run number 3 and ant number 4.            Run number 3 and ant number 5.            Run number 3 and ant number 6.            Run number 3 and ant number 7.            Run number 3 and ant number 8.            Run number 3 and ant number 9.            Run number 3 and ant number 10.            Run number 4 and ant number 1.            Run number 4 and ant number 2.            Run number 4 and ant number 3.            Run number 4 and ant number 4.            Run number 4 and ant number 5.            Run number 4 and ant number 6.            Run number 4 and ant number 7.            Run number 4 and ant number 8.            Run number 4 and ant number 9.            Run number 4 and ant number 10.            Run number 5 and ant number 1.            Run number 5 and ant number 2.            Run number 5 and ant number 3.            Run number 5 and ant number 4.            Run number 5 and ant number 5.            Run number 5 and ant number 6.            Run number 5 and ant number 7.            Run number 5 and ant number 8.            Run number 5 and ant number 9.            Run number 5 and ant number 10.            Run number 6 and ant number 1.            Run number 6 and ant number 2.            Run number 6 and ant number 3.            Run number 6 and ant number 4.            Run number 6 and ant number 5.            Run number 6 and ant number 6.            Run number 6 and ant number 7.            Run number 6 and ant number 8.            Run number 6 and ant number 9.            Run number 6 and ant number 10.            Run number 7 and ant number 1.            Run number 7 and ant number 2.            Run number 7 and ant number 3.            Run number 7 and ant number 4.            Run number 7 and ant number 5.            Run number 7 and ant number 6.            Run number 7 and ant number 7.            Run number 7 and ant number 8.            Run number 7 and ant number 9.            Run number 7 and ant number 10.            Run number 8 and ant number 1.            Run number 8 and ant number 2.            Run number 8 and ant number 3.            Run number 8 and ant number 4.            Run number 8 and ant number 5.            Run number 8 and ant number 6.            Run number 8 and ant number 7.            Run number 8 and ant number 8.            Run number 8 and ant number 9.            Run number 8 and ant number 10.           [1] "Compiling results."
 abilityShortForm # print the results of the final short form
 ##  Algorithm: Ant Colony Optimization
-##  Total Run Time: 1.853 mins
+##  Total Run Time: 30.146 secs
 ##  
 ##  Function call:
-##  antcolony.lavaan(data = simulated_test_data, ants = 5, evaporation = 0.7,
+##  antcolony.lavaan(data = simulated_test_data, ants = 10, evaporation = 0.9,
 ##    antModel = exampleAntModel, list.items = list.items, full = 56, i.per.f = 15,
-##    factors = "Ability", steps = 3, lavaan.model.specs = list(model.type = "cfa",
+##    factors = "Ability", steps = 50, lavaan.model.specs = list(model.type = "cfa",
 ##    auto.var = T, estimator = "default", ordered = unlist(list.items), int.ov.free
 ##    = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE,
 ##    std.lv = FALSE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
 ##    auto.cov.y = TRUE), fit.indices = c("cfi", "rmsea"), fit.statistics.test = "(cfi
-##    > 0.90)&(rmsea < 0.10)", summaryfile = NULL, feedbackfile = NULL, max.run = 50,
-##    verbose = FALSE)
+##    > 0.90)&(rmsea < 0.10)", summaryfile = NULL, feedbackfile = NULL, max.run = 100,
+##    parallel = T)
 ##  
 ##  Final Model Syntax:
 ##  
-##  Ability =~ Item39 + Item4 + Item2 + Item44 + Item50 + Item15 + Item27 + Item29 +
-##    Item30 + Item26 + Item56 + Item16 + Item12 + Item55 + Item42
+##  Ability =~ Item16 + Item50 + Item19 + Item12 + Item9 + Item53 + Item54 + Item48
+##    + Item15 + Item32 + Item42 + Item45 + Item27 + Item37 + Item5
 ##  Outcome ~ Ability
 plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
@@ -149,7 +112,7 @@ plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antco
 
 A similar example can be found in the `antcolony.mplus` function, but
 requires you to have a valid Mplus installation on the computer. It took
-a total of 1.87 minutes to run this example.
+a total of 33.97 secs to run this example.
 
 ### Tabu Search Algorithm
 
@@ -199,32 +162,12 @@ init.model <- lavaan::lavaan(model = tabuModel, data = tabuData,
 ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=FALSE, errors=FALSE)
 
 Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 20, tabu.size = 10)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
-##  
-Running iteration 1 of 20.   
-Running iteration 2 of 20.   
-Running iteration 3 of 20.   
-Running iteration 4 of 20.   
-Running iteration 5 of 20.   
-Running iteration 6 of 20.   
-Running iteration 7 of 20.   
-Running iteration 8 of 20.   
-Running iteration 9 of 20.   
-Running iteration 10 of 20.   
-Running iteration 11 of 20.   
-Running iteration 12 of 20.   
-Running iteration 13 of 20.   
-Running iteration 14 of 20.   
-Running iteration 15 of 20.   
-Running iteration 16 of 20.   
-Running iteration 17 of 20.   
-Running iteration 18 of 20.   
-Running iteration 19 of 20.   
-Running iteration 20 of 20.
+##  Running iteration 1 of 20.   Running iteration 2 of 20.   Running iteration 3 of 20.   Running iteration 4 of 20.   Running iteration 5 of 20.   Running iteration 6 of 20.   Running iteration 7 of 20.   Running iteration 8 of 20.   Running iteration 9 of 20.   Running iteration 10 of 20.   Running iteration 11 of 20.   Running iteration 12 of 20.   Running iteration 13 of 20.   Running iteration 14 of 20.   Running iteration 15 of 20.   Running iteration 16 of 20.   Running iteration 17 of 20.   Running iteration 18 of 20.   Running iteration 19 of 20.   Running iteration 20 of 20.
 
 # check the final model
 summary(Tabu_example)
 ##  Algorithm: Tabu Search
-##  Total Run Time: 2.109 mins
+##  Total Run Time: 2.247 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 43 iterations
 ##  
@@ -252,7 +195,7 @@ plot(Tabu_example)
 
 ![](README-Tabu%20example-1.png)<!-- -->
 
-It took a total of 2.12 minutes to run this example.
+It took a total of 2.26 mins to run this example.
 
 The next Tabu example demonstrates how to use it to find a short form of
 a prespecified length with different data.
@@ -320,22 +263,12 @@ tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
                            criterion = tabuCriterion,
                            niter = 10, tabu.size = 10, verbose = FALSE
                            )
-##  
-Running iteration 1 of 10.   
-Running iteration 2 of 10.   
-Running iteration 3 of 10.   
-Running iteration 4 of 10.   
-Running iteration 5 of 10.   
-Running iteration 6 of 10.   
-Running iteration 7 of 10.   
-Running iteration 8 of 10.   
-Running iteration 9 of 10.   
-Running iteration 10 of 10.
+##  Running iteration 1 of 10.   Running iteration 2 of 10.   Running iteration 3 of 10.   Running iteration 4 of 10.   Running iteration 5 of 10.   Running iteration 6 of 10.   Running iteration 7 of 10.   Running iteration 8 of 10.   Running iteration 9 of 10.   Running iteration 10 of 10.
 
 # check the chosen model
 summary(tabuShort)
 ##  Algorithm: Tabu Search
-##  Total Run Time: 1.126 mins
+##  Total Run Time: 1.414 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 18 iterations
 ##  
@@ -363,7 +296,7 @@ plot(tabuShort)
 
 ![](README-Tabu%20short%20form-1.png)<!-- -->
 
-It took a total of 1.13 minutes to run this example.
+It took a total of 1.42 mins to run this example.
 
 ### Simulated Annealing
 
@@ -390,18 +323,25 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, progress = F)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, setChains = 4)
 ##  Initializing short form creation.
 ##  The initial short form is:
-##   Ability =~ Item9 + Item4 + Item7 + Item1 + Item2
+##   Ability =~ Item9 + Item4 + Item7 + Item1 + Item2 
 ##  Ability ~ Outcome
+##  
 ##  Using the short form randomNeighbor function.
 ##  Finished initializing short form options.
-##   Current Progress:
+##   Current Progress: 
+##  Chain number 1 complete. 
+##  Chain number 2 complete. 
+##  Chain number 3 complete. 
+##  Chain number 4 complete.
 summary(SA_example)
 ##  Algorithm: Simulated Annealing
-##  Total Run Time: 2.263 mins
+##  Total Run Time: 3.346 mins
 ##  
+##  An object of class "modelCheck"
+##  Slot "model.output":
 ##  lavaan 0.6-5 ended normally after 15 iterations
 ##  
 ##    Estimator                                       DWLS
@@ -419,6 +359,16 @@ summary(SA_example)
 ##    Shift parameter                                            0.076
 ##      for the simple second-order correction 
 ##  
+##  Slot "warnings":
+##  [1] "none"
+##  
+##  Slot "errors":
+##  [1] "none"
+##  
+##  Slot "model.syntax":
+##  [1] "Ability =~ Item9 + Item4 + Item7 + Item1 + Item2 \nAbility ~ Outcome\n"
+##  
+##  
 ##  
 ##  Final Model Syntax:
 ##  Ability =~ Item9 + Item4 + Item7 + Item1 + Item2
@@ -428,5 +378,5 @@ plot(SA_example) # plot showing how the fit value changes at each step
 
 ![](README-Simulated%20Annealing%20example-1.png)<!-- -->
 
-It took a total of 2.28 minutes to run the SA example, and a total of
-7.4 minutes to run all four together.
+It took a total of 3.38 mins to run the SA example, and a total of 7.62
+mins to run all four together.
