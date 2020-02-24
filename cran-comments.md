@@ -1,9 +1,9 @@
 ## Resubmission
-This is a resubmission. In this version I have fixed a bug that caused the lavaan-based functions to improperly use the initial model syntax instead of building the intermediate model syntax when the initial model syntax was specified in an untested manner.
+This is a resubmission. In this version I added three different checks of user input to ensure that improper arguments do not result in errors within the iterations of the algorithms. These checks occur "behind the scene" and provide informative error messages when arguments do not pass.
 
 ## Test Environments
 
-* local Windows 10 Enterprise install, R 3.6.1
+* local Windows 10 Home version 1809, R 3.6.2
 
 * Ubuntu 16.04.5 LTS xenial (travis ci), R 3.6.1
 
