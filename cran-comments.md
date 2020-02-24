@@ -1,11 +1,13 @@
 ## Resubmission
-This is a resubmission. In this version I added three different checks of user input to ensure that improper arguments do not result in errors within the iterations of the algorithms. These checks occur "behind the scene" and provide informative error messages when arguments do not pass.
+This is a resubmission. In this version I have included three checks to function arguments that will give informative errors if the user misspecifies the arguments.
 
 ## Test Environments
 
-* local Windows 10 Home version 1809, R 3.6.2
+* local Windows 10 Home install, R 3.6.2
 
 * Ubuntu 16.04.5 LTS xenial (travis ci), R 3.6.1
+
+* r-hub and win_check
 
 ## R CMD check results
 0 errors | 0 warnings | 0 notes
