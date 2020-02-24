@@ -241,48 +241,20 @@ fitmeasuresCheck <-
   ) {
     validMeasures <-
       c(
-        "npar", 
-        "fmin",
-        "chisq",
-        "df",                 
-        "pvalue", 
-        "baseline.chisq",
-        "baseline.df",
-        "baseline.pvalue",    
-        "cfi", 
-        "tli",
-        "nnfi",
-        "rfi",                
-        "nfi", 
-        "pnfi",
-        "ifi",
-        "rni",                
-        "logl", 
-        "unrestricted.logl",
-        "aic",
-        "bic",                
-        "ntotal", 
-        "bic2",
-        "rmsea",
-        "rmsea.ci.lower",     
-        "rmsea.ci.upper", 
-        "rmsea.pvalue",
-        "rmr",
-        "rmr_nomean",         
-        "srmr", 
-        "srmr_bentler",
-        "srmr_bentler_nomean",
-        "crmr",               
-        "crmr_nomean", 
-        "srmr_mplus",
-        "srmr_mplus_nomean",
-        "cn_05",              
-        "cn_01", 
-        "gfi",
-        "agfi",
-        "pgfi",               
-        "mfi", 
-        "ecvi"
+        "npar", "fmin",
+        "chisq", "df", "pvalue", 
+        "baseline.chisq", "baseline.df", "baseline.pvalue",    
+        "cfi", "tli", "nnfi",
+        "rfi", "nfi", "pnfi",
+        "ifi", "rni",                
+        "logl", "unrestricted.logl",
+        "aic", "bic", "ntotal", "bic2",
+        "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", "rmsea.pvalue",
+        "rmr", "rmr_nomean", 
+        "srmr", "srmr_bentler", "srmr_bentler_nomean", 
+        "crmr", "crmr_nomean", "srmr_mplus", "srmr_mplus_nomean",
+        "cn_05", "cn_01", 
+        "gfi", "agfi", "pgfi", "mfi", "ecvi"
       )
     
     invalidMeasures <-
@@ -299,6 +271,30 @@ fitmeasuresCheck <-
                "\n\nPlease check the output of this function for proper spelling and capitalization of the fit measure(s) you are interested in.")
       stop(errorMessage)
     }
-    
 
-    }
+  }
+
+fitStatTestCheck <-
+  function(measures, test) {
+    tempEnv <-
+      new.env()
+    mapply(
+      assign, 
+      measures, 
+      0, 
+      MoreArgs=list(envir = tempEnv))
+    
+    checkIfEval <-
+      tryCatch(
+        expr = eval(parse(text=test), 
+                    envir = tempEnv), 
+        error = function(e) {
+          stop("There was a problem with the fit.statistics.test provided. It cannot be evaluated properly. Please read the function documentation to see how to properly specify a test.")
+        }
+      )
+    
+    if (!is.character(test)) {
+          stop("There is a problem with the fit.statistics.test provided. The fit.statistics.test was given as a logical, not a character. Please read the function documentation to see how to properly specify a test. ")
+        }
+      
+  }
