@@ -19,7 +19,7 @@ Description: Performs automatic creation of short forms of scales with an
     <doi:10.1080/10705511.2017.1409074> for an applied example of the Tabu search.
 License: LGPL (>= 2.0, < 3) | Mozilla Public License
 LazyData: TRUE
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Suggests:
     knitr,
     MplusAutomation (>= 0.7),
@@ -31,7 +31,6 @@ Imports:
     stringr
 Depends:
     R (>= 3.0.0)
-Roxygen: list(wrap = FALSE)
 URL: https://github.com/AnthonyRaborn/ShortForm
 BugReports: https://github.com/AnthonyRaborn/ShortForm/issues
 Encoding: UTF-8
