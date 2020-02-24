@@ -197,3 +197,40 @@ fitWarningCheck <- function(expr, maximize) {
   )
   return(value)
 }
+
+
+checkModelSpecs <- 
+  function(
+    x
+  ) {
+    
+    requiredElements <-
+      c('model.type',
+        'auto.var',
+        'estimator',
+        'ordered',
+        'int.ov.free',
+        'int.lv.free',
+        'auto.fix.first',
+        'auto.fix.single',
+        'auto.cov.lv.x',
+        'auto.th',
+        'auto.delta',
+        'auto.cov.y',
+        'std.lv')
+    
+    missingSpecs <-
+      requiredElements[
+        which(
+          !requiredElements %in% names(x)
+        )
+        ]
+    
+    if (length(missingSpecs) > 0) {
+      errorMessage <-
+        paste0("The following elements of lavaan.model.specs have not been specified:\n\n",
+               paste(missingSpecs, collapse = "\n"),
+               "\n\nPlease include the proper specifications for these elements, or use the default values provided.")
+      stop(errorMessage)
+    }
+  }

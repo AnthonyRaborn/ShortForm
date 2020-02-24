@@ -264,6 +264,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   step = 1
 
   # creates objects in the global environment that are fed into the lavaan function in order to fine-tune the model to user specifications
+  checkModelSpecs(lavaan.model.specs)
   mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs=list(envir = antcolony.lavaan.env))
 
   # create the function to check for and save error/warning messages within the lavaan output, as well as saving the fit indices
