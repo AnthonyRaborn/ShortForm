@@ -213,7 +213,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   if(!requireNamespace("lavaan", quietly = TRUE)){
     stop("The `lavaan` package is required to use this function. Please install `lavaan`, then try to use this function again.")
   }
-
+  fitmeasuresCheck(fit.indices)
   antcolony.lavaan.env <- new.env(parent = baseenv())
 
   if(pheromone.calculation %in% c("gamma", "beta", "regression", "variance") == FALSE) {

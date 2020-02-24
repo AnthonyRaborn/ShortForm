@@ -93,7 +93,7 @@ simulatedAnnealing <-
     currentStep = 0
     consecutive = 0
     allFit = c()
-    
+    fitmeasuresCheck(fitStatistic)
     # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
     # solution from: https://stackoverflow.com/questions/6375790/r-creating-an-environment-in-the-globalenv-from-inside-a-function
     # makeCache <- function() {

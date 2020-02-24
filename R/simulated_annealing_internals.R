@@ -234,3 +234,71 @@ checkModelSpecs <-
       stop(errorMessage)
     }
   }
+
+fitmeasuresCheck <-
+  function(
+    x
+  ) {
+    validMeasures <-
+      c(
+        "npar", 
+        "fmin",
+        "chisq",
+        "df",                 
+        "pvalue", 
+        "baseline.chisq",
+        "baseline.df",
+        "baseline.pvalue",    
+        "cfi", 
+        "tli",
+        "nnfi",
+        "rfi",                
+        "nfi", 
+        "pnfi",
+        "ifi",
+        "rni",                
+        "logl", 
+        "unrestricted.logl",
+        "aic",
+        "bic",                
+        "ntotal", 
+        "bic2",
+        "rmsea",
+        "rmsea.ci.lower",     
+        "rmsea.ci.upper", 
+        "rmsea.pvalue",
+        "rmr",
+        "rmr_nomean",         
+        "srmr", 
+        "srmr_bentler",
+        "srmr_bentler_nomean",
+        "crmr",               
+        "crmr_nomean", 
+        "srmr_mplus",
+        "srmr_mplus_nomean",
+        "cn_05",              
+        "cn_01", 
+        "gfi",
+        "agfi",
+        "pgfi",               
+        "mfi", 
+        "ecvi"
+      )
+    
+    invalidMeasures <-
+      x[
+        which(
+          !x %in% validMeasures
+        )
+        ]
+    
+    if (length(invalidMeasures) > 0) {
+      errorMessage <-
+        paste0("The following elements of fit.indices or fitStatistics are not valid fit measures provided by the lavaan::fitmeasures function:\n\n",
+               paste(invalidMeasures, collapse = "\n"),
+               "\n\nPlease check the output of this function for proper spelling and capitalization of the fit measure(s) you are interested in.")
+      stop(errorMessage)
+    }
+    
+
+    }
