@@ -60,6 +60,7 @@ tabuShortForm <-
              estimator = "default"
            ),
            bifactor = FALSE) {
+    checkModelSpecs(lavaan.model.specs)
     mapply(
       assign,
       names(lavaan.model.specs),

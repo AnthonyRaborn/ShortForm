@@ -1,3 +1,7 @@
+# Package v0.4.5
+## Extra arugment checks
+* There are now additional checks for the function arguments related to the fit statistics (ACO, SA) and the fit statistic tests (ACO) with informative warnings for when the function arguments are not valid.
+
 # Package v0.4.2
 ## Introduction of Function Classes
 * This version introduces classes to each of the main function outputs (`antcolony.lavaan` == "antcolony", `simulatedAnnealing` == "simulatedAnnealing", `tabuShortForm` == "tabu")

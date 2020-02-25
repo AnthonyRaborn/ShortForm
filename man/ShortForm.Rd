@@ -3,7 +3,6 @@
 \docType{package}
 \name{ShortForm}
 \alias{ShortForm}
-\alias{ShortForm-package}
 \title{\code{ShortForm} package}
 \description{
 Automated Item Selection Algorithms for Short Forms

@@ -5,18 +5,31 @@
 \title{A function to implement the ant colony optimization algorithm for short form
 specification searches with the package \link[lavaan]{lavaan}.}
 \usage{
-antcolony.lavaan(data = NULL, sample.cov = NULL, sample.nobs = NULL,
-  ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-  full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL,
-  steps = 50, lavaan.model.specs = list(model.type = "cfa", auto.var =
-  T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free
-  = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x =
-  TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F),
-  pheromone.calculation = "gamma", fit.indices = c("cfi", "tli",
-  "rmsea"),
+antcolony.lavaan(
+  data = NULL,
+  sample.cov = NULL,
+  sample.nobs = NULL,
+  ants = 20,
+  evaporation = 0.9,
+  antModel,
+  list.items = NULL,
+  full = NULL,
+  i.per.f = NULL,
+  factors = NULL,
+  bifactor = NULL,
+  steps = 50,
+  lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default",
+    ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
+    auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
+    auto.cov.y = TRUE, std.lv = F),
+  pheromone.calculation = "gamma",
+  fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-  summaryfile = NULL, feedbackfile = NULL, max.run = 1000,
-  verbose = FALSE)
+  summaryfile = NULL,
+  feedbackfile = NULL,
+  max.run = 1000,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{data}{The data being used in data frame format. Default value is
@@ -240,7 +253,8 @@ abilityShortForm[[1]] # print the results of the final short form
 \seealso{
 \code{\link{antcolony.mplus}}
 
-Other Ant Colony Algorithms: \code{\link{antcolony.mplus}}
+Other Ant Colony Algorithms: 
+\code{\link{antcolony.mplus}()}
 }
 \author{
 Anthony W Raborn, \email{anthony.w.raborn@gmail.com}

@@ -1,11 +1,13 @@
 ## Resubmission
-This is a resubmission. In this version I have fixed a bug that caused the lavaan-based functions to improperly use the initial model syntax instead of building the intermediate model syntax when the initial model syntax was specified in an untested manner.
+This is a resubmission. In this version I have included three checks to function arguments that will give informative errors if the user misspecifies the arguments.
 
 ## Test Environments
 
-* local Windows 10 Enterprise install, R 3.6.1
+* local Windows 10 Home install, R 3.6.2
 
 * Ubuntu 16.04.5 LTS xenial (travis ci), R 3.6.1
+
+* r-hub and win_check
 
 ## R CMD check results
 0 errors | 0 warnings | 0 notes
