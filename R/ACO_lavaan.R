@@ -202,27 +202,31 @@
 #'@author Anthony W Raborn, \email{anthony.w.raborn@@gmail.com}
 
 antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
-                     ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-                     full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL, steps = 50,
-                     lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F),
-                     pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
-                     fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-                     summaryfile = NULL,
-                     feedbackfile = NULL, max.run = 1000, verbose = FALSE) {
-
+                            ants = 20, evaporation = 0.9, antModel, list.items = NULL,
+                            full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL, steps = 50,
+                            lavaan.model.specs = 
+                              list(model.type = "cfa", auto.var = T, estimator = "default", 
+                                   ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, 
+                                   auto.fix.first = TRUE, auto.fix.single = TRUE, 
+                                   auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, 
+                                   auto.cov.y = TRUE, std.lv = F),
+                            pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
+                            fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
+                            summaryfile = NULL,
+                            feedbackfile = NULL, max.run = 1000, verbose = FALSE) {
+  
   if(!requireNamespace("lavaan", quietly = TRUE)){
     stop("The `lavaan` package is required to use this function. Please install `lavaan`, then try to use this function again.")
   }
   fitmeasuresCheck(fit.indices)
-  fitStatTestCheck(fit.indices, fit.statistics.test)
   antcolony.lavaan.env <- new.env(parent = baseenv())
-
+  
   if(pheromone.calculation %in% c("gamma", "beta", "regression", "variance") == FALSE) {
     stop("Pheromone calculation not recognized! Enter one of \'gamma\', \'beta\', \'regression\' or \'variance\'." )
   }
   # create initial, empty files to be used
   if(length(summaryfile) > 0){
-  write(x = "", file = summaryfile)
+    write(x = "", file = summaryfile)
   }
   
   summary = matrix(nrow = 1, 
@@ -232,30 +236,30 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   
   if(length(feedbackfile) > 0) {
     write(x = "", file = feedbackfile)
-    }
+  }
   #creates the table of initial pheromone levels.
   include = rep(2,full)
   #puts initial best solution (all items selected).
   best.so.far.solution = include
-
+  
   #creates a vector with all items. UNIQUE USED FOR CASES WHEN ITEMS CROSS-LOAD
   item.vector = unique(unlist(list.items, use.names = F))
   if (!is.null(bifactor)) {
     item.vector = item.vector[which(item.vector!=bifactor)]
-    }
-
+  }
+  
   #reads the Lavaan model syntax input into the function
   input = unlist(strsplit(antModel, '\n'))
-
+  
   #creates a list to store factors.
   selected.items = list.items
-
+  
   #starts counting the iterations
   count = 1
-
+  
   #starts counting continuous runs regardless of result.
   run = 1
-
+  
   #defines initial best so far (overall) pheromone
   best.so.far.pheromone = 0
   #defines initial best pheromone for the current trial of n ants.
@@ -263,25 +267,11 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   #defines initial solutions.
   previous.solution = include
   step = 1
-
+  
   # creates objects in the global environment that are fed into the lavaan function in order to fine-tune the model to user specifications
   checkModelSpecs(lavaan.model.specs)
   mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs=list(envir = antcolony.lavaan.env))
-
-  # create the function to check for and save error/warning messages within the lavaan output, as well as saving the fit indices
-  modelWarningCheck <- function(expr) {
-    warn <- err <- c()
-    value <- withCallingHandlers(
-      tryCatch(expr, error=function(e) {
-        err <<- append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e))))
-        NULL
-      }), warning=function(w) {
-        warn <<- append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
-        invokeRestart("muffleWarning")
-      })
-    list(lavaan.output = value, warnings <- as.character(unlist(warn)), errors <- as.character(unlist(err)))
-  }
-
+  
   #starts loop through iterations.
   while (step <= steps) {
     if (run <= max.run){
@@ -291,60 +281,31 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       while (ant <= ants) {
         if(verbose == TRUE){
           cat(paste("\r Step = ", step, " and Ant = ", ant, " and Count = ", count, " and Run = ", run, ".   ", sep = ""))}
+        
         #selects items for all factors.
-        all.items <- c()
-        if (!is.character(bifactor)) {
-        for (factor in 1:length(list.items)) {
-
-          #selects the items for a short form for the factor
-          positions = is.element(item.vector,list.items[[factor]])
-          prob = include[positions]/sum(include[positions])
-
-          items = sample(list.items[[factor]], size = i.per.f[factor],replace = F,prob)
-
-          #stores selected items.
-          selected.items[[factor]] = items
-
-
-          #replaces the lavaan syntax for factor specification.
-          factor.position = grep(paste(factors[factor],"[ ]{0,}=~"),input,ignore.case=T)
-          input[factor.position]  = paste(factors[factor],"=~", paste(items,collapse =" + "))
-          all.items = c(all.items, items)
-          #finishes loop
-        }
-        } else  {
-          bifactor.items = c()
-          for (factor in 1:(length(list.items)-1)) {
-            
-            #selects the items for a short form for the factor
-            positions = is.element(item.vector,list.items[[factor]])
-            prob = include[positions]/sum(include[positions])
-            
-            items = sample(list.items[[factor]], size = i.per.f[factor],replace = F,prob)
-            
-            #stores selected items.
-            selected.items[[factor]] = items
-            bifactor.items = c(bifactor.items, items)
-            
-            #replaces the lavaan syntax for factor specification.
-            factor.position = grep(paste(factors[factor],"=~"),input,ignore.case=T)
-            input[factor.position]  = paste(factors[factor],"=~", paste(items,collapse =" + "))
-            all.items = c(all.items, items)
-            #finishes loop
-          }
-          input[grep(paste(bifactor, "=~"), input)] = paste(bifactor, "=~", paste(all.items, collapse = " + "))
-          selected.items[[length(list.items)]] = bifactor.items
-        }
-
-        selected.items = lapply(selected.items,sort)
-        selected.vector = unlist(selected.items, use.names = F)
+        newModelList = antcolonyNewModel(
+          itemList = list.items, 
+          itemVector = item.vector, 
+          includedItems = include, 
+          model = input,
+          itemCount = i.per.f, 
+          factorNames = factors,
+          bifactor)
+        
+        mapply(assign, names(newModelList), newModelList, MoreArgs=list(envir = antcolony.lavaan.env))
+        
+        
+        selected.items = lapply(antcolony.lavaan.env$selected.items,sort)
+        selected.vector = unlist(antcolony.lavaan.env$selected.items, use.names = F)
         select.indicator = is.element(item.vector,selected.vector)
-        notselect.indicator = (select.indicator == FALSE)
-
-                # MODIFY LAVAAN SYNTAX
-        new_ant_model = paste(input, collapse = '\n')
-
+        # notselect.indicator = (select.indicator == FALSE)
+        
+        # MODIFY LAVAAN SYNTAX
+        new_ant_model = paste(antcolony.lavaan.env$input, collapse = '\n')
+        
         # Run the model check function
+        # checks for and saves error/warning messages within the lavaan output, 
+        # as well as the fit indices
         modelCheck <- modelWarningCheck(
           lavaan::lavaan(
             model = new_ant_model, data = data, sample.cov = sample.cov,
@@ -375,25 +336,25 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                           "WARNING: could not invert information matrix", 
                           "WARNING: the optimizer warns that a solution has NOT been found",
                           "WARNING: some estimated ov variances are negative")
-         bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
-                         "ERROR: missing observed variables in dataset")
+        bad.errors <- c("ERROR: initial model-implied matrix (Sigma) is not positive definite",
+                        "ERROR: missing observed variables in dataset")
         if(any(errors %in% bad.errors) || any(warnings %in% bad.warnings)){
           pheromone = 0
           if(verbose == TRUE) {
             cat("Failed iteration!")
-            }
+          }
           
           #writes feedback about non-convergence and non-positive definite.
           if(length(summaryfile) > 0){
-          fit.info = matrix(c(select.indicator,run,count,ant,999,999,round((include),5)),1,)
-          write.table(fit.info, file = summaryfile, append = T,
-                      quote = F, sep = " ", row.names = F, col.names = F)
+            fit.info = matrix(c(select.indicator,run,count,ant,999,999,round((include),5)),1,)
+            write.table(fit.info, file = summaryfile, append = T,
+                        quote = F, sep = " ", row.names = F, col.names = F)
           }
           
           #provide feedback about search.
           if(length(feedbackfile) > 0){
-          feedback = c(paste("<h1>",run,"-",count,"-",ant,"-",step,"- Failure", "</h1>" ) )
-          write(feedback, file = feedbackfile, append = T)
+            feedback = c(paste("<h1>",run,"-",count,"-",ant,"-",step,"- Failure", "</h1>" ) )
+            write(feedback, file = feedbackfile, append = T)
           }
           #finishes if for non-convergent cases.
         } else {
@@ -401,45 +362,55 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             cat("                  ")
           }
           # compute fit indices, gammas, betas, and residual variances
-          # first, fit indices
-          model.fit <- lavaan::fitMeasures(modelCheck$lavaan.output, fit.indices)
-
-          # next, gamma/beta/variances
-          # estimate the standardized coefficients of the variables
-          standard.coefs <- lavaan::standardizedSolution(modelCheck$lavaan.output, se = FALSE, zstat = FALSE, pvalue = FALSE, remove.def = TRUE)
-          # extract the regression coefficients
-          std.gammas <- standard.coefs[which(standard.coefs[,2]=="=~"),]$est.std
-          std.betas <- standard.coefs[which(standard.coefs[,2]=="~"),]$est.std
-          std.reg.coef <- standard.coefs[which(standard.coefs[,2]=="~"|standard.coefs[,2]=="=~"),]$est.std
+          modelInfo = modelInfoExtract(
+            modelCheckObj = modelCheck, 
+            fitIndices = fit.indices
+          )
           
-          # obtains the variance explained ("rsquare") from lavaan
-          variance.explained <- lavaan::lavInspect(modelCheck$lavaan.output, "rsquare")
-          mapply(assign, names(model.fit), model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
+          mapply(assign, names(modelInfo), modelInfo, MoreArgs=list(envir = antcolony.lavaan.env))
+          mapply(assign, names(antcolony.lavaan.env$model.fit), antcolony.lavaan.env$model.fit, MoreArgs=list(envir = antcolony.lavaan.env))
           
           #saves information about the selected items and the RMSEA they generated for the final ant.
           if (ant == ants && length(summaryfile) > 0){
-            fit.info = matrix(c(select.indicator,run,count,ant,model.fit,mean(std.gammas), mean(std.betas),
-                                mean(variance.explained),
+            fit.info = matrix(c(select.indicator,
+                                run,count,ant,
+                                antcolony.lavaan.env$model.fit,
+                                mean(antcolony.lavaan.env$std.gammas), 
+                                mean(antcolony.lavaan.env$std.betas),
+                                mean(antcolony.lavaan.env$variance.explained),
                                 round(include,2)),1,)
-
+            
             write.table(fit.info, file = summaryfile, append = T,
                         quote = F, sep = " ", row.names = F, col.names = F)
           }
           
           if (ant == ants){
+            print(summary)
+            print(matrix(c(select.indicator,
+                           run,count,ant,
+                           antcolony.lavaan.env$model.fit,
+                           mean(antcolony.lavaan.env$std.gammas), 
+                           mean(antcolony.lavaan.env$std.betas), 
+                           mean(antcolony.lavaan.env$variance.explained),
+                           round(include,2)),1,))
             summary <- rbind(summary,
-                             matrix(c(select.indicator,run,count,ant,model.fit,
-                                      mean(std.gammas), mean(std.betas), mean(variance.explained),
+                             matrix(c(select.indicator,
+                                      run,count,ant,
+                                      antcolony.lavaan.env$model.fit,
+                                      mean(antcolony.lavaan.env$std.gammas), 
+                                      mean(antcolony.lavaan.env$std.betas), 
+                                      mean(antcolony.lavaan.env$variance.explained),
                                       round(include,2)),1,))
           }
           
           #provide feedback about search.
           if(length(feedbackfile) > 0){
-          feedback = c(paste("<h1>","run:",run,"count:",count,"ant:",ant,"step:",step,"<br>",
-                             "Fit Statistics:",model.fit,"<br>",
-                             "GAMMA:",mean(std.gammas), "BETA:",mean(std.betas), 
-                             "VAR.EXP:", mean(variance.explained),"</h1>" ) )
-          write(feedback, file = feedbackfile, append = T)
+            feedback = c(paste("<h1>","run:",run,"count:",count,"ant:",ant,"step:",step,"<br>",
+                               "Fit Statistics:",antcolony.lavaan.env$model.fit,"<br>",
+                               "GAMMA:",mean(antcolony.lavaan.env$std.gammas), 
+                               "BETA:",mean(antcolony.lavaan.env$std.betas), 
+                               "VAR.EXP:", mean(antcolony.lavaan.env$variance.explained),"</h1>" ) )
+            write(feedback, file = feedbackfile, append = T)
           }
           
           #implements fit requirement.
@@ -449,35 +420,35 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             pheromone = 0 } else {
               # Model fit well enough, so calculate pheromone by either gamma or variance.
               if (pheromone.calculation == "gamma") {#mean of standardized gammas
-                pheromone = round(mean(std.gammas, na.rm = T),3)
+                pheromone = round(mean(antcolony.lavaan.env$std.gammas, na.rm = T),3)
               } else {
                 if (pheromone.calculation == "beta") { #mean of standardized betas
-                pheromone = round(mean(std.betas, na.rm = T),3)
+                  pheromone = round(mean(antcolony.lavaan.env$std.betas, na.rm = T),3)
                 } else {
                   if (pheromone.calculation == "regression") { #mean of all regression coefs
-                    pheromone = round(mean(std.reg.coef, na.rm = T),3)
+                    pheromone = round(mean(antcolony.lavaan.env$std.reg.coef, na.rm = T),3)
                   }
-                if (pheromone.calculation == "variance") { #mean of r^2 values
-                  pheromone = round(mean(variance.explained, na.rm = T),3)
+                  if (pheromone.calculation == "variance") { #mean of r^2 values
+                    pheromone = round(mean(antcolony.lavaan.env$variance.explained, na.rm = T),3)
+                  }
                 }
               }
-              }
             }
-
+          
           #adjusts count based on outcomes and selects best solution.
           if (pheromone >= best.pheromone) {
-
+            
             #updates solution.
             best.solution = select.indicator
             #updates best RMSEA.
-            best.fit.indices = model.fit
+            best.fit.indices = antcolony.lavaan.env$model.fit
             #updates best pheromone
             best.pheromone = pheromone
           }
-
+          
           #Move to next ant.
           ant = ant + 1
-
+          
           #end else clause for converged solutions
         }
         #evaluates the criterion to stop the interactions
@@ -487,22 +458,22 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         {step = step + 1} else {step = 1}
         #assigns current solution to previous solution.
         previous.solution = select.indicator
-
+        
         #ends loop through ants.
       }
-
+      
       #implements pheromone evaporation.
       include = include*evaporation
-
-
+      
+      
       #adjusts pheromone only if the current pheromone is best than the previous.
       if (best.pheromone > best.so.far.pheromone) {
         #Adjusts the pheromone levels.
         include.pheromone = best.solution * best.pheromone
-
+        
         #updates pheromone.
         include = include + include.pheromone
-
+        
         #updates best so far solution and pheromone, with corresponding RMSEA.
         best.so.far.solution = best.solution
         best.so.far.pheromone = best.pheromone
@@ -511,23 +482,23 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         best.so.far.syntax = new_ant_model
         #re-starts count.
         count = 1
-
+        
         #end if clause for pheromone adjustment.
       } else {
-
+        
         #advances count.
         count = count + 1
-
+        
         #adds more pheromone to the best so far solution.
         include.pheromone = best.so.far.solution * best.so.far.pheromone
-
+        
         #updates pheromone.
         include = include + include.pheromone
-
+        
         #finish else clause.
       }
-
-
+      
+      
       #ends loop.
       run = run + 1
     }
@@ -535,7 +506,7 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       warning("Max runs reached! Problems converging onto a solution.")
     }
   }
-
+  
   print("Compiling results.")
   #ranks items within factor.
   # ranks = c()
@@ -556,11 +527,9 @@ antcolony.lavaan = function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   colnames(summary) = c(item.vector, "run", "ant", "count", fit.indices, "mean.gamma", "mean.beta", "mean.var.exp", paste0(item.vector, ".Pheromone"))
   
   final.solution = matrix(c(best.so.far.fit.indices,best.so.far.pheromone,best.so.far.solution),1,,
-                          dimnames=list(NULL,c(names(model.fit),paste0("mean_", pheromone.calculation), item.vector)))
+                          dimnames=list(NULL,c(names(antcolony.lavaan.env$model.fit),paste0("mean_", pheromone.calculation), item.vector)))
   results = list(final.solution, summary, 'best.model' = best.so.far.model, 'best.syntax' = best.so.far.syntax)
   class(results) = "antcolony"
-  #FINISH FUNCTION.
-  # return(list(final.solution, results, summary))
   
   return(results)
 }
