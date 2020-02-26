@@ -493,7 +493,7 @@ simulatedAnnealing <-
     #### prepare parallel processing ####
     if (setChains > 1) {
       chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-      progress <- function(n) {
+      progressPar <- function(n) {
         cat(paste("Chain number ", n, " complete. \n", sep = ""))
       }
       
@@ -517,7 +517,7 @@ simulatedAnnealing <-
       # progress <- function(n) {
       #   setTxtProgressBar(pb, n)
       # }
-      progress <- function(currentStep, maxSteps) {
+      progressSeq <- function(currentStep, maxSteps) {
         cat(paste0(
           "\r Current Step = ",
           currentStep,
@@ -531,7 +531,11 @@ simulatedAnnealing <-
     }
     
     `%dopar%` <- foreach::`%dopar%`
-    opts <- list(progress = progress)
+    if (setChains > 1) {
+      opts <- list(progress = progressPar)
+    } else {
+      opts <- list(progress = progressSeq)
+    }
     
     syntaxExtraction <- function(initialModelSyntaxFile, items) {
       
