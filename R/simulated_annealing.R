@@ -154,7 +154,9 @@ simulatedAnnealing <-
         # reduce the number of items for each factor according to maxItems
         newItemsPerFactor <- list()
         for (i in 1:length(itemsPerFactor)) {
-          newItemsPerFactor[[i]] <- sample(x = unique(unlist(itemsPerFactor[i])), size = unlist(maxItems[i]))
+          newItemsPerFactor[[i]] <- 
+            sample(x = unique(unlist(itemsPerFactor[i])), 
+                   size = unlist(maxItems[i]))
         }
 
         if (bifactorModel == TRUE) {
@@ -173,7 +175,8 @@ simulatedAnnealing <-
             paste(newItemsPerFactor[[i]], collapse = " + ")
           )
         }
-        newModelSyntax <- paste0(newModelSyntax, externalRelation, factorRelation, sep = "\n")
+        newModelSyntax <- 
+          paste(newModelSyntax, externalRelation, factorRelation, sep = "\n")
         newModelSyntax <-
           stringr::str_replace_all(newModelSyntax, "\n\n", "\n")
 
