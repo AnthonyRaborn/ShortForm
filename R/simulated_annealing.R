@@ -115,7 +115,7 @@ simulatedAnnealing <-
     #   #      set = function(key, value) cache[[key]] <- value
     #   #      )
     # }
-
+    checkModelSpecs(lavaan.model.specs)
     mapply(
       assign,
       names(lavaan.model.specs),

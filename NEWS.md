@@ -8,6 +8,15 @@
 * Some short form functions have been modified to work with parallel processors, resulting in noticeably faster results particularly when the solution space is larger (e.g., more starting items) or with more complex models.
   * Currently, this only works for `antcolony.lavaan`.
 
+# Package v0.4.5
+## Extra arugment checks
+* There are now additional checks for the function arguments related to the fit statistics (ACO, SA) and the fit statistic tests (ACO) with informative warnings for when the function arguments are not valid.
+
+# Package v0.4.2
+## Introduction of Function Classes
+* This version introduces classes to each of the main function outputs (`antcolony.lavaan` == "antcolony", `simulatedAnnealing` == "simulatedAnnealing", `tabuShortForm` == "tabu")
+* This will allow for `plot` and `print` methods for each of these functions
+
 ## Broken functionality: plot.antcolony
 * The function/method `plot.antcolony` was completely removed
 

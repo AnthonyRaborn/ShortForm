@@ -119,7 +119,7 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
 }
 
 modelWarningCheck <- function(expr, modelSyntax) {
-  warn = err = c('none')
+  warn <- err <- c('none')
   value <- withCallingHandlers(
     tryCatch(
       expr,
@@ -193,3 +193,104 @@ fitWarningCheck <- function(expr, maximize) {
   ))
   return(value)
 }
+
+
+checkModelSpecs <- 
+  function(
+    x
+  ) {
+    
+    requiredElements <-
+      c('model.type',
+        'auto.var',
+        'estimator',
+        'ordered',
+        'int.ov.free',
+        'int.lv.free',
+        'auto.fix.first',
+        'auto.fix.single',
+        'auto.cov.lv.x',
+        'auto.th',
+        'auto.delta',
+        'auto.cov.y',
+        'std.lv')
+    
+    missingSpecs <-
+      requiredElements[
+        which(
+          !requiredElements %in% names(x)
+        )
+        ]
+    
+    if (length(missingSpecs) > 0) {
+      errorMessage <-
+        paste0("The following elements of lavaan.model.specs have not been specified:\n\n",
+               paste(missingSpecs, collapse = "\n"),
+               "\n\nPlease include the proper specifications for these elements, or use the default values provided.")
+      stop(errorMessage)
+    }
+  }
+
+fitmeasuresCheck <-
+  function(
+    x
+  ) {
+    validMeasures <-
+      c(
+        "npar", "fmin",
+        "chisq", "df", "pvalue", 
+        "baseline.chisq", "baseline.df", "baseline.pvalue",    
+        "cfi", "tli", "nnfi",
+        "rfi", "nfi", "pnfi",
+        "ifi", "rni",                
+        "logl", "unrestricted.logl",
+        "aic", "bic", "ntotal", "bic2",
+        "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", "rmsea.pvalue",
+        "rmr", "rmr_nomean", 
+        "srmr", "srmr_bentler", "srmr_bentler_nomean", 
+        "crmr", "crmr_nomean", "srmr_mplus", "srmr_mplus_nomean",
+        "cn_05", "cn_01", 
+        "gfi", "agfi", "pgfi", "mfi", "ecvi"
+      )
+    
+    invalidMeasures <-
+      x[
+        which(
+          !x %in% validMeasures
+        )
+        ]
+    
+    if (length(invalidMeasures) > 0) {
+      errorMessage <-
+        paste0("The following elements of fit.indices or fitStatistics are not valid fit measures provided by the lavaan::fitmeasures function:\n\n",
+               paste(invalidMeasures, collapse = "\n"),
+               "\n\nPlease check the output of this function for proper spelling and capitalization of the fit measure(s) you are interested in.")
+      stop(errorMessage)
+    }
+
+  }
+
+fitStatTestCheck <-
+  function(measures, test) {
+    tempEnv <-
+      new.env()
+    mapply(
+      assign, 
+      measures, 
+      0, 
+      MoreArgs=list(envir = tempEnv))
+    
+    checkIfEval <-
+      tryCatch(
+        expr = eval(parse(text=test), 
+                    envir = tempEnv), 
+        error = function(e) {
+          stop("There was a problem with the fit.statistics.test provided. It cannot be evaluated properly. Please read the function documentation to see how to properly specify a test.")
+        }
+      )
+    
+    if (!is.character(test)) {
+          stop("There is a problem with the fit.statistics.test provided. The fit.statistics.test was given as a logical, not a character. Please read the function documentation to see how to properly specify a test. ")
+        }
+      
+  }
