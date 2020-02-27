@@ -288,7 +288,7 @@ tabuShortForm <- function(originalData,
 
       for (k in 1:nrow(itemChange)) {
         newItems <-
-          gsub(pattern = paste0(itemChange[k, 1]), replacement = itemChange[k, 2], currentItems)
+          gsub(pattern = paste0(itemChange[k, 1], "\\b"), replacement = itemChange[k, 2], currentItems)
         newCurrentFactor <-
           paste(
             factors[j], "=~",
