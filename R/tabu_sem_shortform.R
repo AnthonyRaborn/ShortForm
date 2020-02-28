@@ -336,25 +336,31 @@ tabuShortForm <- function(originalData,
         tmp.syntax[[j]][[k]] <- newModelSyntax
       }
     }
-    tmp.mod <- unlist(tmp.mod)
-    tmp.syntax <- unlist(tmp.syntax)
+    tmp.mod <- 
+      unlist(tmp.mod)
+    tmp.tables <-
+      lapply(tmp.mod, 
+             lavaan::partable)
+    tmp.syntax <- 
+      unlist(tmp.syntax)
     # Check which indices result in a valid objective function
     valid <- which(!is.na(tmp.obj))
 
     # Get just models not on Tabu list
-    if (length(tabu.list) != 0) {
-      newValid <- c()
+    if (length(tabu.list) > 0) {
+      notTabu <- rep(TRUE, length = length(tmp.tables))
       for (i in valid) {
-        notTabu <- c()
         for (j in 1:length(tabu.list)) {
-          notTabu <-
-            c(
-              notTabu,
-              !identical(tmp.mod[[i]], tabu.list[[j]])
+          notTabu[i] <-
+            ifelse(notTabu[i] == FALSE, 
+                   FALSE, 
+                   !identical(tmp.tables[[i]], 
+                         lavaan::partable(tabu.list[[j]])
+                         )
             )
         }
-        newValid <- c(newValid, TRUE %in% notTabu)
       }
+      newValid <- notTabu
     } else {
       newValid <- valid
     }
