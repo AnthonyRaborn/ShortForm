@@ -98,7 +98,7 @@
 #' }
 #'
 #' # use the tabuShortForm function
-#' # reduce form to the best 10 items
+#' # reduce form to the best 12 items
 #' tabuShort <- tabuShortForm(
 #'   initialModel = tabuModel, originalData = tabuData,
 #'   numItems = c(3, 3, 3, 3),
@@ -299,7 +299,7 @@ tabuShortForm <- function(originalData,
           newCurrentFactor
 
         newModelSyntax <-
-          paste(currentModelSyntax,
+          paste(stringr::str_trim(currentModelSyntax),
             collapse = " \n"
           )
 
