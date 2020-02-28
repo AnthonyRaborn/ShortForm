@@ -387,12 +387,18 @@ tabuShortForm <- function(originalData,
     }
 
     # Update if the current model is better than the best model
-    if (current.obj <= best.obj) {
+    if (current.obj < best.obj) {
       best.obj <- current.obj
       best.mod <- current.mod
       best.syntax <- current.syntax
-      tabu.list <- vector("numeric") # Clear Tabu list
+      tabu.list <- vector("list") # Clear Tabu list
     }
+  }
+
+  if (class(best.obj)[1] == "lavaan.vector") {
+    temp = as.numeric(best.obj)
+    names(temp) = names(best.obj)
+    best.obj = temp
   }
 
   ret <-
@@ -402,7 +408,8 @@ tabuShortForm <- function(originalData,
         best_fit = best.obj,
         best_model = best.mod,
         best_syntax = best.syntax,
-        runtime = Sys.time() - start.time
+        runtime = Sys.time() - start.time,
+        final_tabu_list = tabu.list
     )
   
   ret
