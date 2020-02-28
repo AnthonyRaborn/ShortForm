@@ -1,13 +1,15 @@
 setClassUnion("charactorORdata.frame", c("character","data.frame"))
+
 #' An S4 class for the Tabu Search Algorithm
 #'
 #' @slot function_call The original function call.
 #' @slot all_fit A summary `vector` indicating the model fit results for
 #' each iteration.
-#' @slot best_fit The best model fit result using the selected `fitStatistic`. 
+#' @slot best_fit The best model fit result using the selected `fitStatistic`. A numeric value or vector, possibly named.
 #' @slot best_model A `lavaan` object of the final solution.
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
+#' @slot final_tabu_list The final list of Tabu models. Each element of the list is a `lavaan` object. 
 #'
 #' @importFrom methods new show
 #'
@@ -22,7 +24,8 @@ setClass('TS',
              best_fit = 'numeric',
              best_model = 'lavaan',
              best_syntax = 'charactorORdata.frame',
-             runtime = 'ANY'
+             runtime = 'ANY',
+             final_tabu_list = 'list'
            )
 )
 
@@ -116,7 +119,7 @@ setMethod('plot',
             plot <-
               ggplot2::ggplot(val, ggplot2::aes_string(x = "Iteration", y = "Fit")) +
               ggplot2::geom_line() +
-              ggplot2::ylab(paste0("Model Fit Value", names(x@best_fit))) +
+              ggplot2::ylab(paste("Model Fit Value(s):", names(x@best_fit))) +
               ggplot2::ggtitle(expression("Changes in Model Fit Value per Iteration")) +
               ggplot2::theme_classic() +
               ggplot2::theme(

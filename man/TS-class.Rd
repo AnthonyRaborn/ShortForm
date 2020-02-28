@@ -18,12 +18,14 @@ An S4 class for the Tabu Search Algorithm
 \item{\code{all_fit}}{A summary `vector` indicating the model fit results for
 each iteration.}
 
-\item{\code{best_fit}}{The best model fit result using the selected `fitStatistic`.}
+\item{\code{best_fit}}{The best model fit result using the selected `fitStatistic`. A numeric value or vector, possibly named.}
 
 \item{\code{best_model}}{A `lavaan` object of the final solution.}
 
 \item{\code{best_syntax}}{A `character` vector of the final solution model syntax.}
 
 \item{\code{runtime}}{A `difftime` object of the total run time of the function.}
+
+\item{\code{final_tabu_list}}{The final list of Tabu models. Each element of the list is a `lavaan` object.}
 }}
 
