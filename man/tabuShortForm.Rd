@@ -17,7 +17,8 @@ tabuShortForm(
     auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, ordered = NULL, model.type =
     "cfa", estimator = "default"),
   bifactor = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  parallel = T
 )
 }
 \arguments{
@@ -41,6 +42,9 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 \item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).}
 
 \item{verbose}{Logical. If `TRUE`, prints out the initial short form and the selected short form at the end of each iteration.}
+
+\item{parallel}{An option for using parallel processing. If \code{TRUE}, the 
+function will utilize all available cores. Default is \code{TRUE}.}
 }
 \value{
 A named list with the best value of the objective function (`best.obj`) and the best lavaan model object (`best.mod`).

@@ -18,6 +18,8 @@
 #'  CFA. See \link[lavaan]{lavaan} for more details.
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).
 #' @param verbose Logical. If `TRUE`, prints out the initial short form and the selected short form at the end of each iteration.
+#' @param parallel An option for using parallel processing. If \code{TRUE}, the 
+#'  function will utilize all available cores. Default is \code{TRUE}.
 #'
 #' @return A named list with the best value of the objective function (`best.obj`) and the best lavaan model object (`best.mod`).
 #' @export
@@ -133,7 +135,8 @@ tabuShortForm <- function(originalData,
                              estimator = "default"
                            ),
                            bifactor = FALSE,
-                           verbose = FALSE) {
+                           verbose = FALSE,
+                           parallel = T) {
   start.time = Sys.time()
   mapply(
     assign,
@@ -230,7 +233,17 @@ tabuShortForm <- function(originalData,
   best.mod <- current.model <- init.model@model.output
   best.syntax <- current.syntax <- init.model@model.syntax
   names(itemsPerFactor) <- factors
-
+  
+  convergence <-
+    function(x) {
+      converge <-
+        x@Fit@converged
+      se <-
+        !any(is.na(x@Fit@se))
+      
+      ifelse (converge==TRUE & se == TRUE, criterion(x), NA)
+    }
+  
   if (verbose == TRUE) {
     print("Initial short form selected:")
     cat(current.syntax)
@@ -243,6 +256,25 @@ tabuShortForm <- function(originalData,
   all.syntax[1] <-
     current.syntax
 
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+  
+  if (parallel) {
+    if (nzchar(chk) && chk == "TRUE") {
+      # use 2 cores in CRAN/Travis/AppVeyor
+      num_workers <- 2L
+    } else {
+      # use all cores in devtools::test()
+      num_workers <- parallel::detectCores()
+    }
+  } else {
+    num_workers = 1
+    
+  }
+  
+  cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+  doSNOW::registerDoSNOW(cl)
+  `%dopar%` <- foreach::`%dopar%`
+  
   # Do iterations
   for (it in 1:niter) {
     cat(paste0("\rRunning iteration ", it, " of ", niter, ".   "))
@@ -302,11 +334,19 @@ tabuShortForm <- function(originalData,
           paste(stringr::str_trim(currentModelSyntax),
             collapse = " \n"
           )
-
+        tmp.syntax[[j]][[k]] <- newModelSyntax
+      }
+    }
+    
+    tmp.syntax <-
+      unlist(tmp.syntax)
+    model = 0L
+    tmp.mod <-
+      foreach::foreach(model = 1:length(tmp.syntax), .inorder = T) %dopar% {
         fitmodel <-
           modelWarningCheck(
             lavaan::lavaan(
-              model = newModelSyntax,
+              model = tmp.syntax[model],
               data = originalData,
               model.type = model.type,
               int.ov.free = int.ov.free,
@@ -326,23 +366,15 @@ tabuShortForm <- function(originalData,
             newModelSyntax
           )@model.output
 
-        if (fitmodel@Fit@converged & !any(is.na(fitmodel@Fit@se))) {
-          fit.val <- criterion(fitmodel)
-        } else {
-          fit.val <- NA
-        }
-        tmp.obj <- c(tmp.obj, fit.val)
-        tmp.mod[[j]][[k]] <- fitmodel
-        tmp.syntax[[j]][[k]] <- newModelSyntax
       }
-    }
+
+    tmp.obj <- 
+      sapply(tmp.mod, convergence)
     tmp.mod <- 
       unlist(tmp.mod)
     tmp.tables <-
       lapply(tmp.mod, 
              lavaan::partable)
-    tmp.syntax <- 
-      unlist(tmp.syntax)
     # Check which indices result in a valid objective function
     valid <- which(!is.na(tmp.obj))
 
@@ -394,6 +426,9 @@ tabuShortForm <- function(originalData,
       tabu.list <- vector("list") # Clear Tabu list
     }
   }
+  
+  foreach::registerDoSEQ()
+  parallel::stopCluster(cl)
 
   if (class(best.obj)[1] == "lavaan.vector") {
     temp = as.numeric(best.obj)
