@@ -56,14 +56,14 @@ data(simulated_test_data)
 set.seed(1)
 abilityShortForm = antcolony.lavaan(data = simulated_test_data,
 ants = 10, evaporation = 0.9, antModel = exampleAntModel,
-list.items = list.items, full = 56, i.per.f = 15,
+list.items = list.items, full = 56, i.per.f = 10,
 lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", 
                           ordered = unlist(list.items), int.ov.free = TRUE,
                           int.lv.free = FALSE, auto.fix.first = TRUE, 
                           auto.fix.single = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE, 
                           auto.th = TRUE, auto.delta = TRUE, 
                           auto.cov.y = TRUE),
-factors = 'Ability', steps = 50, fit.indices = c('cfi', 'rmsea'),
+factors = 'Ability', steps = 100, fit.indices = c('cfi', 'rmsea'),
 fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
@@ -114,10 +114,12 @@ Trait2 =~ 0*Item1 + 0*Item2 + 0*Item3 + 0*Item4 + 0*Item5 + 0*Item6 + Item7 + It
 '
 # fit the initial misspecified model for Tabu
 init.model <- lavaan::lavaan(model = tabuModel, data = tabuData, 
-                             auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=FALSE)
+                             auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,
+                             auto.cov.lv.x=FALSE)
 
 # use search.prep to prepare for the Tabu search
-ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=FALSE, errors=FALSE)
+ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=FALSE, 
+                    errors=FALSE)
 
 Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 20, tabu.size = 10)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
 
@@ -191,7 +193,7 @@ tabuCriterion = function(x) {
 # use the tabuShortForm function
 # reduce form to the best 12 items, 3 per factor
 tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
-                           numItems = c(4,4,4,4), 
+                           numItems = c(3,3,3,3), 
                            criterion = tabuCriterion,
                            niter = 20, tabu.size = 10, verbose = FALSE
                            )
