@@ -115,7 +115,8 @@ tabu.sem <- function(init.model,
       best_fit = best.obj,
       best_model = best.mod,
       best_syntax = best.binvec,
-      runtime = Sys.time() - start.time
+      runtime = Sys.time() - start.time,
+      final_tabu_list = list(tabu.list)
   )
 
   ret
