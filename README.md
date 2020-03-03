@@ -84,10 +84,10 @@ fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
 summaryfile = NULL,
 feedbackfile = NULL,
 max.run = 100, parallel = T)
-##   Run number 1 and ant number 1.            Run number 1 and ant number 2.            Run number 1 and ant number 3.            Run number 1 and ant number 4.            Run number 1 and ant number 5.            Run number 1 and ant number 6.            Run number 1 and ant number 7.            Run number 1 and ant number 8.            Run number 1 and ant number 9.            Run number 1 and ant number 10.            Run number 2 and ant number 1.            Run number 2 and ant number 2.            Run number 2 and ant number 3.            Run number 2 and ant number 4.            Run number 2 and ant number 5.            Run number 2 and ant number 6.            Run number 2 and ant number 7.            Run number 2 and ant number 8.            Run number 2 and ant number 9.            Run number 2 and ant number 10.            Run number 3 and ant number 1.            Run number 3 and ant number 2.            Run number 3 and ant number 3.            Run number 3 and ant number 4.            Run number 3 and ant number 5.            Run number 3 and ant number 6.            Run number 3 and ant number 7.            Run number 3 and ant number 8.            Run number 3 and ant number 9.            Run number 3 and ant number 10.            Run number 4 and ant number 1.            Run number 4 and ant number 2.            Run number 4 and ant number 3.            Run number 4 and ant number 4.            Run number 4 and ant number 5.            Run number 4 and ant number 6.            Run number 4 and ant number 7.            Run number 4 and ant number 8.            Run number 4 and ant number 9.            Run number 4 and ant number 10.            Run number 5 and ant number 1.            Run number 5 and ant number 2.            Run number 5 and ant number 3.            Run number 5 and ant number 4.            Run number 5 and ant number 5.            Run number 5 and ant number 6.            Run number 5 and ant number 7.            Run number 5 and ant number 8.            Run number 5 and ant number 9.            Run number 5 and ant number 10.            Run number 6 and ant number 1.            Run number 6 and ant number 2.            Run number 6 and ant number 3.            Run number 6 and ant number 4.            Run number 6 and ant number 5.            Run number 6 and ant number 6.            Run number 6 and ant number 7.            Run number 6 and ant number 8.            Run number 6 and ant number 9.            Run number 6 and ant number 10.            Run number 7 and ant number 1.            Run number 7 and ant number 2.            Run number 7 and ant number 3.            Run number 7 and ant number 4.            Run number 7 and ant number 5.            Run number 7 and ant number 6.            Run number 7 and ant number 7.            Run number 7 and ant number 8.            Run number 7 and ant number 9.            Run number 7 and ant number 10.            Run number 8 and ant number 1.            Run number 8 and ant number 2.            Run number 8 and ant number 3.            Run number 8 and ant number 4.            Run number 8 and ant number 5.            Run number 8 and ant number 6.            Run number 8 and ant number 7.            Run number 8 and ant number 8.            Run number 8 and ant number 9.            Run number 8 and ant number 10.            Run number 9 and ant number 1.            Run number 9 and ant number 2.            Run number 9 and ant number 3.            Run number 9 and ant number 4.            Run number 9 and ant number 5.            Run number 9 and ant number 6.            Run number 9 and ant number 7.            Run number 9 and ant number 8.            Run number 9 and ant number 9.            Run number 9 and ant number 10.            Run number 10 and ant number 1.            Run number 10 and ant number 2.            Run number 10 and ant number 3.            Run number 10 and ant number 4.            Run number 10 and ant number 5.            Run number 10 and ant number 6.            Run number 10 and ant number 7.            Run number 10 and ant number 8.            Run number 10 and ant number 9.            Run number 10 and ant number 10.            Run number 11 and ant number 1.            Run number 11 and ant number 2.            Run number 11 and ant number 3.            Run number 11 and ant number 4.            Run number 11 and ant number 5.            Run number 11 and ant number 6.            Run number 11 and ant number 7.            Run number 11 and ant number 8.            Run number 11 and ant number 9.            Run number 11 and ant number 10.            Run number 12 and ant number 1.            Run number 12 and ant number 2.            Run number 12 and ant number 3.            Run number 12 and ant number 4.            Run number 12 and ant number 5.            Run number 12 and ant number 6.            Run number 12 and ant number 7.            Run number 12 and ant number 8.            Run number 12 and ant number 9.            Run number 12 and ant number 10.            Run number 13 and ant number 1.            Run number 13 and ant number 2.            Run number 13 and ant number 3.            Run number 13 and ant number 4.            Run number 13 and ant number 5.            Run number 13 and ant number 6.            Run number 13 and ant number 7.            Run number 13 and ant number 8.            Run number 13 and ant number 9.            Run number 13 and ant number 10.            Run number 14 and ant number 1.            Run number 14 and ant number 2.            Run number 14 and ant number 3.            Run number 14 and ant number 4.            Run number 14 and ant number 5.            Run number 14 and ant number 6.            Run number 14 and ant number 7.            Run number 14 and ant number 8.            Run number 14 and ant number 9.            Run number 14 and ant number 10.            Run number 15 and ant number 1.            Run number 15 and ant number 2.            Run number 15 and ant number 3.            Run number 15 and ant number 4.            Run number 15 and ant number 5.            Run number 15 and ant number 6.            Run number 15 and ant number 7.            Run number 15 and ant number 8.            Run number 15 and ant number 9.            Run number 15 and ant number 10.            Run number 16 and ant number 1.            Run number 16 and ant number 2.            Run number 16 and ant number 3.            Run number 16 and ant number 4.            Run number 16 and ant number 5.            Run number 16 and ant number 6.            Run number 16 and ant number 7.            Run number 16 and ant number 8.            Run number 16 and ant number 9.            Run number 16 and ant number 10.            Run number 17 and ant number 1.            Run number 17 and ant number 2.            Run number 17 and ant number 3.            Run number 17 and ant number 4.            Run number 17 and ant number 5.            Run number 17 and ant number 6.            Run number 17 and ant number 7.            Run number 17 and ant number 8.            Run number 17 and ant number 9.            Run number 17 and ant number 10.            Run number 18 and ant number 1.            Run number 18 and ant number 2.            Run number 18 and ant number 3.            Run number 18 and ant number 4.            Run number 18 and ant number 5.            Run number 18 and ant number 6.            Run number 18 and ant number 7.            Run number 18 and ant number 8.            Run number 18 and ant number 9.            Run number 18 and ant number 10.            Run number 19 and ant number 1.            Run number 19 and ant number 2.            Run number 19 and ant number 3.            Run number 19 and ant number 4.            Run number 19 and ant number 5.            Run number 19 and ant number 6.            Run number 19 and ant number 7.            Run number 19 and ant number 8.            Run number 19 and ant number 9.            Run number 19 and ant number 10.            Run number 20 and ant number 1.            Run number 20 and ant number 2.            Run number 20 and ant number 3.            Run number 20 and ant number 4.            Run number 20 and ant number 5.            Run number 20 and ant number 6.            Run number 20 and ant number 7.            Run number 20 and ant number 8.            Run number 20 and ant number 9.            Run number 20 and ant number 10.            Run number 21 and ant number 1.            Run number 21 and ant number 2.            Run number 21 and ant number 3.            Run number 21 and ant number 4.            Run number 21 and ant number 5.            Run number 21 and ant number 6.            Run number 21 and ant number 7.            Run number 21 and ant number 8.            Run number 21 and ant number 9.            Run number 21 and ant number 10.            Run number 22 and ant number 1.            Run number 22 and ant number 2.            Run number 22 and ant number 3.            Run number 22 and ant number 4.            Run number 22 and ant number 5.            Run number 22 and ant number 6.            Run number 22 and ant number 7.            Run number 22 and ant number 8.            Run number 22 and ant number 9.            Run number 22 and ant number 10.            Run number 23 and ant number 1.            Run number 23 and ant number 2.            Run number 23 and ant number 3.            Run number 23 and ant number 4.            Run number 23 and ant number 5.            Run number 23 and ant number 6.            Run number 23 and ant number 7.            Run number 23 and ant number 8.            Run number 23 and ant number 9.            Run number 23 and ant number 10.            Run number 24 and ant number 1.            Run number 24 and ant number 2.            Run number 24 and ant number 3.            Run number 24 and ant number 4.            Run number 24 and ant number 5.            Run number 24 and ant number 6.            Run number 24 and ant number 7.            Run number 24 and ant number 8.            Run number 24 and ant number 9.            Run number 24 and ant number 10.            Run number 25 and ant number 1.            Run number 25 and ant number 2.            Run number 25 and ant number 3.            Run number 25 and ant number 4.            Run number 25 and ant number 5.            Run number 25 and ant number 6.            Run number 25 and ant number 7.            Run number 25 and ant number 8.            Run number 25 and ant number 9.            Run number 25 and ant number 10.            Run number 26 and ant number 1.            Run number 26 and ant number 2.            Run number 26 and ant number 3.            Run number 26 and ant number 4.            Run number 26 and ant number 5.            Run number 26 and ant number 6.            Run number 26 and ant number 7.            Run number 26 and ant number 8.            Run number 26 and ant number 9.            Run number 26 and ant number 10.            Run number 27 and ant number 1.            Run number 27 and ant number 2.            Run number 27 and ant number 3.            Run number 27 and ant number 4.            Run number 27 and ant number 5.            Run number 27 and ant number 6.            Run number 27 and ant number 7.            Run number 27 and ant number 8.            Run number 27 and ant number 9.            Run number 27 and ant number 10.            Run number 28 and ant number 1.            Run number 28 and ant number 2.            Run number 28 and ant number 3.            Run number 28 and ant number 4.            Run number 28 and ant number 5.            Run number 28 and ant number 6.            Run number 28 and ant number 7.            Run number 28 and ant number 8.            Run number 28 and ant number 9.            Run number 28 and ant number 10.            Run number 29 and ant number 1.            Run number 29 and ant number 2.            Run number 29 and ant number 3.            Run number 29 and ant number 4.            Run number 29 and ant number 5.            Run number 29 and ant number 6.            Run number 29 and ant number 7.            Run number 29 and ant number 8.            Run number 29 and ant number 9.            Run number 29 and ant number 10.            Run number 30 and ant number 1.            Run number 30 and ant number 2.            Run number 30 and ant number 3.            Run number 30 and ant number 4.            Run number 30 and ant number 5.            Run number 30 and ant number 6.            Run number 30 and ant number 7.            Run number 30 and ant number 8.            Run number 30 and ant number 9.            Run number 30 and ant number 10.            Run number 31 and ant number 1.            Run number 31 and ant number 2.            Run number 31 and ant number 3.            Run number 31 and ant number 4.            Run number 31 and ant number 5.            Run number 31 and ant number 6.            Run number 31 and ant number 7.            Run number 31 and ant number 8.            Run number 31 and ant number 9.            Run number 31 and ant number 10.            Run number 32 and ant number 1.            Run number 32 and ant number 2.            Run number 32 and ant number 3.            Run number 32 and ant number 4.            Run number 32 and ant number 5.            Run number 32 and ant number 6.            Run number 32 and ant number 7.            Run number 32 and ant number 8.            Run number 32 and ant number 9.            Run number 32 and ant number 10.            Run number 33 and ant number 1.            Run number 33 and ant number 2.            Run number 33 and ant number 3.            Run number 33 and ant number 4.            Run number 33 and ant number 5.            Run number 33 and ant number 6.            Run number 33 and ant number 7.            Run number 33 and ant number 8.            Run number 33 and ant number 9.            Run number 33 and ant number 10.            Run number 34 and ant number 1.            Run number 34 and ant number 2.            Run number 34 and ant number 3.            Run number 34 and ant number 4.            Run number 34 and ant number 5.            Run number 34 and ant number 6.            Run number 34 and ant number 7.            Run number 34 and ant number 8.            Run number 34 and ant number 9.            Run number 34 and ant number 10.            Run number 35 and ant number 1.            Run number 35 and ant number 2.            Run number 35 and ant number 3.            Run number 35 and ant number 4.            Run number 35 and ant number 5.            Run number 35 and ant number 6.            Run number 35 and ant number 7.            Run number 35 and ant number 8.            Run number 35 and ant number 9.            Run number 35 and ant number 10.            Run number 36 and ant number 1.            Run number 36 and ant number 2.            Run number 36 and ant number 3.            Run number 36 and ant number 4.            Run number 36 and ant number 5.            Run number 36 and ant number 6.            Run number 36 and ant number 7.            Run number 36 and ant number 8.            Run number 36 and ant number 9.            Run number 36 and ant number 10.           [1] "Compiling results."
+##   Run number 1 and ant number 1.            Run number 1 and ant number 2.            Run number 1 and ant number 3.            Run number 1 and ant number 4.            Run number 1 and ant number 5.            Run number 1 and ant number 6.            Run number 1 and ant number 7.            Run number 1 and ant number 8.            Run number 1 and ant number 9.            Run number 1 and ant number 10.            Run number 2 and ant number 1.            Run number 2 and ant number 2.            Run number 2 and ant number 3.            Run number 2 and ant number 4.            Run number 2 and ant number 5.            Run number 2 and ant number 6.            Run number 2 and ant number 7.            Run number 2 and ant number 8.            Run number 2 and ant number 9.            Run number 2 and ant number 10.            Run number 3 and ant number 1.            Run number 3 and ant number 2.            Run number 3 and ant number 3.            Run number 3 and ant number 4.            Run number 3 and ant number 5.            Run number 3 and ant number 6.            Run number 3 and ant number 7.            Run number 3 and ant number 8.            Run number 3 and ant number 9.            Run number 3 and ant number 10.            Run number 4 and ant number 1.            Run number 4 and ant number 2.            Run number 4 and ant number 3.            Run number 4 and ant number 4.            Run number 4 and ant number 5.            Run number 4 and ant number 6.            Run number 4 and ant number 7.            Run number 4 and ant number 8.            Run number 4 and ant number 9.            Run number 4 and ant number 10.            Run number 5 and ant number 1.            Run number 5 and ant number 2.            Run number 5 and ant number 3.            Run number 5 and ant number 4.            Run number 5 and ant number 5.            Run number 5 and ant number 6.            Run number 5 and ant number 7.            Run number 5 and ant number 8.            Run number 5 and ant number 9.            Run number 5 and ant number 10.            Run number 6 and ant number 1.            Run number 6 and ant number 2.            Run number 6 and ant number 3.            Run number 6 and ant number 4.            Run number 6 and ant number 5.            Run number 6 and ant number 6.            Run number 6 and ant number 7.            Run number 6 and ant number 8.            Run number 6 and ant number 9.            Run number 6 and ant number 10.            Run number 7 and ant number 1.            Run number 7 and ant number 2.            Run number 7 and ant number 3.            Run number 7 and ant number 4.            Run number 7 and ant number 5.            Run number 7 and ant number 6.            Run number 7 and ant number 7.            Run number 7 and ant number 8.            Run number 7 and ant number 9.            Run number 7 and ant number 10.            Run number 8 and ant number 1.            Run number 8 and ant number 2.            Run number 8 and ant number 3.            Run number 8 and ant number 4.            Run number 8 and ant number 5.            Run number 8 and ant number 6.            Run number 8 and ant number 7.            Run number 8 and ant number 8.            Run number 8 and ant number 9.            Run number 8 and ant number 10.           [1] "Compiling results."
 abilityShortForm # print the results of the final short form
 ##  Algorithm: Ant Colony Optimization
-##  Total Run Time: 2.671 mins
+##  Total Run Time: 33.628 secs
 ##  
 ##  Function call:
 ##  antcolony.lavaan(data = simulated_test_data, ants = 10, evaporation = 0.9,
@@ -102,8 +102,8 @@ abilityShortForm # print the results of the final short form
 ##  
 ##  Final Model Syntax:
 ##  
-##  Ability =~ Item56 + Item28 + Item14 + Item2 + Item9 + Item55 + Item44 + Item53 +
-##    Item30 + Item42 + Item16 + Item18 + Item12 + Item19 + Item37
+##  Ability =~ Item11 + Item56 + Item8 + Item18 + Item55 + Item16 + Item30 + Item53
+##    + Item46 + Item25 + Item44 + Item10 + Item40 + Item37 + Item26
 ##  Outcome ~ Ability
 plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
@@ -112,7 +112,7 @@ plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antco
 
 A similar example can be found in the `antcolony.mplus` function, but
 requires you to have a valid Mplus installation on the computer. It took
-a total of 2.73 mins to run this example.
+a total of 36.42 secs to run this example.
 
 ### Tabu Search Algorithm
 
@@ -167,7 +167,7 @@ Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, 
 # check the final model
 summary(Tabu_example)
 ##  Algorithm: Tabu Search
-##  Total Run Time: 1.857 mins
+##  Total Run Time: 1.9 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 43 iterations
 ##  
@@ -195,7 +195,7 @@ plot(Tabu_example)
 
 ![](README-Tabu%20example-1.png)<!-- -->
 
-It took a total of 1.86 mins to run this example.
+It took a total of 1.91 mins to run this example.
 
 The next Tabu example demonstrates how to use it to find a short form of
 a prespecified length with different data.
@@ -261,16 +261,16 @@ tabuCriterion = function(x) {
 tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
                            numItems = c(4,4,4,4), 
                            criterion = tabuCriterion,
-                           niter = 10, tabu.size = 10, verbose = FALSE
+                           niter = 20, tabu.size = 10, verbose = FALSE
                            )
-##  Running iteration 1 of 10.   Running iteration 2 of 10.   Running iteration 3 of 10.   Running iteration 4 of 10.   Running iteration 5 of 10.   Running iteration 6 of 10.   Running iteration 7 of 10.   Running iteration 8 of 10.   Running iteration 9 of 10.   Running iteration 10 of 10.
+##  Running iteration 1 of 20.   Running iteration 2 of 20.   Running iteration 3 of 20.   Running iteration 4 of 20.   Running iteration 5 of 20.   Running iteration 6 of 20.   Running iteration 7 of 20.   Running iteration 8 of 20.   Running iteration 9 of 20.   Running iteration 10 of 20.   Running iteration 11 of 20.   Running iteration 12 of 20.   Running iteration 13 of 20.   Running iteration 14 of 20.   Running iteration 15 of 20.   Running iteration 16 of 20.   Running iteration 17 of 20.   Running iteration 18 of 20.   Running iteration 19 of 20.   Running iteration 20 of 20.
 
 # check the chosen model
 summary(tabuShort)
 ##  Algorithm: Tabu Search
-##  Total Run Time: 1.001 mins
+##  Total Run Time: 1.8 mins
 ##  
-##  lavaan 0.6-5 ended normally after 18 iterations
+##  lavaan 0.6-5 ended normally after 19 iterations
 ##  
 ##    Estimator                                         ML
 ##    Optimization method                           NLMINB
@@ -280,23 +280,23 @@ summary(tabuShort)
 ##                                                        
 ##  Model Test User Model:
 ##                                                        
-##    Test statistic                                57.638
+##    Test statistic                                54.642
 ##    Degrees of freedom                                98
 ##    P-value (Chi-square)                           1.000
 ##  
 ##  
 ##  Final Model Syntax:
-##  Trait1 =~ Item3 + Item4 + Item12 + Item11
-##  Trait2 =~ Item15 + Item16 + Item19 + Item20
-##  Trait3 =~ Item36 + Item31 + Item34 + Item35
-##  Trait4 =~ Item41 + Item40 + Item43 + Item44
+##  Trait1 =~ Item3 + Item4 + Item11 + Item8
+##  Trait2 =~ Item16 + Item19 + Item20 + Item15
+##  Trait3 =~ Item30 + Item31 + Item35 + Item36
+##  Trait4 =~ Item40 + Item45 + Item43 + Item44
 # plot the changes in the objective function over each iteration
 plot(tabuShort)
 ```
 
 ![](README-Tabu%20short%20form-1.png)<!-- -->
 
-It took a total of 1.01 mins to run this example.
+It took a total of 1.81 mins to run this example.
 
 ### Simulated Annealing
 
@@ -323,7 +323,7 @@ lavaan.model.specs = list(model.type = "cfa",
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 200, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, setChains = 4)
+SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 100, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, setChains = 4)
 ##  Initializing short form creation.
 ##  The initial short form is:
 ##   Ability =~ Item9 + Item4 + Item7 + Item1 + Item2
@@ -338,7 +338,7 @@ SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, 
 ##  Chain number 4 complete.
 summary(SA_example)
 ##  Algorithm: Simulated Annealing
-##  Total Run Time: 2.735 mins
+##  Total Run Time: 1.503 mins
 ##  
 ##  lavaan 0.6-5 ended normally after 15 iterations
 ##  
@@ -366,5 +366,5 @@ plot(SA_example) # plot showing how the fit value changes at each step
 
 ![](README-Simulated%20Annealing%20example-1.png)<!-- -->
 
-It took a total of 2.76 mins to run the SA example, and a total of 8.36
+It took a total of 1.53 mins to run the SA example, and a total of 5.85
 mins to run all four together.
