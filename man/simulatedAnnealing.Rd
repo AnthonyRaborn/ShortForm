@@ -24,6 +24,7 @@ simulatedAnnealing(
   items = NULL,
   bifactor = FALSE,
   setChains = 1,
+  shortForm = T,
   ...
 )
 }
@@ -61,6 +62,8 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 \item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If \code{TRUE}, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if \code{maxItems==FALSE}.}
 
 \item{setChains}{Numeric. Sets the number of parallel chains to run. Default to \code{1}, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than \code{1} result in the chains running on parallel processes using the \code{doSNOW} and \code{foreach} packages.}
+
+\item{shortForm}{Logical. Are you creating a short form (\code{TRUE}) or not (\code{FALSE})? Default is \code{TRUE}.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }

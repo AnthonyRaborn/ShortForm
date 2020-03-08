@@ -35,6 +35,7 @@
 #' @param items A `character` vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.
 #' @param setChains Numeric. Sets the number of parallel chains to run. Default to `1`, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than `1` result in the chains running on parallel processes using the `doSNOW` and `foreach` packages.
+#' @param shortForm Logical. Are you creating a short form (`TRUE`) or not (`FALSE`)? Default is `TRUE`.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
 #' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
@@ -95,6 +96,7 @@ simulatedAnnealing <-
            items = NULL,
            bifactor = FALSE,
            setChains = 1,
+           shortForm = T,
            ...) {
     #### initial values ####
     if(!exists('originalData')) {
@@ -104,8 +106,6 @@ simulatedAnnealing <-
       warning("The value for setChains was not valid. Defaulting to setChains=1.")
       setChains = 1
     }
-    currentStep <- 1
-    consecutive <- 0
     allFit <- c()
 
     # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
@@ -126,106 +126,40 @@ simulatedAnnealing <-
     if (!is.null(maxItems)) {
       # if using the short form option
       cat("Initializing short form creation.")
+      
       mapply(
         assign,
-        x = "allItems",
-        value = list(items),
-        USE.NAMES = FALSE,
-        SIMPLIFY = FALSE,
+        c("factors", "allItems"),
+        syntaxExtraction(initialModel, items = items),
         MoreArgs = list(envir = environment())
       )
-      randomInitialModel <- function(init.model = initialModel,
-                                     maxItems,
-                                     initialData = originalData,
-                                     bifactorModel = bifactor) {
-        # extract the latent factor syntax
-        mapply(
-          assign,
-          c("factors", "itemsPerFactor"),
-          syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
-          MoreArgs = list(envir = environment())
-        )
 
-        # save the external relationships
-        vectorModel <- unlist(strsplit(x = initialModel, split = "\\n"))
-        externalRelation <- vectorModel[grep(" ~ ", vectorModel)]
-        factorRelation <- vectorModel[grep(" ~~ ", vectorModel)]
-
-        # reduce the number of items for each factor according to maxItems
-        newItemsPerFactor <- list()
-        for (i in 1:length(itemsPerFactor)) {
-          newItemsPerFactor[[i]] <- 
-            sample(x = unique(unlist(itemsPerFactor[i])), 
-                   size = unlist(maxItems[i]))
-        }
-
-        if (bifactorModel == TRUE) {
-          # if bifactorModel == TRUE, fix the items so the newItems all load on the bifactor
-          # assumes that the bifactor latent variable is the last one
-          newItemsPerFactor[[length(itemsPerFactor)]] <- unlist(newItemsPerFactor[1:(length(itemsPerFactor) - 1)])
-        }
-
-        # create the new model syntax
-
-        newModelSyntax <- c()
-        for (i in 1:length(factors)) {
-          newModelSyntax[i] <- paste(
-            factors[i],
-            "=~",
-            paste(newItemsPerFactor[[i]], collapse = " + ")
-          )
-        }
-        newModelSyntax <- 
-          paste(newModelSyntax, externalRelation, factorRelation, sep = "\n")
-        newModelSyntax <-
-          stringr::str_replace_all(newModelSyntax, "\n\n", "\n")
-
-        # fit the new model
-        newModel <- modelWarningCheck(
-          lavaan::lavaan(
-            model = newModelSyntax,
-            data = initialData,
-            model.type = model.type,
-            int.ov.free = int.ov.free,
-            int.lv.free = int.lv.free,
-            auto.fix.first = auto.fix.first,
-            std.lv = std.lv,
-            auto.fix.single = auto.fix.single,
-            auto.var = auto.var,
-            auto.cov.lv.x = auto.cov.lv.x,
-            auto.th = auto.th,
-            auto.delta = auto.delta,
-            auto.cov.y = auto.cov.y,
-            ordered = ordered,
-            estimator = estimator,
-          ),
-          modelSyntax = newModelSyntax
-        )
-        # newModel$model.syntax <- newModelSyntax
-
-        return(newModel)
-      }
-      currentModel <- bestModel <- randomInitialModel(initialModel,
-        maxItems,
-        initialData = originalData,
-        bifactorModel = bifactor
+      currentModel <-
+        bestModel <- 
+        randomInitialModel(init.model = initialModel,
+                           maxItems = maxItems,
+                           allItems = allItems,
+                           initialData = originalData,
+                           bifactorModel = bifactor,
+                           lavaan.model.specs = lavaan.model.specs
       )
-      cat(paste(
+      cat(paste0(
         "\nThe initial short form is:\n",
-        paste(currentModel@model.syntax, collapse = "\n")
+        paste0(currentModel@model.syntax, collapse = "")
       ))
-      bestFit <- tryCatch(
-        lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
-        error = function(e, checkMaximize = maximize) {
-          if (length(e) > 0) {
-            if (checkMaximize == TRUE) {
-              return(0)
-            } else {
-              return(Inf)
+      bestFit <-
+        tryCatch(
+          lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
+          error = function(e, checkMaximize = maximize) {
+            if (length(e) > 0) {
+              if (checkMaximize == TRUE) {
+                return(0)
+                } else {
+                  return(Inf)
+                }
             }
-          }
-        }
-      )
+            }
+          )
       if (is.null(items)) {
         stop(
           "To use this function for short forms, you need to set both the maxItems to consider as well as the names of the items."
@@ -418,8 +352,17 @@ simulatedAnnealing <-
       parallel::stopCluster(cl)
       
       best_fit <-
-        max(as.numeric(chainResults[,'bestFit']))
+        ifelse(maximize,
+               max(as.numeric(chainResults[,'bestFit'])),
+               min(as.numeric(chainResults[,'bestFit']))
+        )
       
+      which_best <-
+        which(as.numeric(chainResults[,'bestFit']) == best_fit)
+      
+      bestModel <-
+        chainResults[which_best,'bestModel'][[1]]
+        
       names(best_fit) <-
         names(chainResults[1,4][[1]])
       
@@ -431,6 +374,9 @@ simulatedAnnealing <-
       
       names(best_fit) <-
         names(chainResults$bestFit)
+      
+      bestModel <-
+        chainResults$bestModel
       
       all_fit <-
         as.numeric(chainResults$allFit)
