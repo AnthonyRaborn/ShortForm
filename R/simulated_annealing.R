@@ -233,122 +233,6 @@ simulatedAnnealing <-
       }
 
       cat("\nUsing the short form randomNeighbor function.")
-      randomNeighborShort <-
-        function(currentModelObject = currentModel,
-                 numChanges = numChanges,
-                 allItems,
-                 data,
-                 bifactor = FALSE,
-                 initialModelSyntax,
-                 itemsPerFactor = maxItems) {
-          # take the model syntax from the currentModelObject
-          internalModelObject <- stringr::str_split(currentModelObject@model.syntax, pattern = "\n", simplify = T)
-
-          # extract the latent factor syntax
-          randomNeighbor.env <- new.env()
-          mapply(
-            assign,
-            c("factors", "currentItems"),
-            syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
-            MoreArgs = list(envir = randomNeighbor.env)
-          )
-
-          # randomly select current items to replace
-
-          replacePattern <- paste0("\\b",
-            allItems,
-            collapse = "\\b|\\b"
-          )
-
-          replacementItemPool <- c()
-          for (i in 1:length(randomNeighbor.env$factors)) {
-            if (class(allItems) == "list") {
-              replacementItemPool[[i]] <- allItems[[i]][!(allItems[[i]] %in% randomNeighbor.env$currentItems[[i]])]
-            } else {
-              replacementItemPool[[i]] <- allItems[!(allItems %in% randomNeighbor.env$currentItems[[i]])]
-            }
-          }
-          changingItems <- c()
-          replacementItem <- c()
-          for (i in 1:numChanges) {
-            # randomly select factor to have an item changed
-            if (bifactor) {
-              currentFactor <- sample(1:(length(randomNeighbor.env$factors) - 1), 1)
-            } else {
-              currentFactor <- sample(1:length(randomNeighbor.env$factors), 1)
-            }
-            # randomly select the item to be changed
-            changingItemTemp <- c()
-            changingItemTemp <- sample(randomNeighbor.env$currentItems[[currentFactor]], 1)
-            while (changingItemTemp %in% changingItems ||
-              length(changingItemTemp %in% changingItems) == 0) {
-              changingItemTemp <- sample(randomNeighbor.env$currentItems[[currentFactor]], 1)
-            }
-            changingItems <- c(changingItems, changingItemTemp)
-            # Sample an item from the items in the item pool
-            tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
-            while (tempReplacementItems %in% replacementItem) {
-              tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
-            }
-            replacementItem <- c(replacementItem, tempReplacementItems)
-          }
-
-          for (i in 1:length(randomNeighbor.env$factors)) {
-            for (j in 1:numChanges) {
-              randomNeighbor.env$currentItems[[i]] <-
-                gsub(
-                  pattern = paste0(changingItems[j], "\\b"),
-                  replacement = replacementItem[j],
-                  x = randomNeighbor.env$currentItems[[i]]
-                )
-            }
-          }
-
-          if (bifactor == TRUE) {
-            # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
-            # assumes that the bifactor latent variable is the last one
-            randomNeighbor.env$currentItems[[length(itemsPerFactor)]] <- unlist(randomNeighbor.env$currentItems[1:(length(itemsPerFactor) - 1)])
-          }
-
-          # create the new model syntax
-          newModelSyntax <- as.vector(
-            stringr::str_split(currentModelObject@model.syntax, "\n", simplify = T)
-          )
-          for (i in 1:length(randomNeighbor.env$factors)) {
-            newModelSyntax[i] <- paste(
-              randomNeighbor.env$factors[i],
-              "=~",
-              paste(randomNeighbor.env$currentItems[[i]], collapse = " + ")
-            )
-          }
-
-          newModelSyntax <- stringr::str_flatten(newModelSyntax, collapse = "\n")
-
-          # refit the model with new items
-          randomNeighborModel <- modelWarningCheck(
-            lavaan::lavaan(
-              model = newModelSyntax,
-              data = originalData,
-              model.type = model.type,
-              auto.var = auto.var,
-              ordered = ordered,
-              estimator = estimator,
-              int.ov.free = int.ov.free,
-              int.lv.free = int.lv.free,
-              auto.fix.first = auto.fix.first,
-              std.lv = std.lv,
-              auto.fix.single = auto.fix.single,
-              auto.cov.lv.x = auto.cov.lv.x,
-              auto.th = auto.th,
-              auto.delta = auto.delta,
-              auto.cov.y = auto.cov.y
-            ),
-            modelSyntax = newModelSyntax
-          )
-
-          # randomNeighborModel$model.syntax <- newModelSyntax
-          return(randomNeighborModel)
-        }
       cat("\nFinished initializing short form options.")
     } else {
       # if not using the short form option
@@ -364,55 +248,6 @@ simulatedAnnealing <-
           }
         }
       )
-      randomNeighborFull <-
-        function(currentModelObject = currentModel,
-                 numChanges = numChanges,
-                 data) {
-          # if (class(currentModelObject) == "list") {
-          #   currentModelObject <- currentModelObject
-          # }
-
-          # using lavaan functions, construct a full parameter table
-          paramTable <- lavaan::parTable(currentModelObject)
-          # fullParamTable <- lavaan:::lav_partable_full(paramTable)
-          # currentModelParams <- lavaan::lav_partable_merge(paramTable, fullParamTable, remove.duplicated = TRUE, warn = FALSE)
-
-          # select the rows that correspond to parameters related to the latent variables
-          latentVariables <-
-            row.names(lavaan::inspect(currentModelObject, "cor.lv"))
-          currentModelParamsLV <-
-            paramTable[paramTable$lhs %in% latentVariables, ]
-
-          # randomly select rows to make changes to
-          randomChangesRows <-
-            sample(currentModelParamsLV$id, size = numChanges)
-          changeParamTable <- paramTable[randomChangesRows, ]
-
-          # make the changes. If currently free, fix to 0; if fixed to 0, set to free
-          paramTable$free[randomChangesRows] <-
-            1 - paramTable$free[randomChangesRows]
-
-          # remove the starting value, estimates, and standard errors of the currentModel
-          paramTable$est <- NULL
-          paramTable$se <- NULL
-          paramTable$start <- NULL
-          paramTable$labels <- NULL
-
-          # refit the model
-          prevModel <- as.list(currentModelObject@call)
-          prevModel$model <- paramTable
-          # randomNeighborModel <- try(do.call(eval(parse(text = "lavaan::lavaan")), prevModel[-1]), silent = TRUE)
-
-          randomNeighborModel <- modelWarningCheck(
-            lavaan::lavaan(
-              model = prevModel$model,
-              data = data
-              ),
-            modelSyntax = prevModel$model
-            )
-
-          return(randomNeighborModel)
-        }
     }
 
 
@@ -430,56 +265,6 @@ simulatedAnnealing <-
         "You need to specify an appropriate default temperature (one of \"linear\", \"quadratic\", or \"logistic\") or include a temperature in the form of a function to continue."
       )
     }
-
-    selectionFunction <-
-      function(currentModelObject = currentModel,
-               randomNeighborModel,
-               currentTemp,
-               maximize,
-               fitStatistic,
-               consecutive) {
-        # check if the randomNeighborModel is a valid model for use
-        if ( 
-          length(randomNeighborModel@warnings) > 1 |
-          length(randomNeighborModel@errors) > 1 
-          ) {
-          return(currentModelObject)
-        }
-
-        # check that the current model isn't null
-        if (is.null(currentModelObject@model.output)) {
-          return(randomNeighborModel)
-        }
-
-        # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-        if (goal(randomNeighborModel@model.output, fitStatistic, maximize) > goal(currentModelObject@model.output, fitStatistic, maximize)) {
-          consecutive <- consecutive + 1
-          return(randomNeighborModel)
-        } else {
-          probability <- exp(-(
-            goal(randomNeighborModel@model.output, fitStatistic, maximize) - goal(currentModelObject@model.output, fitStatistic, maximize)
-          ) / currentTemp)
-          
-          if (is.nan(probability)) probability = 0
-
-          if (probability > stats::runif(1)) {
-            newModel <- randomNeighborModel
-          } else {
-            newModel <- currentModelObject
-          }
-
-          consecutive <- ifelse(
-            identical(
-              lavaan::parameterTable(newModel@model.output),
-              lavaan::parameterTable(currentModelObject@model.output)
-            ),
-            consecutive + 1,
-            0
-          )
-          return(newModel)
-        }
-      }
-
 
     if (class(restartCriteria) == "function") {
       restartCriteria <- restartCriteria
@@ -540,73 +325,42 @@ simulatedAnnealing <-
       opts <- list(progress = progressSeq)
     }
     
-    syntaxExtraction <- function(initialModelSyntaxFile, items) {
-      
-      # extract the latent factor syntax
-      factors <- unique(lavaan::lavaanify(initialModelSyntaxFile)[lavaan::lavaanify(initialModelSyntaxFile)$op ==
-                                                                    "=~", "lhs"])
-      vectorModelSyntax <- stringr::str_split(
-        string = initialModelSyntaxFile,
-        pattern = "\\n",
-        simplify = TRUE
-      )
-      factorSyntax <- c()
-      itemSyntax <- c()
-      for (i in 1:length(factors)) {
-        chosenFactorLocation <- c(1:length(vectorModelSyntax))[grepl(x = vectorModelSyntax, pattern = paste0(factors[i], "[ ]{0,}=~ "))]
-        factorSyntax[i] <- vectorModelSyntax[chosenFactorLocation]
-        # remove the factors from the syntax
-        itemSyntax[i] <-
-          gsub(
-            pattern = paste(factors[i], "=~ "),
-            replacement = "",
-            x = factorSyntax[i]
-          )
-      }
-      
-      # extract the items for each factor
-      itemsPerFactor <- stringr::str_extract_all(
-        string = itemSyntax,
-        pattern = paste0("(\\b", paste0(
-          paste0(unlist(items), collapse = "\\b)|(\\b"), "\\b)"
-        ))
-      )
-      return(list("factors" = factors, "itemsPerFactor" = itemsPerFactor))
-    }
-    
     chains = setChains
+    currentStep <- 1
+    consecutive <- 0
     
     #### perform algorithm ####
     start.time <- Sys.time()
 
     cat("\n Current Progress: \n")
 
-    allModel <- currentModel@model.syntax
+    allModel <- paste0(currentModel@model.syntax, collapse = "\n")
     allFit <- bestFit
     
     chainResults <-
-      foreach::foreach(chain = 1:chains, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
+      foreach::foreach(chain = 1:chains, .inorder = F, .combine = rbind, 
+                       .options.snow = opts) %dopar% {
 
         while (currentStep < maxSteps) {
           
-
           # how many changes to make?
           numChanges <- sample(1:maxChanges, size = 1)
           # generate random model
-          if (is.null(maxItems) & randomNeighbor == TRUE) {
+          if (shortForm == FALSE) {
             randomNeighborModel <- randomNeighborFull(
               currentModelObject = currentModel,
               numChanges = numChanges,
               data = originalData
             )
-          } else if (randomNeighbor == TRUE) {
+          } else if (shortForm == TRUE) {
             randomNeighborModel <- randomNeighborShort(
               currentModelObject = currentModel,
               numChanges = numChanges,
               data = originalData,
               allItems = allItems,
-              bifactor,
-              itemsPerFactor
+              bifactor = bifactor,
+              init.model = initialModel,
+              lavaan.model.specs = lavaan.model.specs
             )
           }
           # select between random model and current model
