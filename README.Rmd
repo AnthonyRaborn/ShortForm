@@ -40,34 +40,77 @@ examples to converge on a laptop with an Intel Core i7 8th Gen processor is prin
 start.time.ACO <- Sys.time()
 library(ShortForm, quietly = T)
 # using simulated test data and the default values for lavaan.model.specs
-# (with one exception), fit a 10-item short form
-# first, read in the original or "full" model
-data(exampleAntModel) # a character vector for a lavaan model
+set.seed(1)
+# create simulation data from the `psych` package
+# four factors, 12 items each, 48 total items
+# factor loading matrix - not quite simple structure
+fxMatrix <- 
+ matrix(data = c(rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4*3), # first factor loadings
+                 
+                 rep(0.2, times = 3*4),
+                 rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4*2), # second factor loadings
+                 
+                 rep(0.2, times = 3*4*2),
+                 rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4), # third factor loadings
+                 
+                 rep(0.2, times = 3*4*3),
+                 rep(x = c(.8, .8, .4, .3), times = 3) # fourth factor loadings
+ ),
+ ncol = 4)
+# factor correlation matrix - all factors uncorrelated
+PhiMatrix <-
+ matrix(data = c(1,0,0,0, 
+                 0,1,0,0, 
+                 0,0,1,0, 
+                 0,0,0,1), ncol = 4) 
+antData <- 
+ psych::sim(
+   fx = fxMatrix,
+   Phi = PhiMatrix,
+   n = 600,
+   mu = c(-2, -1, 1, 2),
+   raw = TRUE
+ )$observed # observed is the simulated observed data
+
+colnames(antData) = paste0("Item", 1:48)
+
+antModel <- '
+Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12
+Trait2 =~ Item13 + Item14 + Item15 + Item16 + Item17 + Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24
+Trait3 =~ Item25 + Item26 + Item27 + Item28 + Item29 + Item30 + Item31 + Item32 + Item33 + Item34 + Item35 + Item36
+Trait4 =~ Item37 + Item38 + Item39 + Item40 + Item41 + Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48
+'
 
 # then, create the list of the items by the factors
-# in this case, all items load onto the general 'Ability' factor
-list.items <- list(paste0("Item", 1:56))
-
-# load the data
-data(simulated_test_data)
+list.items <- 
+  list(
+    paste0("Item",  1:12),
+    paste0("Item", 13:24),
+    paste0("Item", 25:36),
+    paste0("Item", 37:48)
+       )
 # finally, call the function with some minor changes to the default values.
-# since the data is binary, let lavaan know by putting the items in the
-# 'ordered' element of the lavaan.model.specs list.
-set.seed(1)
-abilityShortForm = antcolony.lavaan(data = simulated_test_data,
-ants = 10, evaporation = 0.9, antModel = exampleAntModel,
-list.items = list.items, full = 56, i.per.f = 10,
-lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default", 
-                          ordered = unlist(list.items), int.ov.free = TRUE,
+abilityShortForm = 
+  antcolony.lavaan(data = antData,
+                   ants = 10, evaporation = 0.9, antModel = antModel,
+                   list.items = list.items, full = 48, i.per.f = c(6,6,6,6),
+                   lavaan.model.specs = 
+                     list(model.type = "cfa", auto.var = T, estimator = "default", 
+                          ordered = NULL, int.ov.free = TRUE,
                           int.lv.free = FALSE, auto.fix.first = TRUE, 
                           auto.fix.single = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE, 
                           auto.th = TRUE, auto.delta = TRUE, 
                           auto.cov.y = TRUE),
-factors = 'Ability', steps = 100, fit.indices = c('cfi', 'rmsea'),
-fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
-summaryfile = NULL,
-feedbackfile = NULL,
-max.run = 100, parallel = T)
+                   factors = c("Trait1", "Trait2", "Trait3", "Trait4"), steps = 100, 
+                   fit.indices = c('cfi', 'rmsea'),
+                   fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
+                   summaryfile = NULL,
+                   feedbackfile = NULL,
+                   max.run = 100, 
+                   parallel = T)
 abilityShortForm # print the results of the final short form
 plot(abilityShortForm, type = 'pheromone') # the pheromone plot for class "antcolony"
 ```
@@ -118,10 +161,20 @@ init.model <- lavaan::lavaan(model = tabuModel, data = tabuData,
                              auto.cov.lv.x=FALSE)
 
 # use search.prep to prepare for the Tabu search
-ptab <- search.prep(fitted.model = init.model, loadings=TRUE, fcov=FALSE, 
-                    errors=FALSE)
+ptab <- 
+  search.prep(fitted.model = init.model, 
+              loadings=TRUE, 
+              fcov=FALSE, 
+              errors=FALSE)
 
-Tabu_example <- suppressWarnings(tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 20, tabu.size = 10)) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
+Tabu_example <- 
+  suppressWarnings(
+    tabu.sem(init.model = init.model, 
+             ptab = ptab, 
+             obj = AIC, 
+             niter = 20, 
+             tabu.size = 10)
+    ) # the suppressWarning wrapping hides the lavaan WARNING output from improper models
 
 # check the final model
 summary(Tabu_example)
@@ -192,11 +245,11 @@ tabuCriterion = function(x) {
 
 # use the tabuShortForm function
 # reduce form to the best 12 items, 3 per factor
-tabuShort <- tabuShortForm(initialModel = tabuModel, originalData = tabuData,
-                           numItems = c(3,3,3,3), 
-                           criterion = tabuCriterion,
-                           niter = 20, tabu.size = 10, verbose = FALSE
-                           )
+tabuShort <- 
+  tabuShortForm(initialModel = tabuModel, originalData = tabuData,
+                numItems = c(3,3,3,3), criterion = tabuCriterion,
+                niter = 20, tabu.size = 10, verbose = FALSE
+                )
 
 # check the chosen model
 summary(tabuShort)
@@ -213,24 +266,65 @@ This example demonstrates the use of simulated annealing for creating short form
 ```{r Simulated Annealing example}
 start.time.SA <- Sys.time()
 library(ShortForm, quietly = T)
-# load simulation data and select columns used in this example
-data(simulated_test_data) 
-saData <- simulated_test_data[,c(1:12)]
+# create simulation data from the `psych` package
+# four factors, 12 items each, 48 total items
+# factor loading matrix - not quite simple structure
+set.seed(4)
+fxMatrix <- 
+ matrix(data = c(rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4*3), # first factor loadings
+                 
+                 rep(0.2, times = 3*4),
+                 rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4*2), # second factor loadings
+                 
+                 rep(0.2, times = 3*4*2),
+                 rep(x = c(.8, .8, .4, .3), times = 3),
+                 rep(0.2, times = 3*4), # third factor loadings
+                 
+                 rep(0.2, times = 3*4*3),
+                 rep(x = c(.8, .8, .4, .3), times = 3) # fourth factor loadings
+ ),
+ ncol = 4)
+# factor correlation matrix - all factors uncorrelated
+PhiMatrix <-
+ matrix(data = c(1,0,0,0, 
+                 0,1,0,0, 
+                 0,0,1,0, 
+                 0,0,0,1), ncol = 4) 
+annealData <- 
+ psych::sim(
+   fx = fxMatrix,
+   Phi = PhiMatrix,
+   n = 600,
+   mu = c(-2, -1, 1, 2),
+   raw = TRUE
+ )$observed # observed is the simulated observed data
 
-# specify the full model
-saModel <- "
-Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10
-Ability ~ Outcome
-"
-lavaan.model.specs = list(model.type = "cfa",
-  auto.var = TRUE, estimator = "default", ordered = paste0("Item", 1:10), int.ov.free = TRUE,
-  int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, auto.fix.single =
-  TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y =
-  TRUE)
+colnames(annealData) = paste0("Item", 1:48)
+
+annealModel <- '
+Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8 + Item9 + Item10 + Item11 + Item12
+Trait2 =~ Item13 + Item14 + Item15 + Item16 + Item17 + Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24
+Trait3 =~ Item25 + Item26 + Item27 + Item28 + Item29 + Item30 + Item31 + Item32 + Item33 + Item34 + Item35 + Item36
+Trait4 =~ Item37 + Item38 + Item39 + Item40 + Item41 + Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48
+'
+
+lavaan.model.specs <-
+  list(model.type = "cfa",
+       auto.var = TRUE, estimator = "default", ordered = NULL,
+       int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE, auto.fix.first = FALSE, 
+       auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, 
+       auto.delta = TRUE, auto.cov.y = TRUE)
 
 # perform the SA algorithm
 set.seed(1)
-SA_example <- simulatedAnnealing(initialModel = saModel, originalData = saData, maxSteps = 100, fitStatistic = 'cfi', maximize = TRUE, temperature = "logistic", items = paste0("Item", 1:10), lavaan.model.specs = lavaan.model.specs, maxChanges = 3, maxItems = 5, setChains = 4)
+SA_example <- 
+  simulatedAnnealing(initialModel = annealModel, originalData = annealData, maxSteps = 200, 
+                     fitStatistic = 'cfi', maximize = TRUE, 
+                     temperature = "logistic", items = paste0("Item", 1:48), 
+                     lavaan.model.specs = lavaan.model.specs, 
+                     maxChanges = 3, maxItems = c(6,6,6,6), setChains = 4)
 summary(SA_example)
 plot(SA_example) # plot showing how the fit value changes at each step
 ```
