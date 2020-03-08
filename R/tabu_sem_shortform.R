@@ -160,74 +160,14 @@ tabuShortForm <- function(originalData,
   vectorModel <- unlist(strsplit(x = initialModel, split = "\\n"))
   externalRelation <- vectorModel[grep("[ ]{0,}(?<!=)~ ", vectorModel, perl = T)]
   factorRelation <- vectorModel[grep("[ ]{0,}~~ ", vectorModel)]
-
-  randomInitialModel <- function(init.model = initialModel,
-                                 maxItems = numItems,
-                                 initialData = originalData,
-                                 bifactorModel = bifactor) {
-    # extract the latent factor syntax
-    mapply(
-      assign,
-      c("factors", "itemsPerFactor"),
-      syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
-      MoreArgs = list(envir = parent.frame())
-    )
-
-    # save the external relationships
-    vectorModel <- unlist(strsplit(x = initialModel, split = "\\n"))
-    externalRelation <- vectorModel[grep("[ ]{0,}(?<!=)~ ", vectorModel, perl = T)]
-    factorRelation <- vectorModel[grep("[ ]{0,}~~ ", vectorModel)]
-
-    # reduce the number of items for each factor according to maxItems
-    newItemsPerFactor <- list()
-    for (i in 1:length(itemsPerFactor)) {
-      newItemsPerFactor[[i]] <- sample(x = unique(unlist(itemsPerFactor[i])), size = unlist(maxItems[i]))
-    }
-
-    if (bifactorModel == TRUE) {
-      # if bifactorModel == TRUE, fix the items so the newItems all load on the bifactor
-      # assumes that the bifactor latent variable is the last one
-      newItemsPerFactor[[length(itemsPerFactor)]] <- unlist(newItemsPerFactor[1:(length(itemsPerFactor) - 1)])
-    }
-
-    # create the new model syntax
-
-    newModelSyntax <- c()
-    for (i in 1:length(factors)) {
-      newModelSyntax[i] <- paste(
-        factors[i], "=~",
-        paste(newItemsPerFactor[[i]], collapse = " + ")
-      )
-    }
-    newModelSyntax <- c(newModelSyntax, externalRelation, factorRelation)
-    newModelSyntax <- paste(newModelSyntax, collapse = "\n")
-    # fit the new model
-    newModel <- modelWarningCheck(
-      lavaan::lavaan(
-        model = newModelSyntax,
-        data = initialData,
-        model.type = model.type,
-        int.ov.free = int.ov.free,
-        int.lv.free = int.lv.free,
-        auto.fix.first = auto.fix.first,
-        std.lv = std.lv,
-        auto.fix.single = auto.fix.single,
-        auto.var = auto.var,
-        auto.cov.lv.x = auto.cov.lv.x,
-        auto.th = auto.th,
-        auto.delta = auto.delta,
-        auto.cov.y = auto.cov.y,
-        ordered = ordered,
-        estimator = estimator,
-      ),
-      newModelSyntax
-    )
-
-    return(newModel)
-  }
-
+  
   init.model <-
-    randomInitialModel()
+    randomInitialModel(init.model = initialModel,
+                       maxItems = maxItems,
+                       allItems = allItems,
+                       initialData = originalData,
+                       bifactorModel = bifactor,
+                       lavaan.model.specs = lavaan.model.specs)
 
   best.obj <- all.obj <- current.obj <- criterion(init.model@model.output)
   best.mod <- current.model <- init.model@model.output
