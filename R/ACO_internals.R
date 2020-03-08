@@ -1,4 +1,12 @@
-antcolonyNewModel <- function(itemList, itemVector, includedItems, model, itemCount, factorNames, bifactor = NULL) {
+antcolonyNewModel <- 
+  function(itemList, 
+           itemVector,
+           includedItems, 
+           model, 
+           itemCount, 
+           factorNames, 
+           bifactor = NULL
+           ) {
   all.items <- c()
 
   selected.items <- vector("list", length(itemList))
@@ -52,49 +60,37 @@ antcolonyNewModel <- function(itemList, itemVector, includedItems, model, itemCo
   ))
 }
 
-modelWarningCheck <- function(expr, modelSyntax) {
-  warn = err = c('none')
-  value <- withCallingHandlers(
-    tryCatch(
-      expr,
-      error = function(e) {
-        err <<-
-          append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e))))
-        NULL
-      }
-    ),
-    warning = function(w) {
-      warn <<-
-        append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
-      invokeRestart("muffleWarning")
-    }
-  )
-  
-  new(
-    'modelCheck',
-    "model.output" = value,
-    "warnings" = as.character(unlist(warn)),
-    "errors" = as.character(unlist(err)),
-    'model.syntax' = modelSyntax
-  )
-}
-
-
-modelInfoExtract <- function(modelCheckObj, fitIndices) {
+modelInfoExtract <- 
+  function(modelCheckObj, 
+           fitIndices
+           ) {
 
   # first, fit indices
-  model.fit <- lavaan::fitMeasures(modelCheckObj@model.output, fitIndices)
+  model.fit <-
+    lavaan::fitMeasures(modelCheckObj@model.output, 
+                        fitIndices
+                        )
 
   # next, gamma/beta/variances
   # estimate the standardized coefficients of the variables
-  standard.coefs <- lavaan::standardizedSolution(modelCheckObj@model.output, se = FALSE, zstat = FALSE, pvalue = FALSE, remove.def = TRUE)
+  standard.coefs <- 
+    lavaan::standardizedSolution(modelCheckObj@model.output, 
+                                 se = FALSE, 
+                                 zstat = FALSE, 
+                                 pvalue = FALSE, 
+                                 remove.def = TRUE
+                                 )
   # extract the regression coefficients
-  std.gammas <- standard.coefs[which(standard.coefs[, 2] == "=~"), ]$est.std
-  std.betas <- standard.coefs[which(standard.coefs[, 2] == "~"), ]$est.std
-  std.reg.coef <- standard.coefs[which(standard.coefs[, 2] == "~" | standard.coefs[, 2] == "=~"), ]$est.std
+  std.gammas <-
+    standard.coefs[which(standard.coefs[, 2] == "=~"), ]$est.std
+  std.betas <-
+    standard.coefs[which(standard.coefs[, 2] == "~"), ]$est.std
+  std.reg.coef <-
+    standard.coefs[which(standard.coefs[, 2] == "~" | standard.coefs[, 2] == "=~"), ]$est.std
 
   # obtains the variance explained ("rsquare") from lavaan
-  variance.explained <- lavaan::lavInspect(modelCheckObj@model.output, "rsquare")
+  variance.explained <-
+    lavaan::lavInspect(modelCheckObj@model.output, "rsquare")
 
   return(list(
     "model.fit" = model.fit,
