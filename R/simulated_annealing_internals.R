@@ -516,7 +516,17 @@ fitmeasuresCheck <-
         "srmr", "srmr_bentler", "srmr_bentler_nomean", 
         "crmr", "crmr_nomean", "srmr_mplus", "srmr_mplus_nomean",
         "cn_05", "cn_01", 
-        "gfi", "agfi", "pgfi", "mfi", "ecvi"
+        "gfi", "agfi", "pgfi", "mfi", "ecvi",
+        "chisq.scaled", "df.scaled", "pvalue.scaled", "chisq.scaling.factor",
+        "baseline.chisq.scaled", "baseline.df.scaled", "baseline.pvalue.scaled",
+        "baseline.chisq.scaling.factor",
+        "cfi.scaled", "tli.scaled",                   
+        "cfi.robust", "tli.robust",                   
+        "nnfi.scaled", "nnfi.robust",                  
+        "rfi.scaled",  "nfi.scaled", "ifi.scaled", "rni.scaled", "rni.robust",
+        "rmsea.scaled", "rmsea.ci.lower.scaled", "rmsea.ci.upper.scaled",
+        "rmsea.pvalue.scaled", "rmsea.robust", "rmsea.ci.lower.robust", 
+        "rmsea.ci.upper.robust", "rmsea.pvalue.robust"
       )
     
     invalidMeasures <-
