@@ -225,6 +225,11 @@ simulatedAnnealing <-
           }
         }
       )
+      currentModel <- 
+        list('lavaan.output' = initialModel,
+             'warnings' = NULL,
+             'errors' = NULL
+             )
       randomNeighborFull <-
         function(currentModelObject = currentModel,
                  numChanges = numChanges,
@@ -264,8 +269,9 @@ simulatedAnnealing <-
           prevModel$model <- paramTable
           # randomNeighborModel <- try(do.call(eval(parse(text = "lavaan::lavaan")), prevModel[-1]), silent = TRUE)
           
-          randomNeighborModel <- modelWarningCheck(lavaan::lavaan(model = prevModel$model,
-                                                                  data = data))
+          randomNeighborModel <-
+            modelWarningCheck(lavaan::lavaan(model = prevModel$model,
+                                             data = data))
           
           return(randomNeighborModel)
         }
@@ -286,54 +292,7 @@ simulatedAnnealing <-
         "You need to specify an appropriate default temperature (one of \"linear\", \"quadratic\", or \"logistic\") or include a temperature in the form of a function to continue."
       )
     }
-    
-    selectionFunction <-
-      function(currentModelObject = currentModel,
-               randomNeighborModel,
-               currentTemp,
-               maximize,
-               fitStatistic,
-               consecutive) {
-        # check if the randomNeighborModel is a valid model for use
-        if (length(randomNeighborModel[[2]]) > 0 |
-            length(randomNeighborModel[[2]]) > 0) {
-          return(currentModelObject)
-        }
-        
-        # check that the current model isn't null
-        if (is.null(currentModelObject[[1]])) {
-          return(randomNeighborModel)
-        }
-        
-        # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-        if (goal(randomNeighborModel[[1]], fitStatistic, maximize) < goal(currentModelObject[[1]], fitStatistic, maximize)) {
-          consecutive = consecutive + 1
-          return(randomNeighborModel)
-          
-        } else {
-          probability = exp(-(
-            goal(randomNeighborModel[[1]], fitStatistic, maximize) - goal(currentModelObject[[1]], fitStatistic, maximize)
-          ) / currentTemp)
-          
-          if (probability > stats::runif(1)) {
-            newModel = randomNeighborModel
-          } else {
-            newModel = currentModelObject
-          }
-          
-          consecutive = ifelse(
-            identical(
-              lavaan::parameterTable(newModel[[1]]),
-              lavaan::parameterTable(currentModelObject[[1]])
-            ),
-            consecutive + 1,
-            0
-          )
-          return(newModel)
-        }
-      }
-    
-    
+
     if (class(restartCriteria) == "function") {
       restartCriteria = restartCriteria
     } else if (restartCriteria == "consecutive") {
