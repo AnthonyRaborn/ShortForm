@@ -306,7 +306,7 @@ lavaan.model.specs <-
 # perform the SA algorithm
 SA_example <- 
   simulatedAnnealing(initialModel = annealModel, originalData = annealData, 
-                     maxSteps = 100, fitStatistic = 'cfi', maximize = TRUE, 
+                     maxSteps = 500, fitStatistic = 'cfi', maximize = TRUE, 
                      temperature = "logistic", 
                      items = list(paste0("Item", 1:12),
                                   paste0("Item", 13:24),
