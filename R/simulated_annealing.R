@@ -210,122 +210,6 @@ simulatedAnnealing <-
       }
       
       cat("\nUsing the short form randomNeighbor function.")
-      randomNeighborShort <-
-        function(currentModelObject = currentModel,
-                 numChanges = numChanges,
-                 allItems,
-                 data,
-                 bifactor = FALSE,
-                 initialModelSyntax,
-                 itemsPerFactor = maxItems) {
-          # take the model syntax from the currentModelObject
-          internalModelObject = stringr::str_split(currentModelObject$model.syntax, pattern = "\n", simplify = T)
-          
-          # extract the latent factor syntax
-          randomNeighbor.env <- new.env()
-          mapply(
-            assign,
-            c("factors", "currentItems"),
-            syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
-            MoreArgs = list(envir = randomNeighbor.env)
-          )
-          
-          # randomly select current items to replace
-          
-          replacePattern = paste0("\\b",
-                                  allItems,
-                                  collapse = "\\b|\\b")
-          
-          replacementItemPool = c()
-          for (i in 1:length(randomNeighbor.env$factors)) {
-            if (class(allItems) == "list") {
-              replacementItemPool[[i]] = allItems[[i]][!(allItems[[i]] %in% randomNeighbor.env$currentItems[[i]])]
-            } else {
-              replacementItemPool[[i]] = allItems[!(allItems %in% randomNeighbor.env$currentItems[[i]])]
-              
-            }
-          }
-          changingItems = c()
-          replacementItem = c()
-          for (i in 1:numChanges) {
-            # randomly select factor to have an item changed
-            if (bifactor) {
-              currentFactor = sample(1:(length(randomNeighbor.env$factors) - 1), 1)
-            } else {
-              currentFactor = sample(1:length(randomNeighbor.env$factors), 1)
-            }
-            # randomly select the item to be changed
-            changingItemTemp = c()
-            changingItemTemp = sample(randomNeighbor.env$currentItems[[currentFactor]], 1)
-            while (changingItemTemp %in% changingItems ||
-                   length(changingItemTemp %in% changingItems) == 0) {
-              changingItemTemp = sample(randomNeighbor.env$currentItems[[currentFactor]], 1)
-            }
-            changingItems = c(changingItems, changingItemTemp)
-            # Sample an item from the items in the item pool
-            tempReplacementItems = sample(replacementItemPool[[currentFactor]], 1)
-            while (tempReplacementItems %in% replacementItem) {
-              tempReplacementItems = sample(replacementItemPool[[currentFactor]], 1)
-            }
-            replacementItem = c(replacementItem, tempReplacementItems)
-          }
-          
-          for (i in 1:length(randomNeighbor.env$factors)) {
-            for (j in 1:numChanges) {
-              randomNeighbor.env$currentItems[[i]] =
-                gsub(
-                  pattern = paste0(changingItems[j], "\\b"),
-                  replacement = replacementItem[j],
-                  x = randomNeighbor.env$currentItems[[i]]
-                )
-            }
-          }
-          
-          if (bifactor == TRUE) {
-            # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
-            # assumes that the bifactor latent variable is the last one
-            randomNeighbor.env$currentItems[[length(itemsPerFactor)]] = unlist(randomNeighbor.env$currentItems[1:(length(itemsPerFactor) - 1)])
-          }
-          
-          # create the new model syntax
-          newModelSyntax = as.vector(
-            stringr::str_split(currentModelObject$model.syntax, "\n", simplify = T)
-          )
-          for (i in 1:length(randomNeighbor.env$factors)) {
-            newModelSyntax[i] = paste(
-              randomNeighbor.env$factors[i],
-              "=~",
-              paste(randomNeighbor.env$currentItems[[i]], collapse = " + ")
-            )
-          }
-          
-          newModelSyntax = stringr::str_flatten(newModelSyntax, collapse = "\n")
-          
-          # refit the model with new items
-          randomNeighborModel <- modelWarningCheck(
-            lavaan::lavaan(
-              model = newModelSyntax,
-              data = originalData,
-              model.type = model.type,
-              auto.var = auto.var,
-              ordered = ordered,
-              estimator = estimator,
-              int.ov.free = int.ov.free,
-              int.lv.free = int.lv.free,
-              auto.fix.first = auto.fix.first,
-              std.lv = std.lv,
-              auto.fix.single = auto.fix.single,
-              auto.cov.lv.x = auto.cov.lv.x,
-              auto.th = auto.th,
-              auto.delta = auto.delta,
-              auto.cov.y = auto.cov.y
-            )
-          )
-          
-          randomNeighborModel$model.syntax = newModelSyntax
-          return(randomNeighborModel)
-          
-        }
       cat("\nFinished initializing short form options.")
     } else {
       # if not using the short form option
@@ -502,8 +386,9 @@ simulatedAnnealing <-
           numChanges = numChanges,
           data = originalData,
           allItems = allItems,
-          bifactor,
-          itemsPerFactor
+          bifactor = bifactor,
+          init.model = initialModel,
+          lavaan.model.specs = lavaan.model.specs
         )
         
       }
