@@ -1,4 +1,140 @@
-
+randomNeighborShort <-
+  function(currentModelObject,
+           numChanges,
+           allItems,
+           data,
+           bifactor = FALSE,
+           init.model,
+           lavaan.model.specs) {
+    
+    mapply(
+      assign,
+      c("factors", "itemsPerFactor"),
+      syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems),
+      MoreArgs = list(envir = environment())
+    )
+    
+    mapply(
+      assign,
+      names(lavaan.model.specs),
+      lavaan.model.specs,
+      MoreArgs = list(envir = environment())
+    )
+    # take the model syntax from the currentModelObject
+    internalModelObject <- 
+      stringr::str_split(currentModelObject$model.syntax, 
+                         pattern = "\n",
+                         simplify = T)
+    
+    # extract the latent factor syntax
+    mapply(
+      assign,
+      c("factors", "currentItems"),
+      syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
+      MoreArgs = list(envir = environment())
+    )
+    
+    # randomly select current items to replace
+    
+    replacePattern <- paste0("\\b",
+                             paste0(allItems,
+                                    collapse = "\\b|\\b"
+                             ),
+                             "\\b")
+    
+    replacementItemPool <- c()
+    for (i in 1:length(factors)) {
+      if (class(allItems) == "list") {
+        replacementItemPool[[i]] <- 
+          allItems[[i]][!(allItems[[i]] %in% currentItems[[i]])]
+      } else {
+        replacementItemPool[[i]] <-
+          allItems[!(allItems %in% currentItems[[i]])]
+      }
+    }
+    changingItems <- c()
+    replacementItem <- c()
+    for (i in 1:numChanges) {
+      # randomly select factor to have an item changed
+      if (bifactor) {
+        currentFactor <- sample(1:(length(factors) - 1), 1)
+      } else {
+        currentFactor <- sample(1:length(factors), 1)
+      }
+      # randomly select the item to be changed
+      changingItemTemp <- c()
+      changingItemTemp <- sample(currentItems[[currentFactor]], 1)
+      while (changingItemTemp %in% changingItems ||
+             length(changingItemTemp %in% changingItems) == 0) {
+        changingItemTemp <- sample(currentItems[[currentFactor]], 1)
+      }
+      changingItems <- c(changingItems, changingItemTemp)
+      # Sample an item from the items in the item pool
+      tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
+      while (tempReplacementItems %in% replacementItem) {
+        tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
+      }
+      replacementItem <- c(replacementItem, tempReplacementItems)
+    }
+    
+    for (i in 1:length(factors)) {
+      for (j in 1:numChanges) {
+        currentItems[[i]] <-
+          gsub(
+            pattern = paste0(changingItems[j], "\\b"),
+            replacement = replacementItem[j],
+            x = currentItems[[i]]
+          )
+      }
+    }
+    
+    if (bifactor == TRUE) {
+      # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
+      # assumes that the bifactor latent variable is the last one
+      currentItems[[length(itemsPerFactor)]] <- unlist(currentItems[1:(length(itemsPerFactor) - 1)])
+    }
+    
+    # create the new model syntax
+    newModelSyntax <- as.vector(
+      stringr::str_split(currentModelObject$model.syntax, 
+                         "\n", 
+                         simplify = T)
+    )
+    for (i in 1:length(factors)) {
+      newModelSyntax[i] <- paste(
+        factors[i],
+        "=~",
+        paste(currentItems[[i]], collapse = " + ")
+      )
+    }
+    
+    newModelSyntax <- stringr::str_flatten(newModelSyntax,
+                                           collapse = "\n")
+    
+    # refit the model with new items
+    randomNeighborModel <- modelWarningCheck(
+      lavaan::lavaan(
+        model = newModelSyntax,
+        data = data,
+        model.type = model.type,
+        auto.var = auto.var,
+        ordered = ordered,
+        estimator = estimator,
+        int.ov.free = int.ov.free,
+        int.lv.free = int.lv.free,
+        auto.fix.first = auto.fix.first,
+        std.lv = std.lv,
+        auto.fix.single = auto.fix.single,
+        auto.cov.lv.x = auto.cov.lv.x,
+        auto.th = auto.th,
+        auto.delta = auto.delta,
+        auto.cov.y = auto.cov.y
+      )
+    )
+    
+    randomNeighborModel$model.syntax = newModelSyntax
+    return(randomNeighborModel)
+  }
 
 selectionFunction <-
   function(currentModelObject = currentModel,
