@@ -139,27 +139,35 @@ tabuShortForm <-
     best.model <- current.model <- initialShortModel$lavaan.output
     tabu.list <- vector("numeric")
     
-    factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
-                                                       "=~", 'lhs'])
+    factors = unique(lavaan::lavaanify(initialModel
+                                       )[lavaan::lavaanify(initialModel
+                                                           )$op =="=~", 'lhs'])
     externalRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
     factorRelation = unlist(strsplit(x = initialModel, split = "\\n"))[grep(" ~~ ", unlist(strsplit(x = initialModel, split = "\\n")))]
     
     if (is.list(allItems)) {
-      included.items <-
-        stringr::str_extract_all(string = initialShortModel$model.syntax,
-                                 pattern = paste0("(\\b", paste0(
-                                   paste0(unlist(allItems), collapse = "\\b)|(\\b"), "\\b)"
-                                 )))
+      included.items = vector('list', length(allItems))
+      for (l in 1:length(allItems)) {
+       included.items[[l]] =
+         stringr::str_extract_all(
+           string =  
+                grep(pattern = "(?<=~)[A-z0-9 +]*" ,
+                x = stringr::str_split(string = initialShortModel$model.syntax, 
+                              pattern = "\\b\\n\\b", 
+                              simplify = T),
+                perl = T,
+                value = T
+                )[l],
+           pattern = 
+             paste0(paste("\\b", 
+                          unlist(allItems), 
+                          "\\b",
+                          sep = ""), 
+                    collapse= "|")
+         )[[1]]
+      }
     } else {
-      included.items <-
-        unlist(as.vector(
-          stringr::str_extract_all(
-            string = initialShortModel$model.syntax,
-            pattern = paste0("(\\b", paste0(
-              paste0(allItems, collapse = "\\b)|(\\b"), "\\b)"
-            ))
-          )
-        ))
+      included.items = allItems[which(allItems %in% included.items)]
     }
     
     # Do iterations
@@ -178,9 +186,20 @@ tabuShortForm <-
       tmp.mod <- list()
       tmp.syntax <- list()
       
+      if (is.list(allItems)) {
+        for (l in 1:length(allItems)) {
+          temp.items = included.items[[l]]
+          included.items[[l]] = allItems[[l]][
+            which(allItems[[l]] %in% temp.items
+                  )]
+        }
+      } else {
+        included.items = allItems[which(allItems %in% included.items)]
+      }
+      
       
       if (is.list(allItems)) {
-        excluded.items = list()
+        excluded.items = vector('list', length(allItems))
         for (l in 1:length(allItems)) {
           temp.items = included.items[[l]]
           excluded.items[[l]] = allItems[[l]][which(!(allItems[[l]] %in% temp.items))]
