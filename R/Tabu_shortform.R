@@ -167,7 +167,23 @@ tabuShortForm <-
          )[[1]]
       }
     } else {
-      included.items = allItems[which(allItems %in% included.items)]
+      included.items = 
+        stringr::str_extract_all(
+          string =  
+            grep(pattern = "(?<=~)[A-z0-9 +]*" ,
+                 x = stringr::str_split(string = initialShortModel$model.syntax, 
+                                        pattern = "\\b\\n\\b", 
+                                        simplify = T),
+                 perl = T,
+                 value = T
+            ),
+          pattern = 
+            paste0(paste("\\b", 
+                         unlist(allItems), 
+                         "\\b",
+                         sep = ""), 
+                   collapse= "|")
+        )[[1]]
     }
     
     # Do iterations
