@@ -393,7 +393,7 @@ tabuShortForm <-
       }
       
       # Update if the current model is better than the best model
-      if (current.obj <= best.obj) {
+      if (current.obj < best.obj) {
         best.obj <- current.obj
         best.mod <- current.mod
         best.syntax <- current.syntax
