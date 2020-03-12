@@ -1,3 +1,10 @@
+# Package v0.4.6
+## Updated argument check
+* The argument check for fit statistics (ACO, SA) were updated to include fit statistics related to the "WLSMV" estimator (i.e, for ordered data).
+## Bugfixes
+* A bug in the SA function that sometimes resulted in improper items has been fixed.
+* A bug in the Tabu short form function that caused the Tabu list to be erased if the best criterion value was reached has been fixed.
+
 # Package v0.4.5
 ## Extra arugment checks
 * There are now additional checks for the function arguments related to the fit statistics (ACO, SA) and the fit statistic tests (ACO) with informative warnings for when the function arguments are not valid.

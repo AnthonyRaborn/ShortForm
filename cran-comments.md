@@ -1,5 +1,5 @@
 ## Resubmission
-This is a resubmission. In this version I have included three checks to function arguments that will give informative errors if the user misspecifies the arguments.
+This is a resubmission. In this version I have expanded the internal fit measure check function to include fit measures for scales with ordered items. I have also fixed a bug within the simulatedAnnealing function where improper items were sometimes used, and another bug within the tabuShortForm function where items were sometimes completely removed from consideration.
 
 ## Test Environments
 
