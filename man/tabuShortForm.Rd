@@ -58,7 +58,7 @@ Ability ~ Outcome
 data(simulated_test_data)
 tabuResult <- tabuShortForm(initialModel = shortAntModel,
                              originalData = simulated_test_data, numItems = 7,
-                             allItems = colnames(simulated_test_data)[3:11],
+                             allItems = colnames(simulated_test_data)[3:10],
                              niter = 1, tabu.size = 3)
 lavaan::summary(tabuResult$best.mod) # shows the resulting model
 

@@ -30,7 +30,7 @@
 #' data(simulated_test_data)
 #' tabuResult <- tabuShortForm(initialModel = shortAntModel,
 #'                              originalData = simulated_test_data, numItems = 7,
-#'                              allItems = colnames(simulated_test_data)[3:11],
+#'                              allItems = colnames(simulated_test_data)[3:10],
 #'                              niter = 1, tabu.size = 3)
 #' lavaan::summary(tabuResult$best.mod) # shows the resulting model
 #'
@@ -136,7 +136,8 @@ tabuShortForm <-
     cat("The initial short form is: \n")
     cat(paste(initialShortModel$model.syntax, collapse = "\n"))
     best.obj <- all.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
-    best.model <- current.model <- initialShortModel$lavaan.output
+    best.syntax <- current.syntax <- initialShortModel$model.syntax
+    best.mod <- current.mod <- initialShortModel$lavaan.output
     tabu.list <- vector("numeric")
     
     factors = unique(lavaan::lavaanify(initialModel
@@ -387,7 +388,7 @@ tabuShortForm <-
         cat("The initial short form is: \n")
         cat(paste(initialShortModel$model.syntax, collapse = "\n"))
         best.obj <- all.obj <- current.obj <- criterion(initialShortModel$lavaan.output)
-        best.model <- current.model <- initialShortModel$lavaan.output
+        best.mod <- current.mod <- initialShortModel$lavaan.output
         tabu.list <- vector("numeric")
         
         factors = unique(lavaan::lavaanify(initialModel)[lavaan::lavaanify(initialModel)$op ==
@@ -440,7 +441,11 @@ tabuShortForm <-
     
     ret <- list()
     ret$best.obj <- best.obj
-    ret$best.mod <- best.mod[[1]]
+    if (is.list(best.mod)) {
+      ret$best.mod <- best.mod[[1]]
+    } else {
+      ret$best.mod <- best.mod
+    }
     ret$best.syntax <- best.syntax
     ret$all.obj <- all.obj
     class(ret) = "tabu"
