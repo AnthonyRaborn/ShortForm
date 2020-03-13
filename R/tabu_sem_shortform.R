@@ -163,7 +163,7 @@ tabuShortForm <- function(originalData,
   
   init.model <-
     randomInitialModel(init.model = initialModel,
-                       maxItems = maxItems,
+                       maxItems = numItems,
                        allItems = allItems,
                        initialData = originalData,
                        bifactorModel = bifactor,
