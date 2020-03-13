@@ -247,7 +247,7 @@ tabuCriterion = function(x) {
 # reduce form to the best 12 items, 3 per factor
 tabuShort <- 
   tabuShortForm(initialModel = tabuModel, originalData = tabuData,
-                numItems = c(3,3,3,3), criterion = tabuCriterion,
+                numItems = c(5,5,5,5), criterion = tabuCriterion,
                 niter = 20, tabu.size = 10, verbose = FALSE
                 )
 
