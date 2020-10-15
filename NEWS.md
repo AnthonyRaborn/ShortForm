@@ -5,8 +5,8 @@
 * Functions have been updated to accomodate these changes
 
 ## Parallelized Short Form Functions
-* Some short form functions have been modified to work with parallel processors, resulting in noticeably faster results particularly when the solution space is larger (e.g., more starting items) or with more complex models.
-  * Currently, this only works for `antcolony.lavaan`.
+* Some short form functions have been modified to work with parallel processors, resulting in noticeably faster results particularly when the solution space is larger (e.g., more starting items) or with more complex models
+  - This has resulted in some function argument changes. Please check any code that was written with older versions!
 
 # Package v0.4.5
 ## Extra arugment checks
