@@ -18,7 +18,9 @@ knitr::opts_chunk$set(
 [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
 
 
-Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization  (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from [Leite, Huang, & Marcoulides (2008)](<doi:10.1080/00273170802285743>), while the Tabu search function was taken from [Marcoulides & Falk (2018)](<doi:10.1080/10705511.2017.1409074>). There does not yet seem to be an application of Simulated Annealing (SA) within psychometrics, but Drezner & Marcoulides, 1999 (in *Multiple Linear Regression Viewpoints*, Volume 25(2); not available online) used SA for multiple regression model selection; this package appears to be the first to implement SA for psychometric models.
+Automatic Short Form Creation for scales. Currently, the Ant Colony Optimization  (ACO) Algorithm and the Tabu search are implemented. The original R implementation for the ACO algorithm is from [Leite, Huang, & Marcoulides (2008)](<doi:10.1080/00273170802285743>), while the Tabu search function was taken from [Marcoulides & Falk (2018)](<doi:10.1080/10705511.2017.1409074>). There does not yet seem to be an application of Simulated Annealing (SA) within psychometrics, but Drezner & Marcoulides, 1999 (in *Multiple Linear Regression Viewpoints*, Volume 25(2); not available online) used SA for multiple regression model selection; this package appears to be the first to implement SA for psychometric models. 
+
+This document was created on `r Sys.Date()`.
 
 ## Installation
 ```{r gh-installation, eval = FALSE}
@@ -32,7 +34,11 @@ devtools::install_github("AnthonyRaborn/ShortForm", branch = "devel") # the deve
 Here are some (slightly modified) examples from the help documentation using
 lavaan. Be warned, the algorithms may take some time to converge, particularly
 with large forms, multiple dimensions, and different settings. The time for these
-examples to converge on a laptop with an Intel Core i7 8th Gen processor is printed at the bottom.
+examples to converge on a laptop with an Intel Core i7 8th Gen processor is printed at the bottom. See the `sessionInfo()` below.
+
+```{r session-info}
+sessionInfo()
+```
 
 ### ACO Algorithm
 
