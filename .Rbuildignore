@@ -11,4 +11,5 @@ Tabu_example.R
 cran-comments.md
 README-*
 ^CRAN-RELEASE$
+^ignore$
 NEWS.Rmd

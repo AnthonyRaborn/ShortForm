@@ -9,7 +9,6 @@
 #' @param initialModel The initial model (typically the full form) as a character vector with lavaan model.syntax.
 #' @param originalData The original data frame with variable names.
 #' @param numItems A numeric vector indicating the number of items to retain for each factor.
-#' @param allItems For unidimensional models, a character vector of the item names. For multifactor models, a list of the item names, where each element of the list is a factor.
 #' @param criterion A function calculating the objective criterion to minimize. Default is to use the built-in `rmsea` value from `lavaan::fitmeasures()`.
 #' @param niter A numeric value indicating the number of iterations (model specification selections)
 #' to perform. Default is 50.
@@ -30,9 +29,8 @@
 #' data(simulated_test_data)
 #' tabuResult <- tabuShortForm(initialModel = shortAntModel,
 #'                              originalData = simulated_test_data, numItems = 7,
-#'                              allItems = colnames(simulated_test_data)[3:10],
-#'                              niter = 1, tabu.size = 3)
-#' lavaan::summary(tabuResult$best.mod) # shows the resulting model
+#'                              niter = 2, tabu.size = 3)
+#' lavaan::summary(tabuResult@best_model) # shows the resulting model
 #'
 
 tabuShortForm <-

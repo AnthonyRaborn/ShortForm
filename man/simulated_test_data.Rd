@@ -4,7 +4,9 @@
 \name{simulated_test_data}
 \alias{simulated_test_data}
 \title{A simulated data set based on a standardized test.}
-\format{An object of class \code{data.frame} with 1000 rows and 58 columns.}
+\format{
+An object of class \code{data.frame} with 1000 rows and 58 columns.
+}
 \usage{
 simulated_test_data
 }

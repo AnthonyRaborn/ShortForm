@@ -4,6 +4,31 @@ ShortForm
 *News*
 ======
 
+ShortForm v0.5.0
+================
+
+Introduction of S4 Function Classes
+-----------------------------------
+
+-   This version (re-)introduces classes to each of the main function outputs 
+    using S4 methods (instead of the S3 methods present in the prior version)
+    
+-   Each method has a `show` (print), `summary`, and `plot` method that provides 
+    revamped, concise information about the algorithm
+
+-   Functions have been updated to accomodate these changes
+
+Parallelized Short Form Functions
+---------------------------------
+
+-   Some short form functions have been modified to work with parallel 
+    processors, resulting in noticeably faster results particularly when the
+    solution space is larger (e.g., more starting items) or with more complex
+    models
+    
+    -   This has resulted in some function argument changes. Please check any 
+        code that was written with older versions!
+
 ShortForm 0.4.6
 ===============
 

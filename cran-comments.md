@@ -1,11 +1,11 @@
 ## Resubmission
-This is a resubmission. In this version I have expanded the internal fit measure check function to include fit measures for scales with ordered items. I have also fixed a bug within the simulatedAnnealing function where improper items were sometimes used, and another bug within the tabuShortForm function where items were sometimes completely removed from consideration.
+This is a resubmission. In this version I have transformed the S3 classes into S4 classes and parallelized much of the code.
 
 ## Test Environments
 
-* local Windows 10 Home install, R 3.6.2
+* local Windows 10 Home install, R 4.0.3
 
-* Ubuntu 16.04.5 LTS xenial (travis ci), R 3.6.1
+* Ubuntu 16.04.6 LTS xenial (travis ci), R 4.0.2
 
 * r-hub and win_check
 

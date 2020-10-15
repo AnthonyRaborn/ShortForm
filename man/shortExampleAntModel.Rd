@@ -4,7 +4,9 @@
 \name{shortExampleAntModel}
 \alias{shortExampleAntModel}
 \title{Model syntax for the short example in the \code{\link{antcolony.lavaan}} function.}
-\format{A character vector.}
+\format{
+A character vector.
+}
 \usage{
 shortExampleAntModel
 }

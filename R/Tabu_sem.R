@@ -15,46 +15,47 @@
 #' @export
 #'
 #' @examples
-#'# load simulation data and select columns used in this example
-#'data(simulated_test_data)
-#'tabuData <- simulated_test_data[,c(1:10)]
+#' # load simulation data and select columns used in this example
+#' data(simulated_test_data)
+#' tabuData <- simulated_test_data[, c(1:10)]
 #'
-#'# specify an improper model (improper because data is unidimensional)
-#'tabuModel <- "
-#'Ability =~ Item1 + Item2 + Item3 + Item4
-#'FakeAbility =~ Item5 + Item6 + Item7 + Item8
-#'Ability ~ Outcome
-#'FakeAbility ~ 0*Outcome"
+#' # specify an improper model (improper because data is unidimensional)
+#' tabuModel <- "
+#' Ability =~ Item1 + Item2 + Item3 + Item4
+#' FakeAbility =~ Item5 + Item6 + Item7 + Item8
+#' Ability ~ Outcome
+#' FakeAbility ~ 0*Outcome"
 #'
-#'# run the initial misspecified model for Tabu
+#' # run the initial misspecified model for Tabu
 #'
-#'init.model <- lavaan::lavaan(model = tabuModel, data = tabuData,
-#'auto.var=TRUE, auto.fix.first=FALSE, std.lv=TRUE,auto.cov.lv.x=TRUE)
+#' init.model <- lavaan::lavaan(
+#'   model = tabuModel, data = tabuData,
+#'   auto.var = TRUE, auto.fix.first = FALSE, std.lv = TRUE, auto.cov.lv.x = TRUE
+#' )
 #'
-#'# Use search.prep to prepare for the Tabu search
-#'ptab <- search.prep(fitted.model = init.model,loadings=TRUE,fcov=TRUE,errors=FALSE)
+#' # Use search.prep to prepare for the Tabu search
+#' ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 #'
-#'# Perform Tabu Search
-#'trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
-#'
-#'@author Carl F. Falk
-#'@references \url{https://doi.org/10.1080/10705511.2017.1409074}
+#' # Perform Tabu Search
+#' trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
+#' @author Carl F. Falk
+#' @references \url{https://doi.org/10.1080/10705511.2017.1409074}
 
 tabu.sem <- function(init.model,
                      ptab,
                      obj,
                      niter = 30,
                      tabu.size = 5) {
-  # source(Tabu_internal.R)
+  start.time = Sys.time()
   # Initialize objective function and best model
-  best.obj<-all.obj<-current.obj<-obj(init.model)
-  best.model<-current.model<-init.model
-  best.binvec<-current.binvec<-ptab
-  
+  best.obj <- all.obj <- current.obj <- obj(init.model)
+  best.model <- current.model <- init.model
+  best.binvec <- current.binvec <- ptab
+
   tabu.list <- vector("numeric")
-  
+
   # Do iterations
-  for(it in 1:niter){
+  for (it in 1:niter) {
     cat(paste0("\rRunning iteration ", it, " of ", niter, ".   "))
     # Loop through all neighbors
     tmp.obj <- vector("numeric")
@@ -65,54 +66,58 @@ tabu.sem <- function(init.model,
       bin <- 1 - tmp.binvec$free[j]
       tmp.binvec$free[j] <- bin
       fitmodel <- refit.model(init.model, tmp.binvec)
-      
+
       if (fitmodel@Fit@converged & !any(is.na(fitmodel@Fit@se))) {
         fit.val <- obj(fitmodel)
       } else {
         fit.val <- NA
       }
-      
+
       tmp.obj <- c(tmp.obj, fit.val)
       tmp.mod[[j]] <- fitmodel
       tmp.vec[[j]] <- tmp.binvec
     }
-    
+
     # Check which indices result in a valid objective function
     valid <- which(!is.na(tmp.obj))
-    
+
     # Get just models not on Tabu list
     valid <- valid[!(valid %in% tabu.list)]
-    
+
     # Out of valid models, pick model with best objective function value
     indx <- which.min(tmp.obj[valid])
-    
+
     # Move current state to next model
-    current.obj<-(tmp.obj[valid])[indx]
-    all.obj<-c(all.obj,current.obj)
-    current.mod<-(tmp.mod[valid])[[indx]]
-    current.binvec<-(tmp.vec[valid])[[indx]]
-    
+    current.obj <- (tmp.obj[valid])[indx]
+    all.obj <- c(all.obj, current.obj)
+    current.mod <- (tmp.mod[valid])[[indx]]
+    current.binvec <- (tmp.vec[valid])[[indx]]
+
     # Update Tabu list
     tabu.list <- c(valid[indx], tabu.list)
     if (length(tabu.list) > tabu.size) {
       tabu.list <- tabu.list[1:tabu.size]
     }
-    
+
     # Update if the current model is better than the best model
-    if (current.obj <= best.obj) {
+    if (current.obj < best.obj) {
       best.obj <- current.obj
       best.mod <- current.mod
       best.binvec <- current.binvec
       tabu.list <- vector("numeric") # Clear Tabu list
     }
   }
-  
-  ret<-list()
-  ret$best.obj<-best.obj
-  ret$best.mod<-best.mod
-  ret$best.binvec<-best.binvec
-  ret$all.obj<-all.obj
-  class(ret)<-"tabu"
-  
-  return(ret)
+
+  ret <-
+    new("TS",
+      function_call = match.call(),
+      all_fit = all.obj,
+      best_fit = best.obj,
+      best_model = best.mod,
+      best_syntax = best.binvec,
+      runtime = Sys.time() - start.time,
+      final_tabu_list = list(tabu.list)
+  )
+
+  ret
 }

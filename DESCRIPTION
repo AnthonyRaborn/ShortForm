@@ -1,9 +1,9 @@
 Package: ShortForm
 Type: Package
 Title: Automatic Short Form Creation
-Version: 0.4.6
-Date: 2020-03-13
-Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", role = c("aut", "cre")), person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
+Version: 0.5.0
+Date: 2020-10-15
+Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8083-4739")), person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
 Description: Performs automatic creation of short forms of scales with an 
     ant colony optimization algorithm and a Tabu search. As implemented in the 
     package, the ant colony algorithm randomly selects items to build a model of 
@@ -19,7 +19,7 @@ Description: Performs automatic creation of short forms of scales with an
     <doi:10.1080/10705511.2017.1409074> for an applied example of the Tabu search.
 License: LGPL (>= 2.0, < 3) | Mozilla Public License
 LazyData: TRUE
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Suggests:
     knitr,
     MplusAutomation (>= 0.7),
@@ -27,10 +27,15 @@ Suggests:
 Imports:
     lavaan (>= 0.5-22),
     ggplot2,
+    ggrepel,
     tidyr,
-    stringr
+    stringr,
+    methods,
+    doSNOW,
+    parallel,
+    foreach
 Depends:
-    R (>= 3.0.0)
+    R (>= 3.5.0)
 URL: https://github.com/AnthonyRaborn/ShortForm
 BugReports: https://github.com/AnthonyRaborn/ShortForm/issues
 Encoding: UTF-8

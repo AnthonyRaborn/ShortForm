@@ -1,7 +1,19 @@
-
 # ShortForm
 
 # *News*
+
+# ShortForm v0.5.0
+
+## Introduction of S4 Function Classes
+
+  * This version (re-)introduces classes to each of the main function outputs using S4 methods (instead of the S3 methods present in the prior version)
+  * Each method has a `show` (print), `summary`, and `plot` method that provides revamped, concise information about the algorithm
+  * Functions have been updated to accomodate these changes
+
+## Parallelized Short Form Functions
+
+  * Some short form functions have been modified to work with parallel processors, resulting in noticeably faster results particularly when the solution space is larger (e.g., more starting items) or with more complex models
+    - This has resulted in some function argument changes. Please check any code that was written with older versions!
 
 # ShortForm 0.4.6
 
@@ -32,6 +44,10 @@
 
 ## Introduction of Function Classes
 
+## Broken functionality: plot.antcolony
+
+* The function/method `plot.antcolony` was completely removed
+
   - This version introduces classes to each of the main function outputs
     (`antcolony.lavaan` == “antcolony”, `simulatedAnnealing` ==
     “simulatedAnnealing”, `tabuShortForm` == “tabu”)
@@ -57,8 +73,8 @@
     of bifactor models.
   - They should now produce actual bifactor shortforms (in 0.4.1,
     sometimes the item names would be cut off in later iterations
-    \[FIXED\] and the relationship between latent variables would be
-    changed when they should have been kept constant \[FIXED\]).
+    **FIXED** and the relationship between latent variables would be
+    changed when they should have been kept constant **FIXED**).
 
 ## Added a package loading message
 
@@ -81,7 +97,16 @@
   - An adaptation of the Tabu search to short form creation has been
     added.
 
-## New functionality: ACO Plots
+## Changed functionality: Tabu Short Form
+* The `tabuShortForm()` function has been revamped using `tabu.sem()` as the base and utilizing some internal functions from the other algorithms.
+
+## Internal function changes
+
+* Many functions have been refactored to be more concise and easier to maintain. This is an ongoing effort and will continue for the foreseeable future, with a goal towards allowing for parallel functionality.
+
+## Bugfixes
+
+* Minor bugs have been fixed, mostly in the intermediate v0.4.5.
 
   - The `antcolony_lavaan()` function has been modified so that it no
     longer will print a `summaryfile.txt`. Rather, the function

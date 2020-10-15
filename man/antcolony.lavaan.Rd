@@ -28,7 +28,7 @@ antcolony.lavaan(
   summaryfile = NULL,
   feedbackfile = NULL,
   max.run = 1000,
-  verbose = FALSE
+  parallel = T
 )
 }
 \arguments{
@@ -68,7 +68,7 @@ the same order of \code{list.items} and \code{factors}.}
 \item{factors}{Character vector with names of factors in the same order of
 \code{list.items} and \code{i.per.f}.}
 
-\item{bifactor}{Either the name of the factor that all of the chosen items 
+\item{bifactor}{Either the name of the factor that all of the chosen items
 will load on (as character), or `NULL` if the model is not a bifactor model.}
 
 \item{steps}{A numeric value that sets the stopping rule, which is the number
@@ -80,7 +80,7 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 
 \item{pheromone.calculation}{A character string specifying the method for
 calculating the pheromone strength. Must be one of "\code{gamma}"
-(standardized latent regression coefficients), "\code{beta}" 
+(standardized latent regression coefficients), "\code{beta}"
 (standardized observed regression coefficients), "\code{regression}"
 (both latent and observed regression coefficients, if they exist)
  or "\code{variance}" (proportion of
@@ -115,20 +115,18 @@ coefficients), and the overall variance explained of the current run.}
 \item{max.run}{The maximum number of ants to run before the algorithm stops.
 This includes failed iterations as well. Default is 1000.}
 
-\item{verbose}{An option for increasing the amount of information displayed
-while the function runs. If \code{TRUE}, the function will display steps,
-ants, counts, and current run for each attempt as well as printing
-\code{"Failed iteration!"} for runs that do not converge and the model fit
-information for runs that do converge successfully. Default is \code{FALSE}.}
+\item{parallel}{An option for using parallel processing. If \code{TRUE}, the 
+function will utilize all available cores (up to the number of ants). Default 
+is \code{TRUE}.}
 }
 \value{
 A list with four elements: the first containing a named matrix with
  final model's best fit indices, the final pheromone level (either the mean
  of the standardized regression coefficients (gammas, betas, or both), or the mean variance
  explained), and a series of 0/1 values indicating the items selected in the
- final solution,  the second element containing tbe summary matrix of the 
- best fit statistic value(s) for each run, the items chosen for said best fit, 
- the mean gamma, beta, and variance explained for the best fit, and the item pheromone 
+ final solution,  the second element containing tbe summary matrix of the
+ best fit statistic value(s) for each run, the items chosen for said best fit,
+ the mean gamma, beta, and variance explained for the best fit, and the item pheromone
  levels after each run, the third containing the best-fitting lavaan model
  object, and the fourth containing the best-fitting model syntax.
 }
@@ -204,17 +202,20 @@ This function sends a specified number of ants per iteration, which
 
 # some changes to the default values
 # notice that in this example we are recreating the original model
-abilityShortForm = antcolony.lavaan(data = lavaan::HolzingerSwineford1939,
-ants = 1, evaporation = 0.7, 
-antModel = ' visual  =~ x1 + x2 + x3
+abilityShortForm <- antcolony.lavaan(
+  data = lavaan::HolzingerSwineford1939,
+  ants = 2, evaporation = 0.7,
+  antModel = " visual  =~ x1 + x2 + x3
              textual =~ x4 + x5 + x6
-             speed   =~ x7 + x8 + x9 ', 
-list.items = list(c('x1',
-'x2', 'x3'), c('x4', 'x5', 'x6'), c('x7', 'x8', 'x9')), full = 9, i.per.f =
-c(3,3,3), factors = c('visual','textual','speed'), steps = 1, fit.indices =
-c('cfi'), fit.statistics.test = "(cfi > 0.6)", summaryfile =
-NULL, feedbackfile = NULL, max.run = 2)
-
+             speed   =~ x7 + x8 + x9 ",
+  list.items = list(c(
+    "x1",
+    "x2", "x3"
+  ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
+    c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
+    c("cfi"), fit.statistics.test = "(cfi > 0.6)", summaryfile =
+    NULL, feedbackfile = NULL, max.run = 2
+)
 \dontrun{
 # using simulated test data and the default values for lavaan.model.specs
 # first, read in the original or "full" model
@@ -222,32 +223,36 @@ data(exampleAntModel) # a character vector for a lavaan model
 
 # then, create the list of the items by the factors
 # in this case, all items load onto the general 'Ability' factor
-list.items <- list(c('Item1','Item2','Item3','Item4','Item5',
-'Item6','Item7','Item8','Item9','Item10',
-'Item11','Item12','Item13','Item14','Item15',
-'Item16','Item17','Item18','Item19','Item20',
-'Item21','Item22','Item23','Item24','Item25',
-'Item26','Item27','Item28','Item29','Item30',
-'Item31','Item32','Item33','Item34','Item35',
-'Item36','Item37','Item38','Item39','Item40',
-'Item41','Item42','Item43','Item44','Item45',
-'Item46','Item47','Item48','Item49','Item50',
-'Item51','Item52','Item53','Item54','Item55','Item56'))
+list.items <- list(c(
+  "Item1", "Item2", "Item3", "Item4", "Item5",
+  "Item6", "Item7", "Item8", "Item9", "Item10",
+  "Item11", "Item12", "Item13", "Item14", "Item15",
+  "Item16", "Item17", "Item18", "Item19", "Item20",
+  "Item21", "Item22", "Item23", "Item24", "Item25",
+  "Item26", "Item27", "Item28", "Item29", "Item30",
+  "Item31", "Item32", "Item33", "Item34", "Item35",
+  "Item36", "Item37", "Item38", "Item39", "Item40",
+  "Item41", "Item42", "Item43", "Item44", "Item45",
+  "Item46", "Item47", "Item48", "Item49", "Item50",
+  "Item51", "Item52", "Item53", "Item54", "Item55", "Item56"
+))
 
 # load the data
 data(simulated_test_data)
 
 # finally, call the function with some minor changes to the default values.
-abilityShortForm = antcolony.lavaan(data = simulated_test_data,
-ants = 5, evaporation = 0.7, antModel = exampleAntModel,
-list.items = list.items, full = 56, i.per.f = 20,
-factors = 'Ability', steps = 3, fit.indices = c('cfi', 'rmsea'),
-fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
-summaryfile = 'summary.txt',
-feedbackfile = 'iteration.html',
-max.run = 500)
+abilityShortForm <- antcolony.lavaan(
+  data = simulated_test_data,
+  ants = 5, evaporation = 0.7, antModel = exampleAntModel,
+  list.items = list.items, full = 56, i.per.f = 20,
+  factors = "Ability", steps = 3, fit.indices = c("cfi", "rmsea"),
+  fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
+  summaryfile = "summary.txt",
+  feedbackfile = "iteration.html",
+  max.run = 500
+)
 
-abilityShortForm[[1]] # print the results of the final short form
+abilityShortForm # print the results of the final short form
 }
 }
 \seealso{
