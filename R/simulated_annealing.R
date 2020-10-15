@@ -299,7 +299,7 @@ simulatedAnnealing <-
           }
           # select between random model and current model
           currentModel <- selectionFunction(
-            currentModel = currentModel,
+            currentModelObject = currentModel,
             randomNeighborModel = randomNeighborModel,
             currentTemp = temperatureFunction(currentStep, maxSteps),
             maximize = maximize,
