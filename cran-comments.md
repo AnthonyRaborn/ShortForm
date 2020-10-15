@@ -1,11 +1,11 @@
 ## Resubmission
-This is a resubmission. In this version I have included three checks to function arguments that will give informative errors if the user misspecifies the arguments.
+This is a resubmission. In this version I have transformed the S3 classes into S4 classes and parallelized much of the code.
 
 ## Test Environments
 
-* local Windows 10 Home install, R 3.6.2
+* local Windows 10 Home install, R 4.0.3
 
-* Ubuntu 16.04.5 LTS xenial (travis ci), R 3.6.1
+* Ubuntu 16.04.6 LTS xenial (travis ci), R 4.0.2
 
 * r-hub and win_check
 

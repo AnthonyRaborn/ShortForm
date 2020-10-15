@@ -111,10 +111,6 @@ abilityShortForm =
                           auto.th = TRUE, auto.delta = TRUE, 
                           auto.cov.y = TRUE),
                    factors = c("Trait1", "Trait2", "Trait3", "Trait4"), steps = 100, 
-                   fit.indices = c('cfi', 'rmsea'),
-                   fit.statistics.test = "(cfi > 0.90)&(rmsea < 0.10)",
-                   summaryfile = NULL,
-                   feedbackfile = NULL,
                    max.run = 100, 
                    parallel = T)
 abilityShortForm # print the results of the final short form
