@@ -16,7 +16,7 @@ Introduction of S4 Function Classes
 -   Each method has a `show` (print), `summary`, and `plot` method that provides 
     revamped, concise information about the algorithm
 
--   Functions have been updated to accomodate these changes
+-   Functions have been updated to accommodate these changes
 
 Parallelized Short Form Functions
 ---------------------------------

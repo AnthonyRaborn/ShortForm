@@ -8,7 +8,7 @@
 
   * This version (re-)introduces classes to each of the main function outputs using S4 methods (instead of the S3 methods present in the prior version)
   * Each method has a `show` (print), `summary`, and `plot` method that provides revamped, concise information about the algorithm
-  * Functions have been updated to accomodate these changes
+  * Functions have been updated to accommodate these changes
 
 ## Parallelized Short Form Functions
 
