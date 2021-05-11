@@ -226,6 +226,7 @@ simulatedAnnealing <-
           }
       }
       cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+      doSNOW::registerDoSNOW(cl)
       
     } else {
       num_workers <- 1L
