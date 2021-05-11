@@ -20,7 +20,7 @@ This is not meant to be called explicity as \link{tabu.sem} uses this
 internally for model refitting.
 }
 \references{
-\url{https://doi.org/10.1080/10705511.2017.1409074}
+\doi{10.1080/10705511.2017.1409074}
 }
 \seealso{
 Other Tabu Search: 

@@ -42,7 +42,7 @@
 #' trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
 #' }
 #' @author Carl F. Falk
-#' @references \url{https://doi.org/10.1080/10705511.2017.1409074}
+#' @references \doi{10.1080/10705511.2017.1409074}
 
 search.prep <- function(fitted.model, loadings = TRUE, fcov = TRUE, errors = FALSE) {
 

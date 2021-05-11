@@ -56,7 +56,7 @@ ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, err
 trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
 }
 \references{
-\url{https://doi.org/10.1080/10705511.2017.1409074}
+\doi{10.1080/10705511.2017.1409074}
 }
 \author{
 Carl F. Falk

@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @author Carl F. Falk
-#' @references \url{https://doi.org/10.1080/10705511.2017.1409074}
+#' @references \doi{10.1080/10705511.2017.1409074}
 
 refit.model <- function(fitted.model, ptab) {
 

@@ -45,7 +45,7 @@
 #' }
 #'
 #' @author Carl F. Falk
-#' @references \url{https://doi.org/10.1080/10705511.2017.1409074}
+#' @references \doi{10.1080/10705511.2017.1409074}
 
 add.param <- function(fitted.model, ptab, syntax, nullval = NULL, free = NULL, block = NULL) {
   newpar <- lavaan::lavaanify(syntax)

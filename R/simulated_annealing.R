@@ -1,6 +1,6 @@
 #' An adaptation of the simulated annealing algorithm for psychometric models.
 #'
-#' @description Simulated annealing mimics the physical process of annealing metals together. [Kirkpatrick et al. (1983)](http://science.sciencemag.org/content/220/4598/671) introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
+#' @description Simulated annealing mimics the physical process of annealing metals together. [Kirkpatrick et al. (1983)](https://science.sciencemag.org/content/220/4598/671) introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
 #'
 #' @details \strong{Outline of the Pieces of the Simulated Annealing Algorithm}
 #' * initialModel -- the initial, full form

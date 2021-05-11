@@ -277,7 +277,7 @@ abilityShortForm <- antcolony.mplus(
 }
 }
 \references{
-\url{https://doi.org/10.1080/00273170802285743}
+\doi{10.1080/00273170802285743}
 }
 \seealso{
 \code{\link{antcolony.lavaan}}

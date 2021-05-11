@@ -67,7 +67,7 @@ trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, ta
 
 }
 \references{
-\url{https://doi.org/10.1080/10705511.2017.1409074}
+\doi{10.1080/10705511.2017.1409074}
 }
 \seealso{
 Other Tabu Search: 
