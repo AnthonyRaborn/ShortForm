@@ -238,8 +238,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     nrow = 1,
     ncol = (full + 3 + 3 + length(fit.indices) + full)
   )
-  # ncol = number of items + 3 (run, ant, count) +
-  # 2 (mean.gamma, mean.var.exp) + number of fit indices + number of items
 
   if (length(feedbackfile) > 0) {
     write(x = "", file = feedbackfile)
@@ -309,14 +307,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   }
   
   cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-  # doParallel::registerDoParallel(cl)
-  doSNOW::registerDoSNOW(cl)
   `%dopar%` <- foreach::`%dopar%`
   ant = 0L
-  # pb <- txtProgressBar(max = max.run, style = 3)
   progress <- function(n) {
     cat(paste("\r Run number ", run, " and ant number ", n, ".           ", sep = ""))
-    # setTxtProgressBar(pb, n)
   }
   opts <- list(progress = progress)
   
@@ -324,16 +318,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
 
   # starts loop through iterations.
-  # while (step <= steps) {
     while (run <= max.run) {
-      # cat(paste("\r Run number ", run, ".           ", sep = ""))
-      # sends a number of ants per time.
-      
       antResults <-
         foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
-        # if (verbose == TRUE) { # doesn't actually work with parallel
-        #   cat(paste("\r Step = ", step, " and Ant = ", ant, " and Count = ", count, " and Run = ", run, ".   ", sep = ""))
-        # }
         
         # selects items for all factors.
         newModelList <- antcolonyNewModel(
@@ -386,9 +373,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         # Check the above messages and set pheromone to zero under 'bad' circumstances
         if (any(errors %in% bad.errors) || any(warnings %in% bad.warnings)) {
           pheromone <- 0
-          # if (verbose == TRUE) {
-          #   cat("Failed iteration!")
-          # }
           
           # writes feedback about non-convergence and non-positive definite.
           if (length(summaryfile) > 0) {
@@ -406,10 +390,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           }
           # finishes if for non-convergent cases.
         } else {
-          # if (verbose == TRUE) {
-          #   cat("                  ")
-          # }
-          # compute fit indices, gammas, betas, and residual variances
           modelInfo <- modelInfoExtract(
             modelCheckObj = modelCheck,
             fitIndices = fit.indices
@@ -533,12 +513,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
            )
         )
         if (count >= steps) {
-          # warning("Max runs reached! Problems converging onto a solution.")
           break
         }
         
     }
-  # }
   
   foreach::registerDoSEQ()
   parallel::stopCluster(cl)
