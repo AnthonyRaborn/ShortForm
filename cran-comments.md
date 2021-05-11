@@ -1,4 +1,5 @@
 ## Resubmission
+
 This is a resubmission. In this version I have transformed the S3 classes into S4 classes and parallelized much of the code. I also cleaned up some of the code by removing unneeded comments and unused function calls.
 
 ## Test Environments
