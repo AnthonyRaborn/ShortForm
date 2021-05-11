@@ -14,6 +14,10 @@
 
   * Some short form functions have been modified to work with parallel processors, resulting in noticeably faster results particularly when the solution space is larger (e.g., more starting items) or with more complex models
     - This has resulted in some function argument changes. Please check any code that was written with older versions!
+    
+## Minor cleanup
+  
+  * Removed some unneeded code 
 
 # ShortForm 0.4.6
 
