@@ -418,7 +418,6 @@ tabuShortForm <-
       all.obj <- c(all.obj, current.obj)
       current.mod <- (tmp.mod[valid])[indx]
       current.syntax <- unlist((tmp.syntax[valid])[indx])
-      # current.binvec<-(tmp.vec[valid])[[indx]]
       
       # Update Tabu list
       tabu.list <- c(valid[indx], tabu.list)

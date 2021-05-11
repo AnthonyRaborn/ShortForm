@@ -110,11 +110,6 @@ simulatedAnnealing <-
 
     # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
     # solution from: https://stackoverflow.com/questions/6375790/r-creating-an-environment-in-the-globalenv-from-inside-a-function
-    # makeCache <- function() {
-    #   # list(get = function(key) cache[[key]],
-    #   #      set = function(key, value) cache[[key]] <- value
-    #   #      )
-    # }
     checkModelSpecs(lavaan.model.specs)
     mapply(
       assign,
@@ -231,14 +226,9 @@ simulatedAnnealing <-
           }
       }
       cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-      doSNOW::registerDoSNOW(cl)
       
     } else {
       num_workers <- 1L
-      # pb <- txtProgressBar(max = maxSteps, style = 3)
-      # progress <- function(n) {
-      #   setTxtProgressBar(pb, n)
-      # }
       progressSeq <- function(currentStep, maxSteps) {
         cat(paste0(
           "\r Current Step = ",
@@ -306,9 +296,8 @@ simulatedAnnealing <-
             fitStatistic = fitStatistic,
             consecutive = consecutive
           )
-          # recored fit
+          # record fit
           allFit[currentStep + 1] <- tryCatch(
-          # allFit <- tryCatch(
             lavaan::fitmeasures(object = currentModel@model.output, fit.measures = fitStatistic),
             error = function(e) {
               if (length(e) > 0) {

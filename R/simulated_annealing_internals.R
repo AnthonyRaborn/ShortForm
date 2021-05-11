@@ -220,14 +220,8 @@ randomNeighborFull <-
   function(currentModelObject = currentModel,
            numChanges = numChanges,
            data) {
-    # if (class(currentModelObject) == "list") {
-    #   currentModelObject <- currentModelObject
-    # }
-    
     # using lavaan functions, construct a full parameter table
     paramTable <- lavaan::parTable(currentModelObject)
-    # fullParamTable <- lavaan:::lav_partable_full(paramTable)
-    # currentModelParams <- lavaan::lav_partable_merge(paramTable, fullParamTable, remove.duplicated = TRUE, warn = FALSE)
     
     # select the rows that correspond to parameters related to the latent variables
     latentVariables <-
@@ -253,7 +247,6 @@ randomNeighborFull <-
     # refit the model
     prevModel <- as.list(currentModelObject@call)
     prevModel$model <- paramTable
-    # randomNeighborModel <- try(do.call(eval(parse(text = "lavaan::lavaan")), prevModel[-1]), silent = TRUE)
     
     randomNeighborModel <- modelWarningCheck(
       lavaan::lavaan(
