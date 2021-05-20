@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 ```
 
 # ShortForm
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ShortForm)](http://cran.r-project.org/package=ShortForm)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/ShortForm)](http://cran.r-project.org/package=ShortForm)
 [![Travis-CI Build Status](http://travis-ci.org/AnthonyRaborn/ShortForm.svg?branch=master)](http://travis-ci.org/AnthonyRaborn/ShortForm)
 [![CRAN Downloads Per Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm)
 [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)

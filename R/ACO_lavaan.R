@@ -307,6 +307,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   }
   
   cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+  doSNOW::registerDoSNOW(cl)
   `%dopar%` <- foreach::`%dopar%`
   ant = 0L
   progress <- function(n) {
