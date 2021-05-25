@@ -23,7 +23,8 @@ RoxygenNote: 7.1.1
 Suggests:
     knitr,
     MplusAutomation (>= 0.7),
-    rmarkdown
+    rmarkdown,
+    testthat
 Imports:
     lavaan (>= 0.5-22),
     ggplot2,
