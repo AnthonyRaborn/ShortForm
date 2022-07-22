@@ -29,7 +29,12 @@ test_that(
            auto.th = TRUE,
            auto.delta = TRUE,
            auto.cov.y = TRUE,
-           missing = "listwise")
+           missing = "listwise",
+           group = NULL,
+           group.label = NULL,
+           group.equal = 'loadings',
+           group.partial = NULL,
+           group.w.free = FALSE)
 
     ## bifactorModel == FALSE ####
     # should output a modelCheck object
@@ -105,7 +110,12 @@ test_that(
            auto.th = TRUE,
            auto.delta = TRUE,
            auto.cov.y = TRUE,
-           missing = "listwise")
+           missing = "listwise",
+           group = NULL,
+           group.label = NULL,
+           group.equal = 'loadings',
+           group.partial = NULL,
+           group.w.free = FALSE)
 
     ## bifactorModel == FALSE ####
     # should output a modelCheck object
@@ -165,7 +175,7 @@ test_that(
 #         data = lavaan::HolzingerSwineford1939
 #       )
 #     )
-# 
+#
 #     # should output a list
 #     expect_type(
 #       randomNeighborFull(
@@ -175,7 +185,7 @@ test_that(
 #       ),
 #       'list'
 #     )
-# 
+#
 #     # the list should be of length 4
 #     expect_length(
 #       randomNeighborFull(
@@ -185,7 +195,7 @@ test_that(
 #       ),
 #       4
 #     )
-# 
+#
 #     # the list should have specified names in specified order
 #     expect_named(
 #       randomNeighborFull(
@@ -196,8 +206,8 @@ test_that(
 #       expected =
 #         c("model.output", "warnings", "errors", "model.syntax")
 #     )
-# 
-# 
+#
+#
 #   }
 # )
 # goal ####
@@ -301,15 +311,15 @@ test_that(
       modelWarningCheck(
         lavaan::cfa(
           model =
-          ' visual  =~ x1 + x2 + x3 
-            textual =~ x4 + x5 + x6 
+          ' visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
             speed   =~ x7 + x8 + x9
             bifactor=~ x2 + x6 + x9',
-          data = lavaan::HolzingerSwineford1939 
+          data = lavaan::HolzingerSwineford1939
         ),
         modelSyntax =
-          ' visual  =~ x1 + x2 + x3 
-            textual =~ x4 + x5 + x6 
+          ' visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
             speed   =~ x7 + x8 + x9
             bifactor=~ x2 + x6 + x9'
         )
