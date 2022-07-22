@@ -531,7 +531,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   print("Compiling results.")
 
-  summaryObject <- data.frame(summaryObject[-1, ])
+  summaryObject <- data.frame(summaryObject)[-1, ]
   colnames(summaryObject) <-
     c(item.vector,
       "run",
