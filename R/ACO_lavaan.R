@@ -326,7 +326,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # starts loop through iterations.
     while (run <= max.run) {
       antResults <-
-        foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
+        foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts, .errorhandling = 'remove') %dopar% {
 
         # selects items for all factors.
         newModelList <- antcolonyNewModel(
