@@ -303,14 +303,17 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       # use all cores in devtools::test()
       num_workers <- parallel::detectCores()
     }
+
+    `%dopar%` <- foreach::`%dopar%`
+    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+    doSNOW::registerDoSNOW(cl)
+
   } else {
+    `%dopar%` <- foreach::`%do%`
     num_workers = 1
 
   }
 
-  cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-  doSNOW::registerDoSNOW(cl)
-  `%dopar%` <- foreach::`%dopar%`
   ant = 0L
   progress <- function(n) {
     cat(paste("\r Run number ", run, " and ant number ", n, ".           ", sep = ""))
@@ -526,8 +529,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
     }
 
-  foreach::registerDoSEQ()
-  parallel::stopCluster(cl)
+  if (parallel) {
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
+  }
 
   print("Compiling results.")
 
