@@ -130,8 +130,8 @@
 #'  coefficients), and the overall variance explained of the current run.
 #' @param max.run The maximum number of ants to run before the algorithm stops.
 #'  This includes failed iterations as well. Default is 1000.
-#' @param parallel An option for using parallel processing. If \code{TRUE}, the 
-#'  function will utilize all available cores (up to the number of ants). Default 
+#' @param parallel An option for using parallel processing. If \code{TRUE}, the
+#'  function will utilize all available cores (up to the number of ants). Default
 #'  is \code{TRUE}.
 #' @return A list with four elements: the first containing a named matrix with
 #'  final model's best fit indices, the final pheromone level (either the mean
@@ -214,7 +214,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                                ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE,
                                auto.fix.first = TRUE, auto.fix.single = TRUE,
                                auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
-                               auto.cov.y = TRUE, std.lv = F
+                               auto.cov.y = TRUE, std.lv = F,
+                               group = NULL, group.label = NULL, group.equal = 'loadings',
+                               group.partial = NULL, group.w.free = FALSE
                              ),
                              pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
                              fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
@@ -290,9 +292,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     "ERROR: initial model-implied matrix (Sigma) is not positive definite",
     "ERROR: missing observed variables in dataset"
   )
-  
+
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-  
+
   if (parallel) {
     if (nzchar(chk) && chk == "TRUE") {
       # use 2 cores in CRAN/Travis/AppVeyor
@@ -301,28 +303,31 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
       # use all cores in devtools::test()
       num_workers <- parallel::detectCores()
     }
+
+    `%dopar%` <- foreach::`%dopar%`
+    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+    doSNOW::registerDoSNOW(cl)
+
   } else {
+    `%dopar%` <- foreach::`%do%`
     num_workers = 1
-    
+
   }
-  
-  cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-  doSNOW::registerDoSNOW(cl)
-  `%dopar%` <- foreach::`%dopar%`
+
   ant = 0L
   progress <- function(n) {
     cat(paste("\r Run number ", run, " and ant number ", n, ".           ", sep = ""))
   }
   opts <- list(progress = progress)
-  
+
   start.time <- Sys.time()
 
 
   # starts loop through iterations.
     while (run <= max.run) {
       antResults <-
-        foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts) %dopar% {
-        
+        foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts, .errorhandling = 'remove') %dopar% {
+
         # selects items for all factors.
         newModelList <- antcolonyNewModel(
           itemList = list.items,
@@ -333,17 +338,17 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           factorNames = factors,
           bifactor
         )
-        
+
         mapply(assign, names(newModelList), newModelList, MoreArgs = list(envir = antcolony.lavaan.env))
-        
-        
+
+
         selected.items <- lapply(antcolony.lavaan.env$selected.items, sort)
         selected.vector <- unlist(antcolony.lavaan.env$selected.items, use.names = F)
         select.indicator <- is.element(item.vector, selected.vector)
-        
+
         # MODIFY LAVAAN SYNTAX
         new_ant_model <- paste(antcolony.lavaan.env$input, collapse = "\n")
-        
+
         # Run the model check function
         # checks for and saves error/warning messages within the lavaan output,
         # as well as the fit indices
@@ -363,18 +368,23 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             auto.cov.lv.x = antcolony.lavaan.env$auto.cov.lv.x,
             auto.th = antcolony.lavaan.env$auto.th,
             auto.delta = antcolony.lavaan.env$auto.delta,
-            auto.cov.y = antcolony.lavaan.env$auto.cov.y
+            auto.cov.y = antcolony.lavaan.env$auto.cov.y,
+            group = antcolony.lavaan.env$group,
+            group.label = antcolony.lavaan.env$group.label,
+            group.equal = antcolony.lavaan.env$group.equal,
+            group.partial = antcolony.lavaan.env$group.partial,
+            group.w.free = antcolony.lavaan.env$group.w.free
           ),
           modelSyntax = new_ant_model
         )
-        
+
         # Save the error and warning messages
         warnings <- modelCheck@warnings
         errors <- modelCheck@errors
         # Check the above messages and set pheromone to zero under 'bad' circumstances
         if (any(errors %in% bad.errors) || any(warnings %in% bad.warnings)) {
           pheromone <- 0
-          
+
           # writes feedback about non-convergence and non-positive definite.
           if (length(summaryfile) > 0) {
             fit.info <- matrix(c(select.indicator, run, count, ant, 999, 999, round((include), 5)), 1, )
@@ -383,7 +393,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                         quote = F, sep = " ", row.names = F, col.names = F
             )
           }
-          
+
           # provide feedback about search.
           if (length(feedbackfile) > 0) {
             feedback <- c(paste("<h1>", run, "-", count, "-", ant, "-", step, "- Failure", "</h1>"))
@@ -395,10 +405,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             modelCheckObj = modelCheck,
             fitIndices = fit.indices
           )
-          
+
           mapply(assign, names(modelInfo), modelInfo, MoreArgs = list(envir = antcolony.lavaan.env))
           mapply(assign, names(antcolony.lavaan.env$model.fit), antcolony.lavaan.env$model.fit, MoreArgs = list(envir = antcolony.lavaan.env))
-          
+
           # provide feedback about search.
           if (length(feedbackfile) > 0) {
             feedback <- c(paste(
@@ -410,7 +420,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             ))
             write(feedback, file = feedbackfile, append = T)
           }
-          
+
           # implements fit requirement.
           if (eval(parse(text = fit.statistics.test),
                    envir = antcolony.lavaan.env
@@ -451,13 +461,13 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           'model.output' = modelCheck@model.output,
           'model.syntax' = new_ant_model
         )
-        
+
         returnMatrix
       }
-      
+
       # implements pheromone evaporation.
       include <- include * evaporation
-      
+
       bestAnt <-
         which(unlist(antResults[,'pheromone'])==
                 max(unlist(antResults[,'pheromone'])))[[1]]
@@ -495,7 +505,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
       # ends loop.
       run <- run + 1
-      summaryObject <- 
+      summaryObject <-
         rbind(
           summaryObject,
           matrix(
@@ -516,37 +526,39 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         if (count >= steps) {
           break
         }
-        
+
     }
-  
-  foreach::registerDoSEQ()
-  parallel::stopCluster(cl)
+
+  if (parallel) {
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
+  }
 
   print("Compiling results.")
 
-  summaryObject <- data.frame(summaryObject[-1, ])
-  colnames(summaryObject) <- 
+  summaryObject <- data.frame(summaryObject)[-1, ]
+  colnames(summaryObject) <-
     c(item.vector,
       "run",
       "ant",
       "count",
-      fit.indices, 
+      fit.indices,
       "mean.gamma",
       "mean.beta",
-      "mean.var.exp", 
+      "mean.var.exp",
       paste0(item.vector, ".Pheromone")
       )
 
-  final.solution <- 
+  final.solution <-
     matrix(
-      c(best.so.far.fit.indices, best.so.far.pheromone, best.so.far.solution), 
-      1, 
+      c(best.so.far.fit.indices, best.so.far.pheromone, best.so.far.solution),
+      1,
       dimnames = list(
-        NULL, 
+        NULL,
         c(names(best.so.far.fit.indices), paste0("mean_", pheromone.calculation), item.vector)
         )
   )
-  
+
   results <-
     new(
       'ACO',

@@ -9,7 +9,7 @@
 \arguments{
 \item{x, y}{An S4 object of class `ACO`}
 
-\item{type}{A `character` value specifying the plot type. One of `'all'` 
+\item{type}{A `character` value specifying the plot type. One of `'all'`
 (for all plots), `'pheromone'`, `'gamma'`, `'beta'`, or `'variance'`.}
 
 \item{...}{Not used.}
