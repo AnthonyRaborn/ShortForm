@@ -76,6 +76,7 @@ setMethod('plot',
           definition = function(x, y, type = 'all', ...) {
             summary_results = x@summary
             pheromone_plot <- gamma_plot <- beta_plot <- variance_plot <- NULL
+            mean.beta <- mean.gamma <- mean.var.exp <- run <- NULL
             item_pheromone_names <-
               grep("Pheromone", names(summary_results), value = TRUE)
 
