@@ -11,6 +11,13 @@ output:
 
 # *News* 
 
+# ShortForm v0.5.2
+
+## Bugfixes
+
+-   This version fixes minor bugs, most associated with CRAN messages 
+    and warnings
+
 # ShortForm v0.5.0
 
 ## Introduction of S4 Function Classes
