@@ -67,6 +67,8 @@ setMethod('show',
 #' (for all plots), `'pheromone'`, `'gamma'`, `'beta'`, or `'variance'`.
 #' @param ... Not used.
 #' 
+#' @importFrom ggrepel geom_text_repel
+#' @importFrom tidyr gather
 #' @export
 setMethod('plot',
           signature = 'ACO',
