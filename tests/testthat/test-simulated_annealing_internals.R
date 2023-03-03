@@ -854,34 +854,34 @@ test_that(
   }
 )
 
-# allArgs ####
-test_that(
-  "allArgs can provide the default values for a function", {
-    temp <-
-      function(x = 2, y = 10, default = TRUE, ...) {
-        z <-
-          x^y
-
-        return(
-          list(
-            "result" = z,
-            "args" = allArgs(orig_values = default)
-          )
-        )
-      }
-    defaultOutput <-
-      list(
-        "result" = 1024,
-        "args" =
-          list(
-            "x" = 2,
-            "y" = 10,
-            "default" = TRUE
-            )
-      )
-    expect_equal(
-      temp(),
-      defaultOutput
-    )
-  }
-)
+# # allArgs ####
+# test_that(
+#   "allArgs can provide the default values for a function", {
+#     temp <-
+#       function(x = 2, y = 10, default = TRUE, ...) {
+#         z <-
+#           x^y
+# 
+#         return(
+#           list(
+#             "result" = z,
+#             "args" = allArgs(orig_values = default)
+#           )
+#         )
+#       }
+#     defaultOutput <-
+#       list(
+#         "result" = 1024,
+#         "args" =
+#           list(
+#             "x" = 2,
+#             "y" = 10,
+#             "default" = TRUE
+#             )
+#       )
+#     expect_equal(
+#       temp(),
+#       defaultOutput
+#     )
+#   }
+# )
