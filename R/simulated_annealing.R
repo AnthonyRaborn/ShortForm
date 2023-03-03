@@ -187,7 +187,7 @@ simulatedAnnealing <-
       temperatureFunction <- quadraticTemperature
     } else if (temperature == "logistic") {
       temperatureFunction <- logisticTemperature
-    } else if (class(temperature == "function")) {
+    } else if (inherits(temperature, "function")) {
       temperatureFunction <- temperature
     } else {
       stop(
@@ -195,7 +195,7 @@ simulatedAnnealing <-
       )
     }
 
-    if (class(restartCriteria) == "function") {
+    if (inherits(restartCriteria, "function")) {
       restartCriteria <- restartCriteria
     } else if (restartCriteria == "consecutive") {
       restartCriteria <- consecutiveRestart

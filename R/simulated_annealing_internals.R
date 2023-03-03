@@ -124,7 +124,7 @@ randomNeighborShort <-
     
     replacementItemPool <- c()
     for (i in 1:length(factors)) {
-      if (class(allItems) == "list") {
+      if (inherits(allItems, "list")) {
         replacementItemPool[[i]] <- 
           allItems[[i]][!(allItems[[i]] %in% currentItems[[i]])]
       } else {
@@ -248,7 +248,8 @@ randomNeighborFull <-
     prevModel <- as.list(currentModelObject@call)
     prevModel$model <- paramTable
     
-    randomNeighborModel <- modelWarningCheck(
+    randomNeighborModel <-
+      modelWarningCheck(
       lavaan::lavaan(
         model = prevModel$model,
         data = data
@@ -259,46 +260,47 @@ randomNeighborFull <-
     return(randomNeighborModel)
   }
 
-goal <- function(x, fitStatistic = "cfi", maximize) {
-  # if using lavaan and a singular fit statistic,
-  if (class(x) == "lavaan" & is.character(fitStatistic) & length(fitStatistic) == 1) {
-    energy <- fitWarningCheck(
-      lavaan::fitMeasures(x, fit.measures = fitStatistic),
-      maximize
-    )
-    
-    if (is.na(energy) & maximize == TRUE) {
-      energy = -Inf
-    } else if (is.na(energy)) {
-      energy = Inf
-    }
-
-    # if trying to maximize a value, return its negative
-    if (maximize == TRUE) {
-      return(-energy)
-    } else {
-      # if minimizing a value, return the value
-      return(energy)
-    }
-  } else {
-    if (class(x) == "NULL") {
+goal <-
+  function(x, fitStatistic = "cfi", maximize) {
+    # if using lavaan and a singular fit statistic,
+    if (inherits(x, "lavaan") &
+        is.character(fitStatistic) & length(fitStatistic) == 1) {
+      energy <- fitWarningCheck(lavaan::fitMeasures(x, fit.measures = fitStatistic),
+                                maximize)
+      if (is.na(energy) & maximize == TRUE) {
+        energy = -Inf
+      } else if (is.na(energy)) {
+        energy = Inf
+      }
+      
       if (maximize == TRUE) {
-        return(-Inf)
+        return(-energy)
       } else {
-        return(Inf)
+        return(energy)
+      }
+    } else {
+      if (inherits(x, "NULL")) {
+        if (maximize == TRUE) {
+          return(-Inf)
+        } else {
+          return(Inf)
+        }
       }
     }
   }
-}
 
 selectionFunction <-
-  function(currentModelObject = currentModel,
-           randomNeighborModel,
-           currentTemp,
-           maximize,
-           fitStatistic,
-           consecutive) {
+  function (currentModelObject,
+            randomNeighborModel,
+            currentTemp,
+            maximize,
+            fitStatistic,
+            consecutive)
+  {
     # check if the randomNeighborModel is a valid model for use
+    if (!inherits(randomNeighborModel, "modelCheck")) {
+      return(currentModelObject)
+    }
     if ( 
       length(randomNeighborModel@warnings) > 1 |
       length(randomNeighborModel@errors) > 1 
@@ -307,12 +309,48 @@ selectionFunction <-
     }
     
     # check that the current model isn't null
+    if (!inherits(currentModelObject, "modelCheck")) {
+      return(randomNeighborModel)
+      }
     if (is.null(currentModelObject@model.output)) {
       return(randomNeighborModel)
     }
     
+    randomNeighborConverge <-
+      tryCatch(
+        lavaan::fitmeasures(object = randomNeighborModel@model.output,
+                            fit.measures = fitStatistic),
+        error = function(e) {
+          if (length(e) > 0) {
+            NULL
+          }
+        }
+      )
+    if (is.null(randomNeighborConverge)) {
+      cat("\rNew model did not converge.                                                                                          ")
+      return(currentModelObject)
+    }
     # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-    if (goal(randomNeighborModel@model.output, fitStatistic, maximize) > goal(currentModelObject@model.output, fitStatistic, maximize)) {
+    if (goal(randomNeighborModel@model.output, fitStatistic, maximize) < goal(currentModelObject@model.output, fitStatistic, maximize)) {
+      cat(paste0(
+        "\rOld Fit: ",
+        round(as.numeric(
+          fitWarningCheck(
+            lavaan::fitmeasures(object = currentModelObject@model.output,
+                                fit.measures = fitStatistic),
+            maximize
+          )
+        ), 3),
+        " New Fit: ",
+        round(as.numeric(
+          fitWarningCheck(
+            lavaan::fitmeasures(object = randomNeighborModel@model.output,
+                                fit.measures = fitStatistic),
+            maximize
+          )
+        ), 3),
+        "                                                                    "
+      ))
       consecutive <- consecutive + 1
       return(randomNeighborModel)
     } else {
@@ -336,6 +374,20 @@ selectionFunction <-
         consecutive + 1,
         0
       )
+      cat(paste0(
+        "\rOld Fit: ",
+        round(as.numeric(
+          lavaan::fitmeasures(object = currentModelObject@model.output,
+                              fit.measures = fitStatistic)
+        ), 3),
+        " New Fit: ",
+        round(as.numeric(
+          lavaan::fitmeasures(object = randomNeighborModel@model.output,
+                              fit.measures = fitStatistic)
+        ), 3),
+        " Probability: ",
+        round(probability, 3)
+      ))
       return(newModel)
     }
   }
@@ -349,7 +401,7 @@ consecutiveRestart <-
   }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
-  if (is.null(currentModel)) {
+  if (is.null(currentModel)|!inherits(currentModel, "modelCheck")) {
     return(bestModel)
   }
   currentFit <- fitWarningCheck(
@@ -439,20 +491,17 @@ syntaxExtraction <- function(initialModelSyntaxFile, items) {
   return(list("factors" = factors, "itemsPerFactor" = itemsPerFactor))
 }
 
-fitWarningCheck <- function(expr, maximize) {
-  value <- withCallingHandlers(tryCatch(expr,
-    error = function(e) {
-      if (maximize == T) {
-        return(0)
-      } else {
-        return(Inf)
+fitWarningCheck <-
+  function(expr, maximize) {
+    value <- withCallingHandlers(tryCatch(
+      expr,
+      error = function(e) {
+        return(NA)
+        invokeRestart("muffleWarning")
       }
-      invokeRestart("muffleWarning")
-    }
-  ))
-  return(value)
-}
-
+    ))
+    return(value)
+  }
 
 checkModelSpecs <- 
   function(
@@ -543,23 +592,66 @@ fitStatTestCheck <-
   function(measures, test) {
     tempEnv <-
       new.env()
-    mapply(
-      assign, 
-      measures, 
-      0, 
-      MoreArgs=list(envir = tempEnv))
+    mapply(assign,
+           measures,
+           0,
+           MoreArgs = list(envir = tempEnv))
     
     checkIfEval <-
       tryCatch(
-        expr = eval(parse(text=test), 
-                    envir = tempEnv), 
+        expr = eval(parse(text = test),
+                    envir = tempEnv),
         error = function(e) {
-          stop("There was a problem with the fit.statistics.test provided. It cannot be evaluated properly. Please read the function documentation to see how to properly specify a test.")
+          stop(
+            "There was a problem with the fit.statistics.test provided.
+            It cannot be evaluated properly.
+            Please read the function documentation to see how to properly specify a test."
+          )
         }
       )
     
-    if (!is.character(test)) {
-          stop("There is a problem with the fit.statistics.test provided. The fit.statistics.test was given as a logical, not a character. Please read the function documentation to see how to properly specify a test. ")
-        }
-      
+    if (!is.character(test)&is.logical(test)) {
+      stop(
+        "There is a problem with the fit.statistics.test provided.
+        The fit.statistics.test was given as a logical, not a character.
+        Please read the function documentation to see how to properly specify a test."
+      )
+    } else if (!is.character(test)) {
+      stop(
+        "There is a problem with the fit.statistics.test provided.
+        The fit.statistics.test was not given as a character object.
+        Please read the function documentation to see how to properly specify a test."
+      )
+    }
+    checkIfEval
   }
+
+# allArgs ####
+# allArgs <- function(orig_values = FALSE) {
+#   # source: https://stackoverflow.com/a/47955845
+#   # get formals for parent function
+#   parent_formals <- formals(sys.function(sys.parent(n = 1)))
+#   
+#   # Get names of implied arguments
+#   fnames <- names(parent_formals)
+#   
+#   # Remove '...' from list of parameter names if it exists
+#   fnames <- fnames[-which(fnames == '...')]
+#   
+#   # Get currently set values for named variables in the parent frame
+#   args <- evalq(as.list(environment()), envir = parent.frame())
+#   
+#   # Get the list of variables defined in '...'
+#   args <- c(args[fnames], evalq(list(...), envir = parent.frame()))
+#   
+#   
+#   if(orig_values) {
+#     # get default values
+#     defargs <- as.list(parent_formals)
+#     defargs <- defargs[unlist(lapply(defargs, FUN = function(x) inherits(x, "name")))]
+#     args[names(defargs)] <- defargs
+#     setargs <- evalq(as.list(match.call())[-1], envir = parent.frame())
+#     args[names(setargs)] <- setargs
+#   }
+#   return(args)
+# }

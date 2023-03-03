@@ -8,8 +8,10 @@ tabuShortForm(
   originalData,
   initialModel,
   numItems,
-  criterion = function(x) {     tryCatch(-lavaan::fitmeasures(object = x, fit.measures
-    = "cfi"), error = function(e) Inf) },
+  criterion = function(x) {
+     tryCatch(-lavaan::fitmeasures(object = x, fit.measures =
+    "cfi"), error = function(e) Inf)
+ },
   niter = 20,
   tabu.size = 5,
   lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE,
@@ -25,8 +27,10 @@ tabuShortForm(
   originalData,
   initialModel,
   numItems,
-  criterion = function(x) {     tryCatch(-lavaan::fitmeasures(object = x, fit.measures
-    = "cfi"), error = function(e) Inf) },
+  criterion = function(x) {
+     tryCatch(-lavaan::fitmeasures(object = x, fit.measures =
+    "cfi"), error = function(e) Inf)
+ },
   niter = 20,
   tabu.size = 5,
   lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE,

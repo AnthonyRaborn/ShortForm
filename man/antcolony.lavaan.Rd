@@ -21,7 +21,8 @@ antcolony.lavaan(
   lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default",
     ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
     auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
-    auto.cov.y = TRUE, std.lv = F),
+    auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL, group.equal =
+    "loadings", group.partial = NULL, group.w.free = FALSE),
   pheromone.calculation = "gamma",
   fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
@@ -115,8 +116,8 @@ coefficients), and the overall variance explained of the current run.}
 \item{max.run}{The maximum number of ants to run before the algorithm stops.
 This includes failed iterations as well. Default is 1000.}
 
-\item{parallel}{An option for using parallel processing. If \code{TRUE}, the 
-function will utilize all available cores (up to the number of ants). Default 
+\item{parallel}{An option for using parallel processing. If \code{TRUE}, the
+function will utilize all available cores (up to the number of ants). Default
 is \code{TRUE}.}
 }
 \value{

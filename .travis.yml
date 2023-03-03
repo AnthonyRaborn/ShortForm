@@ -3,8 +3,6 @@ cache: packages
 notifications:
   email:
     false
-  discord:
-    432925828498718741:zma3f_W69K6VwumQC0_Q-DQ-69KZvffqX592gQjvHN8ML0qIGnp_ANat-bD9SpZqibfG
 after_success:
   - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
