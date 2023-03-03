@@ -368,12 +368,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             auto.cov.lv.x = antcolony.lavaan.env$auto.cov.lv.x,
             auto.th = antcolony.lavaan.env$auto.th,
             auto.delta = antcolony.lavaan.env$auto.delta,
-            auto.cov.y = antcolony.lavaan.env$auto.cov.y,
-            group = antcolony.lavaan.env$group,
-            group.label = antcolony.lavaan.env$group.label,
-            group.equal = antcolony.lavaan.env$group.equal,
-            group.partial = antcolony.lavaan.env$group.partial,
-            group.w.free = antcolony.lavaan.env$group.w.free
+            auto.cov.y = antcolony.lavaan.env$auto.cov.y
           ),
           modelSyntax = new_ant_model
         )
