@@ -35,7 +35,7 @@ ShortFormStartup <- function() {
 
   message <- c(ShortForm, version, penguin)
 
-  cat(message, sep = "\n")
+  paste0(message, collapse = "\n")
 }
 
 #' Package Attach Hook Function
