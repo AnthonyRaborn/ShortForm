@@ -124,7 +124,7 @@ randomNeighborShort <-
     
     replacementItemPool <- c()
     for (i in 1:length(factors)) {
-      if (class(allItems) == "list") {
+      if (inherits(allItems, "list")) {
         replacementItemPool[[i]] <- 
           allItems[[i]][!(allItems[[i]] %in% currentItems[[i]])]
       } else {
@@ -263,7 +263,7 @@ randomNeighborFull <-
 goal <-
   function(x, fitStatistic = "cfi", maximize) {
     # if using lavaan and a singular fit statistic,
-    if (class(x) == "lavaan" &
+    if (inherits(x, "lavaan") &
         is.character(fitStatistic) & length(fitStatistic) == 1) {
       energy <- fitWarningCheck(lavaan::fitMeasures(x, fit.measures = fitStatistic),
                                 maximize)
@@ -279,7 +279,7 @@ goal <-
         return(energy)
       }
     } else {
-      if (class(x) == "NULL") {
+      if (inherits(x, "NULL")) {
         if (maximize == TRUE) {
           return(-Inf)
         } else {
@@ -298,7 +298,7 @@ selectionFunction <-
             consecutive)
   {
     # check if the randomNeighborModel is a valid model for use
-    if (class(randomNeighborModel)!="modelCheck") {
+    if (!inherits(randomNeighborModel, "modelCheck")) {
       return(currentModelObject)
     }
     if ( 
@@ -309,7 +309,7 @@ selectionFunction <-
     }
     
     # check that the current model isn't null
-    if (class(currentModelObject)!="modelCheck") {
+    if (!inherits(currentModelObject, "modelCheck")) {
       return(randomNeighborModel)
       }
     if (is.null(currentModelObject@model.output)) {
@@ -401,7 +401,7 @@ consecutiveRestart <-
   }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
-  if (is.null(currentModel)|class(currentModel)!="modelCheck") {
+  if (is.null(currentModel)|!inherits(currentModel, "modelCheck")) {
     return(bestModel)
   }
   currentFit <- fitWarningCheck(
@@ -627,31 +627,31 @@ fitStatTestCheck <-
   }
 
 # allArgs ####
-allArgs <- function(orig_values = FALSE) {
-  # source: https://stackoverflow.com/a/47955845
-  # get formals for parent function
-  parent_formals <- formals(sys.function(sys.parent(n = 1)))
-  
-  # Get names of implied arguments
-  fnames <- names(parent_formals)
-  
-  # Remove '...' from list of parameter names if it exists
-  fnames <- fnames[-which(fnames == '...')]
-  
-  # Get currently set values for named variables in the parent frame
-  args <- evalq(as.list(environment()), envir = parent.frame())
-  
-  # Get the list of variables defined in '...'
-  args <- c(args[fnames], evalq(list(...), envir = parent.frame()))
-  
-  
-  if(orig_values) {
-    # get default values
-    defargs <- as.list(parent_formals)
-    defargs <- defargs[unlist(lapply(defargs, FUN = function(x) class(x) != "name"))]
-    args[names(defargs)] <- defargs
-    setargs <- evalq(as.list(match.call())[-1], envir = parent.frame())
-    args[names(setargs)] <- setargs
-  }
-  return(args)
-}
+# allArgs <- function(orig_values = FALSE) {
+#   # source: https://stackoverflow.com/a/47955845
+#   # get formals for parent function
+#   parent_formals <- formals(sys.function(sys.parent(n = 1)))
+#   
+#   # Get names of implied arguments
+#   fnames <- names(parent_formals)
+#   
+#   # Remove '...' from list of parameter names if it exists
+#   fnames <- fnames[-which(fnames == '...')]
+#   
+#   # Get currently set values for named variables in the parent frame
+#   args <- evalq(as.list(environment()), envir = parent.frame())
+#   
+#   # Get the list of variables defined in '...'
+#   args <- c(args[fnames], evalq(list(...), envir = parent.frame()))
+#   
+#   
+#   if(orig_values) {
+#     # get default values
+#     defargs <- as.list(parent_formals)
+#     defargs <- defargs[unlist(lapply(defargs, FUN = function(x) inherits(x, "name")))]
+#     args[names(defargs)] <- defargs
+#     setargs <- evalq(as.list(match.call())[-1], envir = parent.frame())
+#     args[names(setargs)] <- setargs
+#   }
+#   return(args)
+# }
