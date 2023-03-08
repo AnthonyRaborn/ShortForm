@@ -103,7 +103,7 @@ data(simulated_test_data)
 tabuResult <- tabuShortForm(
   initialModel = shortAntModel,
   originalData = simulated_test_data, numItems = 7,
-  niter = 1, tabu.size = 3
+  niter = 1, tabu.size = 3, parallel = FALSE
 )
 summary(tabuResult) # shows the resulting model
 \dontrun{
