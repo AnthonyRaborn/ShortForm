@@ -71,7 +71,7 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
 }
 \description{
-Simulated annealing mimics the physical process of annealing metals together. \href{https://science.sciencemag.org/content/220/4598/671}{Kirkpatrick et al. (1983)} introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
+Simulated annealing mimics the physical process of annealing metals together. \href{https://www.science.org/doi/10.1126/science.220.4598.671}{Kirkpatrick et al. (1983)} introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
 }
 \details{
 \strong{Outline of the Pieces of the Simulated Annealing Algorithm}
