@@ -1,10 +1,10 @@
 ## Resubmission
 
-This is a resubmission. In this version I have transformed the S3 classes into S4 classes and parallelized much of the code. I also cleaned up some of the code by removing unneeded comments and unused function calls.
+This is a resubmission to correct CRAN notes. There is still a NOTE about a link in the documentation, but the link is valid.
 
 ## Test Environments
 
-* local Windows 10 Home install, R 4.0.5
+* local Windows 10 Home install, R 4.2.2
 
 * Ubuntu 16.04.6 LTS xenial (travis ci), R 4.0.2
 
