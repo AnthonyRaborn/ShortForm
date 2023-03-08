@@ -162,7 +162,7 @@
 #'   ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
 #'     c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
 #'     c("cfi"), fit.statistics.test = "(cfi > 0.6)", summaryfile =
-#'     NULL, feedbackfile = NULL, max.run = 2
+#'     NULL, feedbackfile = NULL, max.run = 2, parallel = FALSE
 #' )
 #' \dontrun{
 #' # using simulated test data and the default values for lavaan.model.specs
