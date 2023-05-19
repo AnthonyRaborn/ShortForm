@@ -509,7 +509,11 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
               run,
               bestAnt,
               count,
-              antResults[[bestAnt, 'model.fit']],
+              if (length(antResults[[bestAnt, 'model.fit']]) < length(fit.indices)) {
+                rep(NA, times = length(fit.indices))
+              } else {
+                antResults[[bestAnt, 'model.fit']]
+              },
               antResults[[bestAnt, 'mean.std.gammas']],
               antResults[[bestAnt, 'mean.std.betas']],
               antResults[[bestAnt, 'mean.var.exp']],
