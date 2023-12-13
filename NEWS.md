@@ -3,6 +3,12 @@
 
 # *News*
 
+# ShortForm v0.5.3
+
+- Updates to antcolony.lavaan default `lavaan.model.specs`
+- Spelling fixes
+- Roxygen manual fixes
+
 # ShortForm v0.5.2
 
 ## Bugfixes
@@ -104,7 +110,7 @@
 - SA can be used on anything lavaan can run, though the current
   implementation focuses on traditional confirmatory models using
   `lavaan::cfa()`. However, there are plans for more user control in the
-  modelling process to allow for other model defaults.
+  modeling process to allow for other model defaults.
 
 ## New functionality: Tabu Search (Short Form)
 
@@ -130,7 +136,7 @@
   (`antcolony.lavaan()`, `simulatedAnnealing()`, `tabuShortForm()`) are
   capable of handling bifactor models.
 - In theory, this means relatively arbitrary models can be specified as
-  well, but the functions utilize the “\~” and “\~\~” operators for the
+  well, but the functions utilize the “~” and “\~~” operators for the
   additional functionality as well as the `bifactor` logical option. No
   guarantee that an arbitrary model will work beyond those currently
   tested.

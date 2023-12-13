@@ -11,6 +11,12 @@ output:
 
 # *News* 
 
+# ShortForm v0.5.3
+
+- Updates to antcolony.lavaan default `lavaan.model.specs`
+- Spelling fixes
+- Roxygen manual fixes
+
 # ShortForm v0.5.2
 
 ## Bugfixes
@@ -84,7 +90,7 @@ output:
 ## New functionality: Simulated Annealing
 
 * The Simulated Annealing (SA) algorithm has been added to the package, with a single user-facing function `simulatedAnnealing()`. 
-* SA can be used on anything lavaan can run, though the current implementation focuses on traditional confirmatory models using `lavaan::cfa()`. However, there are plans for more user control in the modelling process to allow for other model defaults.
+* SA can be used on anything lavaan can run, though the current implementation focuses on traditional confirmatory models using `lavaan::cfa()`. However, there are plans for more user control in the modeling process to allow for other model defaults.
 
 ## New functionality: Tabu Search (Short Form)
 

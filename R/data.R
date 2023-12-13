@@ -1,12 +1,12 @@
 #' A simulated data set based on a standardized test.
 #'
-#' Simulated response patterns, abilities, and outcomes based on a unidimensional state-issued standardized test.
+#' Simulated response patterns, abilities, and outcomes based on a uni-dimensional state-issued standardized test.
 #'
 #'  @format A data frame of 1000 rows (observations) and 58 columns (variables):
 #'  \describe{
 #'  \item{Outcome}{a binary external criterion variable correlated with TrueAbility}
 #'  \item{TrueAbility}{the simulated true ability parameter used to generate response patterns}
-#'  \item{Item1-Item56}{binary reponses to items generated using the TrueAbility parameters and simulated 3PL item parameters generated from the distribution of parameters estimated from a state-issued standardized test}
+#'  \item{Item1-Item56}{binary responses to items generated using the TrueAbility parameters and simulated 3PL item parameters generated from the distribution of parameters estimated from a state-issued standardized test}
 #'  }
 "simulated_test_data"
 
