@@ -1,7 +1,7 @@
 #' Given a fitted lavaan model and a search table, refits the model using the search
-#' table as specifying what changes should be done (parmeters fixed/freed).
+#' table as specifying what changes should be done (parameters fixed/freed).
 #'
-#' This is not meant to be called explicity as \link{tabu.sem} uses this
+#' This is not meant to be called explicitly as \link{tabu.sem} uses this
 #' internally for model refitting.
 #'
 #' @param fitted.model fitted model of class lavaan

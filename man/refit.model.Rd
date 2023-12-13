@@ -3,7 +3,7 @@
 \name{refit.model}
 \alias{refit.model}
 \title{Given a fitted lavaan model and a search table, refits the model using the search
-table as specifying what changes should be done (parmeters fixed/freed).}
+table as specifying what changes should be done (parameters fixed/freed).}
 \usage{
 refit.model(fitted.model, ptab)
 }
@@ -16,7 +16,7 @@ refit.model(fitted.model, ptab)
 An object of class \code{lavaan} if the new model fits, or an object of class \code{try-error} if the model update fails.
 }
 \description{
-This is not meant to be called explicity as \link{tabu.sem} uses this
+This is not meant to be called explicitly as \link{tabu.sem} uses this
 internally for model refitting.
 }
 \references{

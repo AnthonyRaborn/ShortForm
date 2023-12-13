@@ -15,7 +15,7 @@
 #' (Kirkpatrick et al., 1983)
 #' * bestModel -- the model with the best value of the goal function achieved so far
 #' * bestGoal -- the best value of the goal function achieved so far
-#' * restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
+#' * restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other criteria.
 #'
 #' @param initialModel The initial model as a `character` vector with lavaan model.syntax.
 #' @param originalData The original `data.frame` with variable names.

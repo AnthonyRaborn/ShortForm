@@ -47,7 +47,7 @@ filled in. Default value is \code{null}.}
 \item{ants}{A numeric value indicating the number of ants to send (e.g.,
 number of short forms to evaluate) per iteration. Default value is 20.}
 
-\item{evaporation}{A numeric value which sets the percentage of the pheremone
+\item{evaporation}{A numeric value which sets the percentage of the pheromone
 that is retained after evaporation between steps of the algorithm. Default
 value is 0.9, indicating 10% evaporation. Should be within the range of
 (0,1), exclusive.}
@@ -162,7 +162,7 @@ This function sends a specified number of ants per iteration, which
 
  3. Define how the pheronome level will be computed: This is a function of
  the characteristics of the short form that will be optimized. In Leite,
- Huang and Marcoulides (2008), the pheronomone level was zero if model fit
+ Huang and Marcoulides (2008), the pheromone level was zero if model fit
  indices did not meet Hu and Bentler's (1999) suggested thresholds, and equal
  to the sum of path coefficients of a predictor variable if model fit indices
  met thresholds. Currently, the package only implements pheromone calculation

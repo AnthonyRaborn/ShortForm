@@ -88,7 +88,7 @@ Simulated annealing mimics the physical process of annealing metals together. \h
 (Kirkpatrick et al., 1983)
 \item bestModel -- the model with the best value of the goal function achieved so far
 \item bestGoal -- the best value of the goal function achieved so far
-\item restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other critera.
+\item restartCriteria -- if utilized, this would "restart" the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other criteria.
 }
 }
 \examples{

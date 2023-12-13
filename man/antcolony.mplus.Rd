@@ -109,12 +109,12 @@ of the current run.}
 coefficients of the MIMIC model start and end (locations). Not used with
 \code{Mplus.Automation=TRUE}}
 
-\item{loc.variances}{A numeric ector with the line numbers of the residual
+\item{loc.variances}{A numeric vector with the line numbers of the residual
 variances of the latent factors. Not used with \code{Mplus.Automation=TRUE}}
 
 \item{predictors}{Character vector with names of predictor variables, if any.}
 
-\item{var.predictors}{A numeric ector with variances of the predictor(s), if
+\item{var.predictors}{A numeric vector with variances of the predictor(s), if
 any. Not used with \code{Mplus.Automation=TRUE}}
 
 \item{Mplus.Automation}{Logical. If \code{TRUE}, uses the
@@ -149,9 +149,9 @@ characteristics selected by the developer, such as model fit and predictive
 relationships with other variables. The algorithm is based on the foraging
 behavior of a group of ants, which start searching for food in a variety of
 directions and then eventually all ants converge to the shortest distance to
-the food source. This behavior occurs because ants leave a pheronome trail
+the food source. This behavior occurs because ants leave a pheromone trail
 behind as they search for food and ants in shorter paths leave stronger
-pheronome trails, which are detected by other ants and that will lead them to
+pheromone trails, which are detected by other ants and that will lead them to
 follow the shortest trail.
 }
 \details{
@@ -172,9 +172,9 @@ for selection, the following decisions are needed:
 
 2. Determine which characteristics should be optimized.
 
-3. Define how the pheronome level will be computed: This is a function of the
+3. Define how the pheromone level will be computed: This is a function of the
 characteristics of the short form that will be optimized. In Leite, Huang and
-Marcoulides (2008), the pheronomone level was zero if model fit indices did
+Marcoulides (2008), the pheromone level was zero if model fit indices did
 not meet Hu and Bentler's (1999) suggested thresholds, and equal to the sum of
 path coefficients of a predictor variable if model fit indices met thresholds.
 Currently, the package only implements pheromone calculation based on
@@ -182,10 +182,10 @@ regression coefficients or variance explained, with user-selected model fit
 index thresholds.
 
 4. Define how many short forms should be evaluated before the best-so-far
-pheronome level is examined. Leite, Huang and Marcoulides (2008) used 10 short
+pheromone level is examined. Leite, Huang and Marcoulides (2008) used 10 short
 forms.
 
-5. Define the percentage of pheronome evaporation, if any. Leite, Huang and
+5. Define the percentage of pheromone evaporation, if any. Leite, Huang and
 Marcoulides (2008) used 5\%.
 
 6. Define convergence criterion. Leite, Huang and Marcoulides (2008) set the
@@ -202,12 +202,12 @@ proportional to the items' weights.
 
 Step 3. Fit latent variable model to the n short forms.
 
-Step 4. Calculate the pheronome levels for the n short forms. Define the
-best-so-far pheronome level (if iteration 1) or compare the current best
-pheronome from the set of n short forms to the best-so-far pheronome.
+Step 4. Calculate the pheromone levels for the n short forms. Define the
+best-so-far pheromone level (if iteration 1) or compare the current best
+pheromone from the set of n short forms to the best-so-far pheromone.
 
-Step 5. If the pheronome level of the best short form from step 4 exceeds the
-best-so-far pheronome level, update the best-so-far pheromone level and add it
+Step 5. If the pheromone level of the best short form from step 4 exceeds the
+best-so-far pheromone level, update the best-so-far pheromone level and add it
 to the current weight of the items of the best short form.
 
 Step 6. Return to step 2 until convergence criterion is reached.
