@@ -6,6 +6,7 @@
 #'
 #' @docType package
 #' @name ShortForm
+#' @aliases ShortForm-package
 #' @importFrom stats runif
 NULL
 

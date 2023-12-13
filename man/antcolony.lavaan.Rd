@@ -20,9 +20,9 @@ antcolony.lavaan(
   steps = 50,
   lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default",
     ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
-    auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
-    auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL, group.equal =
-    "loadings", group.partial = NULL, group.w.free = FALSE),
+    auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
+    auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL,
+    group.equal = "loadings", group.partial = NULL, group.w.free = FALSE),
   pheromone.calculation = "gamma",
   fit.indices = c("cfi", "tli", "rmsea"),
   fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
@@ -53,7 +53,9 @@ value is 0.9, indicating 10% evaporation. Should be within the range of
 (0,1), exclusive.}
 
 \item{antModel}{The lavaan formatted model. See \link[lavaan]{lavaan} for more
-details. Defaults to the default \link[lavaan]{lavaan} values.}
+details. Defaults to the default \link[lavaan]{lavaan} values. NOTE: Each factor
+and/or regression needs to be specified on a single line. Newline breaks and
+carriage returns WILL break the function.}
 
 \item{list.items}{A list containing one or more character vectors of item
 names for each factor, where each factor is a separate element of the list.
