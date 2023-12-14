@@ -91,17 +91,37 @@ setMethod('show',
 )
 
 #' Plot method for class `SA`
+#' @description Plots the model fit results from the
+#' simulated annealing algorithm. Multiple chains will be plotted
+#' (up to 8), and the first fit for each chain will be thrown out
+#' in case the first model has drastically terrible fit. This can
+#' be adjusted with the `throw_away` parameters in case you wish
+#' to look at the results after a set amount of "burn-in" time.
 #' 
-#' @param x,y An S4 object of class `SA`.
+#' In addition, any infinite result in the `all_fit` slot will be
+#' coerced to NA, removing it from the plot. This may result in
+#' holes or empty spaces in the resulting graph.
+#' 
+#' @param x,y An S4 object of class `SA`. `y` is included for
+#' compatibility and should not be used.
+#' @param throw_away The number of fit results, starting with the
+#' first one, to "throw away" and not include in the plot.
 #' @param ... Not used.
 #' 
 #' @export
 #' @importFrom graphics legend lines par
 setMethod('plot',
           signature = 'SA',
-          definition = function(x, y, ...) {
-
+          definition = function(x, y, throw_away = 1, ...) {
+            
             temp <- as.data.frame(x@all_fit)
+            if (!is.numeric(throw_away) | (throw_away >= nrow(temp)) | (throw_away < 0)) {
+              warning("The throw_away parameter was set incorrectly.\nPlease double-check your throw_away value, making sure it is a positive numeric integer (or 0) and that it is less than the number of maxSteps from the original function call.\nChanging to throw_away = 1.")
+              throw_away = 1
+            }
+            
+            temp <- temp[-c(1:throw_away),]
+            temp[temp==Inf|temp==-Inf] <- NA
             
             availableColors <-
               c("black", "#DF536B", "#61D04F", "#2297E6", "#28E2E5", "#D03AF5", "#EEC21F", "gray62")

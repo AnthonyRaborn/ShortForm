@@ -4,13 +4,26 @@
 \alias{plot,SA,ANY-method}
 \title{Plot method for class `SA`}
 \usage{
-\S4method{plot}{SA,ANY}(x, y, ...)
+\S4method{plot}{SA,ANY}(x, y, throw_away = 1, ...)
 }
 \arguments{
-\item{x, y}{An S4 object of class `SA`.}
+\item{x, y}{An S4 object of class `SA`. `y` is included for
+compatibility and should not be used.}
+
+\item{throw_away}{The number of fit results, starting with the
+first one, to "throw away" and not include in the plot.}
 
 \item{...}{Not used.}
 }
 \description{
-Plot method for class `SA`
+Plots the model fit results from the
+simulated annealing algorithm. Multiple chains will be plotted
+(up to 8), and the first fit for each chain will be thrown out
+in case the first model has drastically terrible fit. This can
+be adjusted with the `throw_away` parameters in case you wish
+to look at the results after a set amount of "burn-in" time.
+
+In addition, any infinite result in the `all_fit` slot will be
+coerced to NA, removing it from the plot. This may result in
+holes or empty spaces in the resulting graph.
 }
