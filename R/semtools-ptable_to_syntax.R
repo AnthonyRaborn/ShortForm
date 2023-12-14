@@ -197,8 +197,6 @@
 #' syntax.
 #' @order 1
 #'
-#' @export
-#'
 ptable_to_syntax <- function(object,
                              allow_incomplete = FALSE) {
   if (inherits(object, "lavaan")) {
@@ -294,7 +292,6 @@ ptable_to_syntax <- function(object,
 
 #' @describeIn ptable_to_syntax Compare two lavaan parameter tables.
 #' @order 2
-#' @export
 
 compare_ptables <- function(object1,
                             object2) {
