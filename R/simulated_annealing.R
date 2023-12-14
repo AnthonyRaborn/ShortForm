@@ -61,7 +61,7 @@
 #' )
 #' summary(trial2) # shows the resulting model
 #' }
-#' @import lavaan utils
+#' @import lavaan utils semhelpinghands 
 #' @export
 #' @md
 
