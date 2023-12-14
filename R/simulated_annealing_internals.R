@@ -254,7 +254,7 @@ randomNeighborFull <-
         model = prevModel$model,
         data = data
       ),
-      modelSyntax = prevModel$model
+      modelSyntax = ptable_to_syntax(prevModel$model)
     )
     
     return(randomNeighborModel)
