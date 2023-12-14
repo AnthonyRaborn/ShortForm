@@ -236,7 +236,7 @@ randomNeighborFull <-
     
     # make the changes. If currently free, fix to 0; if fixed to 0, set to free
     paramTable$free[randomChangesRows] <-
-      1 - paramTable$free[randomChangesRows]
+      ifelse(paramTable$free[randomChangesRows] != 0, 0, 1)
     
     # remove the starting value, estimates, and standard errors of the currentModel
     paramTable$est <- NULL
@@ -408,6 +408,9 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
     lavaan::fitmeasures(object = currentModel@model.output, fit.measures = fitStatistic),
     maximize
   )
+  if (is.na(currentFit)) {
+    return(bestModel)
+  }
   if (maximize == TRUE) {
     if (currentFit > bestFit) {
       bestModel <- currentModel
