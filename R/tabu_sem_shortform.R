@@ -185,8 +185,9 @@ tabuShortForm <- function(originalData,
     }
   
   if (verbose == TRUE) {
-    print("Initial short form selected:")
+    print("Initial short form selected:\n")
     cat(current.syntax)
+    print("\n")
   }
 
   tabu.list <- vector("list")
