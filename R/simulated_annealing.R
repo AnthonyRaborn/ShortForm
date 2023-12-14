@@ -165,6 +165,8 @@ simulatedAnnealing <-
       cat("\nFinished initializing short form options.")
     } else {
       # if not using the short form option
+      initialModelSyntax = ptable_to_syntax(initialModel)
+      bestModel = currentModel = modelWarningCheck(initialModel, initialModelSyntax)
       bestFit <- tryCatch(
         lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic),
         error = function(e, checkMaximize = maximize) {
@@ -273,7 +275,7 @@ simulatedAnnealing <-
           # generate random model
           if (shortForm == FALSE) {
             randomNeighborModel <- randomNeighborFull(
-              currentModelObject = currentModel,
+              currentModelObject = currentModel@model.output,
               numChanges = numChanges,
               data = originalData
             )
