@@ -4,7 +4,6 @@
 #'
 #' See the README on \href{https://github.com/AnthonyRaborn/ShortForm#readme}{GitHub} for more information.
 #'
-#' @docType package
 #' @name ShortForm
 #' @aliases ShortForm-package
 #' @importFrom stats runif

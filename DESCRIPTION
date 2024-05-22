@@ -1,8 +1,8 @@
 Package: ShortForm
 Type: Package
 Title: Automatic Short Form Creation
-Version: 0.5.3
-Date: 2023-12-12
+Version: 0.5.4
+Date: 2024-05-22
 Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", 
     role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8083-4739")), 
     person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
@@ -21,7 +21,7 @@ Description: Performs automatic creation of short forms of scales with an
     <doi:10.1080/10705511.2017.1409074> for an applied example of the Tabu search.
 License: LGPL (>= 2.0, < 3) | Mozilla Public License
 LazyData: TRUE
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests:
     knitr,
     MplusAutomation (>= 0.7),

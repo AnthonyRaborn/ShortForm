@@ -436,13 +436,13 @@ modelWarningCheck <- function(expr, modelSyntax) {
       expr,
       error = function(e) {
         err <<-
-          append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e))))
+          append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e), ignore.case = TRUE)))
         NULL
       }
     ),
     warning = function(w) {
       warn <<-
-        append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w))))
+        append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w), ignore.case = TRUE)))
       invokeRestart("muffleWarning")
     }
   )

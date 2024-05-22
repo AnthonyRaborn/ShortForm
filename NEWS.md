@@ -3,6 +3,11 @@
 
 # *News*
 
+# ShortForm v0.5.4
+
+- Updates to handle changes to `lavaan` error/warning messages
+- Fixed internal documentation to match current standards
+
 # ShortForm v0.5.3
 
 - Updates to antcolony.lavaan default `lavaan.model.specs`
