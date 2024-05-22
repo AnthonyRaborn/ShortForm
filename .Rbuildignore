@@ -14,4 +14,4 @@ README-*
 ^ignore$
 NEWS.Rmd
 ^CRAN-SUBMISSION$
-^.github$
+^.github\$
