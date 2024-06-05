@@ -1,6 +1,6 @@
 ## Resubmission
 
-This is a resubmission that updates this package to handle upstream changes in the `lavaan` package and matches new suggested formatting for documentation.
+This is a resubmission that further updates this package to handle upstream changes in the `lavaan` package.
 
 ## Test Environments
 

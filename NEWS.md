@@ -3,6 +3,10 @@
 
 # *News*
 
+# ShortForm v0.5.5
+
+- Further updates to handle changes to `lavaan` error/warning messages more gracefully. These should continue into the future for the SA and ACo methods without additional issues.
+
 # ShortForm v0.5.4
 
 - Updates to handle changes to `lavaan` error/warning messages
