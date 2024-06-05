@@ -282,17 +282,17 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   # create values of "bad warnings" and "bad errors" that result in uninterpretable models
   bad.warnings <- c(
-    "WARNING: could not compute standard errors",
-    "WARNING: could not compute scaled test statistic",
-    "WARNING: covariance matrix of latent variables is not positive definite",
-    "WARNING: model has NOT converged",
-    "WARNING: could not invert information matrix",
-    "WARNING: the optimizer warns that a solution has NOT been found",
-    "WARNING: some estimated ov variances are negative"
+    "could not compute standard errors",
+    "could not compute scaled test statistic",
+    "covariance matrix of latent variables is not positive definite",
+    "model has NOT converged",
+    "could not invert information matrix",
+    "the optimizer warns that a solution has NOT been found",
+    "some estimated ov variances are negative"
   )
   bad.errors <- c(
-    "ERROR: initial model-implied matrix (Sigma) is not positive definite",
-    "ERROR: missing observed variables in dataset"
+    "initial model-implied matrix (Sigma) is not positive definite",
+    "missing observed variables in dataset"
   )
 
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
@@ -379,7 +379,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         warnings <- modelCheck@warnings
         errors <- modelCheck@errors
         # Check the above messages and set pheromone to zero under 'bad' circumstances
-        if (any(errors %in% bad.errors) || any(warnings %in% bad.warnings)) {
+        if (any(grepl(bad.errors, errors, ignore.case = T)) || any(grepl(bad.warnings, warnings, ignore.case = T))) {
           pheromone <- 0
 
           # writes feedback about non-convergence and non-positive definite.

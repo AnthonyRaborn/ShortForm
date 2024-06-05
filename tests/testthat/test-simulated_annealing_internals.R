@@ -657,8 +657,8 @@ test_that(
         modelSyntax = defaultModel
       )
 
-    expect_length(goodModel@warnings, 1)
-    expect_length(goodModel@errors, 1)
+    expect_length(goodModel@warnings, 0)
+    expect_length(goodModel@errors, 0)
     expect_s4_class(goodModel@model.output, 'lavaan')
     # model doesn't fit and throws an error
     noModel <-
@@ -671,8 +671,8 @@ test_that(
         modelSyntax = wrongItemModel
       )
 
-    expect_length(noModel@warnings, 1)
-    expect_length(noModel@errors, 2)
+    expect_length(noModel@warnings, 0)
+    expect_length(noModel@errors, 1)
     expect_null(noModel@model.output)
 
     # model fits but throws a warning
@@ -687,8 +687,8 @@ test_that(
         modelSyntax = poorModel
       )
 
-    expect_length(warningModel@warnings, 2)
-    expect_length(warningModel@errors, 1)
+    expect_length(warningModel@warnings, 1)
+    expect_length(warningModel@errors, 0)
     expect_s4_class(warningModel@model.output, 'lavaan')
 
   }

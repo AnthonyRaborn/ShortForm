@@ -301,12 +301,6 @@ selectionFunction <-
     if (!inherits(randomNeighborModel, "modelCheck")) {
       return(currentModelObject)
     }
-    if ( 
-      length(randomNeighborModel@warnings) > 1 |
-      length(randomNeighborModel@errors) > 1 
-    ) {
-      return(currentModelObject)
-    }
     
     # check that the current model isn't null
     if (!inherits(currentModelObject, "modelCheck")) {
@@ -330,6 +324,13 @@ selectionFunction <-
       cat("\rNew model did not converge.                                                                                          ")
       return(currentModelObject)
     }
+    if ( 
+      length(randomNeighborModel@warnings) > 0 |
+      length(randomNeighborModel@errors) > 0 
+    ) {
+      return(currentModelObject)
+    }
+    
     # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
     if (goal(randomNeighborModel@model.output, fitStatistic, maximize) < goal(currentModelObject@model.output, fitStatistic, maximize)) {
       cat(paste0(
@@ -430,19 +431,19 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
 }
 
 modelWarningCheck <- function(expr, modelSyntax) {
-  warn <- err <- c('none')
+  warn <- err <- c()
   value <- withCallingHandlers(
     tryCatch(
       expr,
       error = function(e) {
         err <<-
-          append(err, regmatches(paste(e), gregexpr("ERROR: [A-z ]{1,}", paste(e), ignore.case = TRUE)))
+          append(err, e$message)
         NULL
       }
     ),
     warning = function(w) {
       warn <<-
-        append(warn, regmatches(paste(w), gregexpr("WARNING: [A-z ]{1,}", paste(w), ignore.case = TRUE)))
+        append(warn, w$message)
       invokeRestart("muffleWarning")
     }
   )
