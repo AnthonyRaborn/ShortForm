@@ -1,12 +1,12 @@
 ## Resubmission
 
-This is a resubmission that further updates this package to handle upstream changes in the `lavaan` package.
+This is a resubmission that fixes some bugs in `{antcolony.lavaan}` and provides for some internal default arguments for `lavaan.model.specs` that users can change individually or altogether.
 
 ## Test Environments
 
-* local Windows 11 Business v22H2 install, R 4.3.3
+* local Windows 11 x64 (build 22631) install, R 4.4.2
 
-* r-hub (macOS-13, macOS-arm64, windows, Fedora Linux 38) and win_check
+* r-hub (macOS-13, macOS-arm64, windows, ubuntu-latest) and win_check
 
 ## R CMD check results
 0 errors | 0 warnings | 0 notes
