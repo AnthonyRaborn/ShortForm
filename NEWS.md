@@ -3,6 +3,12 @@
 
 # *News*
 
+# ShortForm v0.5.6
+
+- Updates focused on `{antcolony.lavaan}`.
+  - lavaan.model.specs now defaults to the default arugments. If a user removes the arguments, they will be provided for them. If a user overwrites a specific argument (e.g., `estimator = 'wls'`), that will be respected.
+  - Some minor adjustments to checking fitted models for specific warnings/errors that should result in better functioning when these do not exist.
+
 # ShortForm v0.5.5
 
 - Further updates to handle changes to `lavaan` error/warning messages more gracefully. These should continue into the future for the SA and ACo methods without additional issues.
