@@ -100,7 +100,12 @@
 #'  of ants in a row for which the model does not change.
 #' @param lavaan.model.specs A list which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
-#'  CFA. See \link[lavaan]{lavaan} for more details.
+#'  CFA. These are automatically set internally, then updated by the user-provided
+#'  values. Note that this drastically affects the algorithm, and care must be 
+#'  taken to ensure that the algorithm can fit valid models as it searches for
+#'  the best model. See the default arguments for examples of what you can change
+#'  and \link[lavaan]{lavaan} for more details on what arguments are available 
+#'  to change.
 #' @param pheromone.calculation A character string specifying the method for
 #'  calculating the pheromone strength. Must be one of "\code{gamma}"
 #'  (standardized latent regression coefficients), "\code{beta}"
@@ -278,6 +283,16 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   step <- 1
 
   # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
+  # use a default set of specifications that fits a CFA
+  default.lavaan.model.specs = list(
+    model.type = "cfa", auto.var = T, estimator = "default",
+    ordered = T, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
+    auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
+    auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL,
+    group.equal = "loadings", group.partial = NULL, group.w.free = FALSE
+  )
+  mapply(assign, names(default.lavaan.model.specs), default.lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
+  # overwrite with user-provided definitions
   mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
 
   # create values of "bad warnings" and "bad errors" that result in uninterpretable models

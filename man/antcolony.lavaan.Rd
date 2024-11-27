@@ -79,7 +79,12 @@ of ants in a row for which the model does not change.}
 
 \item{lavaan.model.specs}{A list which contains the specifications for the
 lavaan model. The default values are the defaults for lavaan to perform a
-CFA. See \link[lavaan]{lavaan} for more details.}
+CFA. These are automatically set internally, then updated by the user-provided
+values. Note that this drastically affects the algorithm, and care must be 
+taken to ensure that the algorithm can fit valid models as it searches for
+the best model. See the default arguments for examples of what you can change
+and \link[lavaan]{lavaan} for more details on what arguments are available 
+to change.}
 
 \item{pheromone.calculation}{A character string specifying the method for
 calculating the pheromone strength. Must be one of "\code{gamma}"
