@@ -379,25 +379,29 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         warnings <- modelCheck@warnings
         errors <- modelCheck@errors
         # Check the above messages and set pheromone to zero under 'bad' circumstances
-        if (any(grepl(bad.errors, errors, ignore.case = T)) || any(grepl(bad.warnings, warnings, ignore.case = T))) {
-          pheromone <- 0
-
-          # writes feedback about non-convergence and non-positive definite.
-          if (length(summaryfile) > 0) {
-            fit.info <- matrix(c(select.indicator, run, count, ant, 999, 999, round((include), 5)), 1, )
-            write.table(fit.info,
-                        file = summaryfile, append = T,
-                        quote = F, sep = " ", row.names = F, col.names = F
-            )
+        if (length(warnings) > 0 | length(errors) > 0) {
+          if (grepl(paste0(bad.errors, collapse = "|"), errors, ignore.case = T) ||
+              (grepl(paste0(bad.warnings, collapse = "|", warnings, ignore.case = T)))) {
+            pheromone <- 0
+            
+            # writes feedback about non-convergence and non-positive definite.
+            if (length(summaryfile) > 0) {
+              fit.info <- matrix(c(select.indicator, run, count, ant, 999, 999, round((include), 5)), 1, )
+              write.table(fit.info,
+                          file = summaryfile, append = T,
+                          quote = F, sep = " ", row.names = F, col.names = F
+              )
+            }
+            
+            # provide feedback about search.
+            if (length(feedbackfile) > 0) {
+              feedback <- c(paste("<h1>", run, "-", count, "-", ant, "-", step, "- Failure", "</h1>"))
+              write(feedback, file = feedbackfile, append = T)
+            }
+            # finishes if for non-convergent cases.
           }
-
-          # provide feedback about search.
-          if (length(feedbackfile) > 0) {
-            feedback <- c(paste("<h1>", run, "-", count, "-", ant, "-", step, "- Failure", "</h1>"))
-            write(feedback, file = feedbackfile, append = T)
-          }
-          # finishes if for non-convergent cases.
-        } else {
+        }
+         else {
           modelInfo <- modelInfoExtract(
             modelCheckObj = modelCheck,
             fitIndices = fit.indices
