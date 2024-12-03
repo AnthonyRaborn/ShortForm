@@ -407,7 +407,20 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         select.indicator <- is.element(item.vector, selected.vector)
 
         # MODIFY LAVAAN SYNTAX
-        new_ant_model <- paste(antcolony.lavaan.env$input, collapse = "\n")
+        new_ant_model <- 
+          input
+        for (factor in 1:length(factors)) {
+          temp_factor_definition <-
+            new_ant_model[grepl(factors[factor], new_ant_model)]
+          temp_factor_definition <-
+            sub(
+              "=~[[:alnum:][:space:] +]{1,}", 
+              paste0("=~ ", paste0(selected.items[[factor]], collapse = " + ")), 
+              temp_factor_definition
+              )
+          new_ant_model[grepl(factors[factor], new_ant_model)] <-
+            temp_factor_definition
+        }
 
         # Run the model check function
         # checks for and saves error/warning messages within the lavaan output,
