@@ -547,8 +547,8 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         antResults[[bestAnt,'pheromone']]
 
 
-      # adjusts pheromone and best.so.far values only if the current pheromone is best than the previous.
-      if (best.pheromone > best.so.far.pheromone) {
+      # adjusts pheromone and best.so.far values only if the current pheromone is as good or better than the previous.
+      if (best.pheromone >= best.so.far.pheromone) {
         include.pheromone <- antResults[[bestAnt, 'solution']] * best.pheromone
         include <- include + include.pheromone
 
