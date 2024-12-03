@@ -261,6 +261,49 @@ abilityShortForm <- antcolony.lavaan(
 )
 
 abilityShortForm # print the results of the final short form
+
+# an example using binary (ordered) data
+# create the simulated full model and model data
+sim_model <- "
+f1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+f2 =~ x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20
+f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30"
+
+sim_data <-
+  cbind(
+    psych::sim.rasch(nvar = 10)$items,
+    psych::sim.rasch(nvar = 10)$items,
+    psych::sim.rasch(nvar = 10)$items
+  )
+
+colnames(sim_data) = paste0("x", 1:30)
+# fit with antcolony.lavaan
+# note that ONLY the estimator and ordered args
+# of lavaan.model.specs are changed. This retains
+# the default args, fitting a CFA but with ordered data.
+example <-
+antcolony.lavaan(
+  data = sim_data,
+  ants = 5, evaporation = 0.7,
+  antModel = sim_model,
+  lavaan.model.specs = 
+    list(estimator = "wlsmv", ordered = T),
+  list.items = list(paste0('x', 1:10),
+                    paste0('x', 11:20),
+                    paste0('x', 21:30)), 
+  full = 30, 
+  i.per.f = c(5, 5, 5), 
+  factors = c("f1", "f2", "f3"),
+  steps = 20, 
+  fit.indices = c("cfi.scaled"), 
+  fit.statistics.test = "(cfi.scaled > 0.90)", 
+  summaryfile = NULL, 
+  feedbackfile = NULL, 
+  max.run = 500, 
+  parallel = T
+)
+# note that this example will take a bit of time to run
+# as ordered data factor analysis is computationally expensive.
 }
 }
 \seealso{
