@@ -49,7 +49,7 @@ randomInitialModel <-
     )
   }
   newModelSyntax <- 
-    paste0(newModelSyntax, externalRelation, factorRelation, collapse = "\n")
+    paste(newModelSyntax, externalRelation, factorRelation, sep = "\n")
   newModelSyntax <-
     stringr::str_replace_all(newModelSyntax, "\n\n", "\n")
   
