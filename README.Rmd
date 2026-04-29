@@ -4,7 +4,7 @@ output:
     html_preview: TRUE
 ---
 
-```{r, echo = FALSE}
+```{r setup, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "## ",
@@ -133,11 +133,11 @@ summary(result_TS)
 ```{mermaid}
 flowchart LR
     A@{ shape: lean-r, label: "Full Item Bank" } --> B[Specify Model]
-    B --> C[Run Optimization Algorithm(s)]
+    B --> C[Run Optimization Algorithm]
     C --> D[Evaluate Candidate Forms]
     D --> |One or More Forms Fit| E@{ shape: diamond, label: "Select Short Form" }
     D --> |No Adequate Forms Found| C
-    E --> F@{ shape: lean-l, label: "Reporting & Visualization" }]
+    E --> F@{ shape: lean-l, label: "Reporting & Visualization" }
     
 ```
 
@@ -147,7 +147,7 @@ ShortForm produces diagnostic outputs such as:
 
 -   Objective function convergence plots
 -   Algorithm-specific diagnostics
--   Summary statistic s for selected item sets
+-   Summary statistics for selected item sets
 
 ------------------------------------------------------------------------
 
