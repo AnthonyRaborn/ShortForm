@@ -208,6 +208,49 @@
 #' )
 #'
 #' abilityShortForm # print the results of the final short form
+#' 
+#' # an example using binary (ordered) data
+#' # create the simulated full model and model data
+#' sim_model <- "
+#' f1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+#' f2 =~ x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20
+#' f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30"
+#' 
+#' sim_data <-
+#'   cbind(
+#'     psych::sim.rasch(nvar = 10)$items,
+#'     psych::sim.rasch(nvar = 10)$items,
+#'     psych::sim.rasch(nvar = 10)$items
+#'   )
+#' 
+#' colnames(sim_data) = paste0("x", 1:30)
+#' # fit with antcolony.lavaan
+#' # note that ONLY the estimator and ordered args
+#' # of lavaan.model.specs are changed. This retains
+#' # the default args, fitting a CFA but with ordered data.
+#' example <-
+#' antcolony.lavaan(
+#'   data = sim_data,
+#'   ants = 5, evaporation = 0.7,
+#'   antModel = sim_model,
+#'   lavaan.model.specs = 
+#'     list(estimator = "wlsmv", ordered = T),
+#'   list.items = list(paste0('x', 1:10),
+#'                     paste0('x', 11:20),
+#'                     paste0('x', 21:30)), 
+#'   full = 30, 
+#'   i.per.f = c(5, 5, 5), 
+#'   factors = c("f1", "f2", "f3"),
+#'   steps = 20, 
+#'   fit.indices = c("cfi.scaled"), 
+#'   fit.statistics.test = "(cfi.scaled > 0.90)", 
+#'   summaryfile = NULL, 
+#'   feedbackfile = NULL, 
+#'   max.run = 500, 
+#'   parallel = T
+#' )
+#' # note that this example will take a bit of time to run
+#' # as ordered data factor analysis is computationally expensive.
 #' }
 #' @import lavaan utils
 #' @export
@@ -364,7 +407,20 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         select.indicator <- is.element(item.vector, selected.vector)
 
         # MODIFY LAVAAN SYNTAX
-        new_ant_model <- paste(antcolony.lavaan.env$input, collapse = "\n")
+        new_ant_model <- 
+          input
+        for (factor in 1:length(factors)) {
+          temp_factor_definition <-
+            new_ant_model[grepl(factors[factor], new_ant_model)]
+          temp_factor_definition <-
+            sub(
+              "=~[[:alnum:][:space:] +]{1,}", 
+              paste0("=~ ", paste0(selected.items[[factor]], collapse = " + ")), 
+              temp_factor_definition
+              )
+          new_ant_model[grepl(factors[factor], new_ant_model)] <-
+            temp_factor_definition
+        }
 
         # Run the model check function
         # checks for and saves error/warning messages within the lavaan output,
@@ -491,8 +547,8 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         antResults[[bestAnt,'pheromone']]
 
 
-      # adjusts pheromone and best.so.far values only if the current pheromone is best than the previous.
-      if (best.pheromone > best.so.far.pheromone) {
+      # adjusts pheromone and best.so.far values only if the current pheromone is as good or better than the previous.
+      if (best.pheromone >= best.so.far.pheromone) {
         include.pheromone <- antResults[[bestAnt, 'solution']] * best.pheromone
         include <- include + include.pheromone
 
