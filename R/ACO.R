@@ -92,7 +92,7 @@ setMethod('plot',
               pheromone_plot <-
                 ggplot2::ggplot(
                 pheromone_long,
-                aes(
+                ggplot2::aes(
                   x = .data$run,
                   y = .data$Pheromone,
                   group = .data$Item,
@@ -123,7 +123,7 @@ setMethod('plot',
               gamma_plot <-
                 ggplot2::ggplot(
                   summary_results,
-                  aes(x = .data$run, y = .data$mean.gamma)
+                  ggplot2::aes(x = .data$run, y = .data$mean.gamma)
                 ) +
                 ggplot2::geom_line() +
                 ggplot2::ylab(expression("Mean " * gamma)) +
@@ -148,7 +148,7 @@ setMethod('plot',
               beta_plot <-
                 ggplot2::ggplot(
                   summary_results,
-                  aes(x = .data$run, y = .data$mean.beta)
+                  ggplot2::aes(x = .data$run, y = .data$mean.beta)
                 ) +
                 ggplot2::geom_line() +
                 ggplot2::ylab(expression("Mean " * beta)) +
@@ -173,7 +173,7 @@ setMethod('plot',
               variance_plot <-
                 ggplot2::ggplot(
                   summary_results,
-                  aes(x = .data$run, y = .data$mean.var.exp)
+                  ggplot2::aes(x = .data$run, y = .data$mean.var.exp)
                 ) +
                 ggplot2::geom_line() +
                 ggplot2::ylab(expression("Mean Variance Explained")) +
