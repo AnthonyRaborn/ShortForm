@@ -69,6 +69,7 @@ setMethod('show',
 #' 
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom tidyr gather
+#' @importFrom rlang .data
 #' 
 #' @export
 setMethod('plot',
@@ -91,12 +92,12 @@ setMethod('plot',
               pheromone_plot <-
                 ggplot2::ggplot(
                 pheromone_long,
-                ggplot2::aes_string(
-                  x = "run",
-                  y = "Pheromone",
-                  group = "Item",
-                  fill = "Item",
-                  colour = "Item"
+                ggplot2::aes(
+                  x = .data$run,
+                  y = .data$Pheromone,
+                  group = .data$Item,
+                  fill = .data$Item,
+                  colour = .data$Item
                 )
               ) +
                 ggplot2::geom_area(
@@ -122,7 +123,7 @@ setMethod('plot',
               gamma_plot <-
                 ggplot2::ggplot(
                   summary_results,
-                  ggplot2::aes_string(x = "run", y = "mean.gamma")
+                  ggplot2::aes(x = .data$run, y = .data$mean.gamma)
                 ) +
                 ggplot2::geom_line() +
                 ggplot2::ylab(expression("Mean " * gamma)) +
@@ -147,7 +148,7 @@ setMethod('plot',
               beta_plot <-
                 ggplot2::ggplot(
                   summary_results,
-                  ggplot2::aes_string(x = "run", y = "mean.beta")
+                  ggplot2::aes(x = .data$run, y = .data$mean.beta)
                 ) +
                 ggplot2::geom_line() +
                 ggplot2::ylab(expression("Mean " * beta)) +
@@ -172,7 +173,7 @@ setMethod('plot',
               variance_plot <-
                 ggplot2::ggplot(
                   summary_results,
-                  ggplot2::aes_string(x = "run", y = "mean.var.exp")
+                  ggplot2::aes(x = .data$run, y = .data$mean.var.exp)
                 ) +
                 ggplot2::geom_line() +
                 ggplot2::ylab(expression("Mean Variance Explained")) +

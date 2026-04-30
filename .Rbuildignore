@@ -15,3 +15,5 @@ README-*
 NEWS.Rmd
 ^CRAN-SUBMISSION$
 ^.github/
+^\.positai$
+^\.claude$
