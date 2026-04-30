@@ -32,6 +32,8 @@ Note--these are not required for 0.5.7, but are on the roadmap for future update
 - refactor all major functions (0.6.0)
 - standardize function inputs, arguments, and outputs (0.7.0)
 
+=======
+
 # ShortForm v0.5.6
 
 - Updates focused on `{antcolony.lavaan}`.
