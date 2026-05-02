@@ -189,6 +189,18 @@ ShortForm is designed for reproducible analytical workflows:
 
 ------------------------------------------------------------------------
 
+## Reproducible Docker Environment
+
+This repository includes a Dockerfile for building and checking the package in a clean R environment.
+
+```bash
+docker build -t shortform-r .
+```
+
+The Docker build installs package dependencies, builds the package source tarball, and runs R CMD check on the built package. This provides an additional reproducibility check alongside the GitHub Actions CI workflow.
+
+---
+
 ## License
 
 LGPL (\>= 2.0, \< 3) \| Mozilla Public License
