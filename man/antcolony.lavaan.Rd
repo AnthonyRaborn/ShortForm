@@ -309,8 +309,8 @@ antcolony.lavaan(
 \seealso{
 \code{\link{antcolony.mplus}}
 
-Other Ant Colony Algorithms: 
-\code{\link{antcolony.mplus}()}
+Other Ant Colony Algorithms:
+\code{\link[=antcolony.mplus]{antcolony.mplus()}}
 }
 \author{
 Anthony W Raborn, \email{anthony.w.raborn@gmail.com}

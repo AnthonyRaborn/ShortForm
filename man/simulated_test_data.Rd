@@ -8,7 +8,7 @@
 An object of class \code{data.frame} with 1000 rows and 58 columns.
 }
 \usage{
-simulated_test_data
+data(simulated_test_data)
 }
 \description{
 Simulated response patterns, abilities, and outcomes based on a uni-dimensional state-issued standardized test.

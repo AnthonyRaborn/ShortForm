@@ -8,7 +8,7 @@
 A character vector.
 }
 \usage{
-exampleAntModel
+data(exampleAntModel)
 }
 \description{
 A character vector containing the model syntax used for the one factor, 56-item example in the \code{\link{antcolony.lavaan}}.

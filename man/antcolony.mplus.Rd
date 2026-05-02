@@ -282,8 +282,8 @@ abilityShortForm <- antcolony.mplus(
 \seealso{
 \code{\link{antcolony.lavaan}}
 
-Other Ant Colony Algorithms: 
-\code{\link{antcolony.lavaan}()}
+Other Ant Colony Algorithms:
+\code{\link[=antcolony.lavaan]{antcolony.lavaan()}}
 }
 \author{
 Walter Leite; Anthony W Raborn, \email{anthony.w.raborn@gmail.com}

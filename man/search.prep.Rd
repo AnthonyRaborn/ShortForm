@@ -58,9 +58,9 @@ trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, ta
 \doi{10.1080/10705511.2017.1409074}
 }
 \seealso{
-Other Tabu Search: 
-\code{\link{add.param}()},
-\code{\link{refit.model}()}
+Other Tabu Search:
+\code{\link[=add.param]{add.param()}},
+\code{\link[=refit.model]{refit.model()}}
 }
 \author{
 Carl F. Falk
