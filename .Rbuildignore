@@ -17,3 +17,5 @@ NEWS.Rmd
 ^.github/
 ^\.positai$
 ^\.claude$
+Dockerfile
+.dockerignore

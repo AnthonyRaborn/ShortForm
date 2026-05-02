@@ -1,0 +1,11 @@
+.git
+.github
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+*.tar.gz
+*.Rcheck
+README.html
+docs
