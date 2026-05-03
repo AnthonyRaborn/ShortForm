@@ -8,13 +8,14 @@ output:
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "## ",
-  fig.path = "README-"
+  fig.path = "README-", 
+  cache = TRUE
 )
 ```
 
 # ShortForm
 
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/ShortForm)](http://cran.r-project.org/package=ShortForm) [![R-CMD-check](https://github.com/AnthonyRaborn/ShortForm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AnthonyRaborn/ShortForm/actions/workflows/R-CMD-check.yaml) [![CRAN Downloads Per Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm) [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version-last-release/ShortForm)](https://cran.r-project.org/package=ShortForm) [![R-CMD-check](https://github.com/AnthonyRaborn/ShortForm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AnthonyRaborn/ShortForm/actions/workflows/R-CMD-check.yaml) [![CRAN Downloads Per Month](https://cranlogs.r-pkg.org/badges/ShortForm)](https://cran.r-project.org/package=ShortForm) [![CRAN Downloads Total](https://cranlogs.r-pkg.org/badges/grand-total/ShortForm?color=orange)](https://cran.r-project.org/package=ShortForm)
 
 ## Overview
 

@@ -1,12 +1,12 @@
 ## Resubmission
 
-This is a resubmission that fixes some bugs in `{antcolony.lavaan}` and provides for some internal default arguments for `lavaan.model.specs` that users can change individually or altogether.
+This is a resubmission that fixes bugs in `{antcolony.lavaan}`, updated the ACO plot method for depreciated functions, and fixed a bug in `{simulatedAnnealing}`.
 
 ## Test Environments
 
-* local Windows 11 x64 (build 22631) install, R 4.4.2
+* local Fedora 4244, R 4.6.0
 
-* r-hub (macOS-13, macOS-arm64, windows, ubuntu-latest) and win_check
+* r-hub (macOS-13, macOS-arm64, windows, ubuntu-latest) and check_win_devel
 
 ## R CMD check results
 0 errors | 0 warnings | 0 notes

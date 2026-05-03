@@ -19,3 +19,5 @@ NEWS.Rmd
 ^\.claude$
 Dockerfile
 .dockerignore
+ShortForm-manual
+^cran-comments\.md$
