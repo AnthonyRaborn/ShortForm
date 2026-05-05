@@ -153,7 +153,7 @@ tabuShortForm <- function(originalData,
     assign,
     c("factors", "itemsPerFactor"),
     syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
-    MoreArgs = list(envir = parent.frame())
+    MoreArgs = list(envir = environment())
   )
 
   # save the external relationships
