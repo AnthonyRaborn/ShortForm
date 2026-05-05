@@ -102,7 +102,7 @@ setMethod('plot',
               ) +
                 ggplot2::geom_area(
                   linetype = 1,
-                  size = .1,
+                  linewidth = .1,
                   color = "black", na.rm = T
                 ) +
                 ggplot2::ylab("Total Pheromone") +

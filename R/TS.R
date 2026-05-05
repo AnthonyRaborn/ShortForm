@@ -117,7 +117,7 @@ setMethod('plot',
             colnames(val) <- c("Iteration", "Fit")
 
             plot <-
-              ggplot2::ggplot(val, ggplot2::aes_string(x = "Iteration", y = "Fit")) +
+              ggplot2::ggplot(val, ggplot2::aes(x = .data$Iteration, y = .data$Fit)) +
               ggplot2::geom_line() +
               ggplot2::ylab(paste("Model Fit Value(s):", names(x@best_fit))) +
               ggplot2::ggtitle(expression("Changes in Model Fit Value per Iteration")) +
