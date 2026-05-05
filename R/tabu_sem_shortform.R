@@ -224,7 +224,7 @@ tabuShortForm <- function(originalData,
     tmp.syntax <- vector("list", length(factors))
     for (j in 1:length(factors)) {
       currentModelSyntax <-
-        strsplit(current.syntax, split = "\n")[[1]]
+        strsplit(current.syntax, split = "\n")[[j]]
 
       currentFactor <-
         factors[j]
