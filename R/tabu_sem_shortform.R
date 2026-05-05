@@ -194,7 +194,7 @@ tabuShortForm <- function(originalData,
   all.syntax <-
     vector(length = niter + 1)
   all.syntax[1] <-
-    current.syntax
+    paste0(current.syntax, collapse = "")
 
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
   
@@ -205,15 +205,16 @@ tabuShortForm <- function(originalData,
     } else {
       # use all cores in devtools::test()
       num_workers <- parallel::detectCores()
+      cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+      doSNOW::registerDoSNOW(cl)
+      `%dopar%` <- foreach::`%dopar%`
     }
   } else {
     num_workers = 1
-    
+    `%dopar%` <- foreach::`%do%`
   }
   
-  cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-  doSNOW::registerDoSNOW(cl)
-  `%dopar%` <- foreach::`%dopar%`
+  
   
   # Do iterations
   for (it in 1:niter) {
@@ -222,9 +223,10 @@ tabuShortForm <- function(originalData,
     tmp.obj <- vector("numeric")
     tmp.mod <- vector("list", length(factors))
     tmp.syntax <- vector("list", length(factors))
+    currentModelSyntax <-
+        unlist(strsplit(current.syntax, split = "\n"))
     for (j in 1:length(factors)) {
-      currentModelSyntax <-
-        strsplit(current.syntax, split = "\n")[[j]]
+      
 
       currentFactor <-
         factors[j]
@@ -367,8 +369,10 @@ tabuShortForm <- function(originalData,
     }
   }
   
-  foreach::registerDoSEQ()
-  parallel::stopCluster(cl)
+  if (parallel) {
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
+  }
 
   if (class(best.obj)[1] == "lavaan.vector") {
     temp = as.numeric(best.obj)
