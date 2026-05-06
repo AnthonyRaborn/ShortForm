@@ -1,6 +1,6 @@
 ## Resubmission
 
-This is a resubmission that fixes bugs in `{antcolony.lavaan}`, updated the ACO plot method for depreciated functions, and fixed a bug in `{simulatedAnnealing}`.
+This is a resubmission that fixed bugs in `{tabuShortForm}`, and the ACO and TS plot methods to remove dependencies.
 
 ## Test Environments
 
