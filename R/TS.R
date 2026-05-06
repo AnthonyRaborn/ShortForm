@@ -102,38 +102,42 @@ setMethod('show',
 #' @param ... Not used.
 #' 
 #' @export
-setMethod('plot',
-          signature = 'TS',
+setMethod("plot",
+          signature = "TS",
           definition = function(x, y, ...) {
-            val <- x@all_fit
-            
-            val <- as.data.frame.matrix(
-              cbind(
-                c(0:(length(val) - 1)),
-                as.numeric(val)
-              ),
-              stringsAsFactors = F
-            )
-            colnames(val) <- c("Iteration", "Fit")
 
-            plot <-
-              ggplot2::ggplot(val, ggplot2::aes(x = .data$Iteration, y = .data$Fit)) +
-              ggplot2::geom_line() +
-              ggplot2::ylab(paste("Model Fit Value(s):", names(x@best_fit))) +
-              ggplot2::ggtitle(expression("Changes in Model Fit Value per Iteration")) +
-              ggplot2::theme_classic() +
-              ggplot2::theme(
-                legend.position = "none",
-                plot.title = ggplot2::element_text(
-                  size = 16,
-                  face = "bold",
-                  hjust = .5
-                )
+            fit_values <- as.numeric(x@all_fit)
+            iterations <- seq_along(fit_values) - 1
+
+            if (length(fit_values) == 0 || all(is.na(fit_values))) {
+              plot.new()
+              title(main = "Changes in Model Fit Value per Iteration")
+              text(
+                x = 0.5,
+                y = 0.5,
+                labels = "No fit values available",
+                cex = 1
               )
-            
-            plot
+              box()
+
+              return(invisible(x))
+            }
+
+            plot(
+              x = iterations,
+              y = fit_values,
+              type = "l",
+              xlab = "Iteration",
+              ylab = paste("Model Fit Value(s):", names(x@best_fit)),
+              main = "Changes in Model Fit Value per Iteration",
+              ...
+            )
+
+            box()
+
+            invisible(x)
           }
-)
+        )
 
 #' Summary method for class `TS`
 #' 
