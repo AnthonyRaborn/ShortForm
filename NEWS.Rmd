@@ -11,6 +11,28 @@ output:
 
 # *News*
 
+# ShortForm v0.5.8
+
+## Bugfixes
+
+- Fixed issue in tabuShortForm for certain parallel workflows
+- Fixed bug in tabuShortForm when using multidimensional models
+
+## Updates
+
+- Removed dependencies on ggplot2, ggrepel, and tidyr (ACO and TS plot methods)
+- Added some additional unit tests
+
+## To Do
+
+Note--these are not required for 0.5.8, but are on the roadmap for future updates.
+
+- add additional unit tests (maybe for 0.5.9)
+- refactor all major functions (0.6.0)
+- standardize function inputs, arguments, and outputs (0.7.0)
+
+=======
+
 # ShortForm v0.5.7
 
 ## Bugfixes
@@ -23,16 +45,6 @@ output:
 
 - Modernized the README file
 - Fixed CI/CD badge since Travis CI no longer works for this project
-
-## To Do
-
-Note--these are not required for 0.5.7, but are on the roadmap for future updates.
-
-- add additional unit tests (maybe for 0.5.8)
-- refactor all major functions (0.6.0)
-- standardize function inputs, arguments, and outputs (0.7.0)
-
-=======
 
 # ShortForm v0.5.6
 

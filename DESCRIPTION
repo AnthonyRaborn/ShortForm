@@ -2,7 +2,7 @@ Package: ShortForm
 Type: Package
 Title: Automatic Short Form Creation
 Version: 0.5.8
-Date: 2026-04-29
+Date: 2026-05-06
 Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", 
     role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8083-4739")), 
     person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
@@ -28,9 +28,6 @@ Suggests:
     testthat
 Imports:
     lavaan (>= 0.5-22),
-    ggplot2,
-    ggrepel,
-    tidyr,
     stringr,
     methods,
     doSNOW,
