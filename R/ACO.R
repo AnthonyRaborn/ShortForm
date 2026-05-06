@@ -76,18 +76,6 @@ setMethod("plot",
           signature = "ACO",
           definition = function(x, y, type = c("all", "pheromone", "gamma", "beta", "variance"), ...) {
 
-            plot_empty_panel <- function(main_title, message) {
-              plot.new()
-              title(main = main_title)
-              text(
-                x = 0.5,
-                y = 0.5,
-                labels = message,
-                cex = 1
-              )
-              box()
-            }
-
             type <- match.arg(type)
 
             summary_results <- x@summary
@@ -103,18 +91,51 @@ setMethod("plot",
             old_par <- par(no.readonly = TRUE)
             on.exit(par(old_par), add = TRUE)
 
+            plot_empty_panel <- function(main_title, message) {
+              plot.new()
+              title(main = main_title)
+              text(
+                x = 0.5,
+                y = 0.5,
+                labels = message,
+                cex = 1
+              )
+              box()
+              invisible(FALSE)
+            }
+
             plot_pheromone <- function() {
 
               if (length(item_pheromone_names) == 0) {
-                stop("No columns containing 'Pheromone' were found in x@summary.")
+                plot_empty_panel(
+                  main_title = "Changes in Pheromone",
+                  message = "No pheromone columns found"
+                )
+                return(invisible(FALSE))
               }
 
               pheromone_mat <- as.matrix(summary_results[, item_pheromone_names, drop = FALSE])
               pheromone_mat[is.na(pheromone_mat)] <- 0
 
+              if (nrow(pheromone_mat) == 0 || ncol(pheromone_mat) == 0) {
+                plot_empty_panel(
+                  main_title = "Changes in Pheromone",
+                  message = "No pheromone values available"
+                )
+                return(invisible(FALSE))
+              }
+
               cumulative_pheromone <- t(apply(pheromone_mat, 1, cumsum))
 
               y_max <- max(cumulative_pheromone, na.rm = TRUE)
+
+              if (!is.finite(y_max)) {
+                plot_empty_panel(
+                  main_title = "Changes in Pheromone",
+                  message = "No finite pheromone values available"
+                )
+                return(invisible(FALSE))
+              }
 
               plot(
                 run,
@@ -146,58 +167,76 @@ setMethod("plot",
               }
 
               box()
+              invisible(TRUE)
             }
 
             plot_metric <- function(column, ylab, main_title) {
-                if (!column %in% names(summary_results)) {
-                  plot_empty_panel(
-                    main_title = main_title,
-                    message = paste0("Column '", column, "' not found")
-                  )
-                  return(invisible(FALSE))
-                }
 
-                y_values <- summary_results[[column]]
-
-                if (length(y_values) == 0 || all(is.na(y_values))) {
-                  plot_empty_panel(
-                    main_title = main_title,
-                    message = paste0("Column '", column, "' is empty")
-                  )
-                  return(invisible(FALSE))
-                }
-
-                plot(
-                  run,
-                  y_values,
-                  type = "l",
-                  xlab = "Run",
-                  ylab = ylab,
-                  main = main_title,
-                  ...
+              if (!column %in% names(summary_results)) {
+                plot_empty_panel(
+                  main_title = main_title,
+                  message = paste0("Column '", column, "' not found")
                 )
-
-                endpoint_index <- which(
-                  run %in% c(min(run, na.rm = TRUE), max(run, na.rm = TRUE)) &
-                    !is.na(y_values)
-                )
-
-                if (length(endpoint_index) > 0) {
-                  text(
-                    x = run[endpoint_index],
-                    y = y_values[endpoint_index],
-                    labels = round(y_values[endpoint_index], 3),
-                    pos = c(4, 2)[seq_along(endpoint_index)],
-                    cex = 0.8
-                  )
-                }
-
-                box()
-
-                invisible(TRUE)
+                return(invisible(FALSE))
               }
 
+              y_values <- summary_results[[column]]
+
+              if (
+                length(y_values) == 0 ||
+                length(y_values) != length(run) ||
+                all(is.na(y_values))
+              ) {
+                plot_empty_panel(
+                  main_title = main_title,
+                  message = paste0("Column '", column, "' is empty")
+                )
+                return(invisible(FALSE))
+              }
+
+              finite_values <- is.finite(y_values) & is.finite(run)
+
+              if (!any(finite_values)) {
+                plot_empty_panel(
+                  main_title = main_title,
+                  message = paste0("Column '", column, "' has no finite values")
+                )
+                return(invisible(FALSE))
+              }
+
+              plot(
+                run,
+                y_values,
+                type = "l",
+                xlab = "Run",
+                ylab = ylab,
+                main = main_title,
+                ...
+              )
+
+              endpoint_runs <- range(run[finite_values], na.rm = TRUE)
+
+              endpoint_index <- which(
+                run %in% endpoint_runs &
+                  is.finite(y_values)
+              )
+
+              if (length(endpoint_index) > 0) {
+                text(
+                  x = run[endpoint_index],
+                  y = y_values[endpoint_index],
+                  labels = round(y_values[endpoint_index], 3),
+                  pos = rep(c(4, 2), length.out = length(endpoint_index)),
+                  cex = 0.8
+                )
+              }
+
+              box()
+              invisible(TRUE)
+            }
+
             if (type == "all") {
+
               par(mfrow = c(2, 2))
 
               plot_pheromone()
@@ -252,6 +291,7 @@ setMethod("plot",
             invisible(x)
           }
         )
+
 #' Summary method for class `ACO`
 #'
 #' @param object An S4 object of class `ACO`
