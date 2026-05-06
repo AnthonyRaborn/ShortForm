@@ -67,156 +67,230 @@ setMethod('show',
 #' (for all plots), `'pheromone'`, `'gamma'`, `'beta'`, or `'variance'`.
 #' @param ... Not used.
 #' 
-#' @importFrom ggrepel geom_text_repel
-#' @importFrom tidyr gather
+#' @importFrom grDevices hcl.colors
+#' @importFrom graphics box polygon text plot.new title
 #' @importFrom rlang .data
 #' 
 #' @export
-setMethod('plot',
-          signature = 'ACO',
-          definition = function(x, y, type = 'all', ...) {
-            summary_results = x@summary
-            pheromone_plot <- gamma_plot <- beta_plot <- variance_plot <- NULL
-            mean.beta <- mean.gamma <- mean.var.exp <- run <- NULL
-            item_pheromone_names <-
-              grep("Pheromone", names(summary_results), value = TRUE)
+setMethod("plot",
+          signature = "ACO",
+          definition = function(x, y, type = c("all", "pheromone", "gamma", "beta", "variance"), ...) {
 
-            pheromone_long <-
-              tidyr::gather(
-                data = summary_results,
-                key = "Item",
-                value = "Pheromone",
-                item_pheromone_names
+            type <- match.arg(type)
+
+            summary_results <- x@summary
+
+            if (!"run" %in% names(summary_results)) {
+              stop("x@summary must contain a 'run' column.")
+            }
+
+            run <- summary_results$run
+
+            item_pheromone_names <- grep("Pheromone", names(summary_results), value = TRUE)
+
+            old_par <- par(no.readonly = TRUE)
+            on.exit(par(old_par), add = TRUE)
+
+            plot_empty_panel <- function(main_title, message) {
+              plot.new()
+              title(main = main_title)
+              text(
+                x = 0.5,
+                y = 0.5,
+                labels = message,
+                cex = 1
               )
-            if (type %in% c("all", "pheromone")) {
-              pheromone_plot <-
-                ggplot2::ggplot(
-                pheromone_long,
-                ggplot2::aes(
-                  x = .data$run,
-                  y = .data$Pheromone,
-                  group = .data$Item,
-                  fill = .data$Item,
-                  colour = .data$Item
-                )
-              ) +
-                ggplot2::geom_area(
-                  linetype = 1,
-                  size = .1,
-                  color = "black", na.rm = T
-                ) +
-                ggplot2::ylab("Total Pheromone") +
-                ggplot2::xlab("Run") +
-                ggplot2::ggtitle("Changes in Pheromone") +
-                ggplot2::theme_bw() +
-                ggplot2::theme(
-                  legend.position = "none",
-                  plot.title = ggplot2::element_text(
-                    size = 30,
-                    face = "bold",
-                    hjust = .5
-                  )
-                )
+              box()
+              invisible(FALSE)
             }
 
-            if (type %in% c("all", "gamma")) {
-              gamma_plot <-
-                ggplot2::ggplot(
-                  summary_results,
-                  ggplot2::aes(x = .data$run, y = .data$mean.gamma)
-                ) +
-                ggplot2::geom_line() +
-                ggplot2::ylab(expression("Mean " * gamma)) +
-                ggplot2::xlab("Run") +
-                ggplot2::ggtitle(expression("Changes in Mean " * gamma)) +
-                ggrepel::geom_text_repel(ggplot2::aes(label = ifelse(
-                  run %in% c(1, max(run)),
-                  round(mean.gamma, 3), ""
-                )), na.rm = T) +
-                ggplot2::theme_bw() +
-                ggplot2::theme(
-                  legend.position = "none",
-                  plot.title = ggplot2::element_text(
-                    size = 23,
-                    face = "bold",
-                    hjust = .5
-                  )
+            plot_pheromone <- function() {
+
+              if (length(item_pheromone_names) == 0) {
+                plot_empty_panel(
+                  main_title = "Changes in Pheromone",
+                  message = "No pheromone columns found"
                 )
+                return(invisible(FALSE))
+              }
+
+              pheromone_mat <- as.matrix(summary_results[, item_pheromone_names, drop = FALSE])
+              pheromone_mat[is.na(pheromone_mat)] <- 0
+
+              if (nrow(pheromone_mat) == 0 || ncol(pheromone_mat) == 0) {
+                plot_empty_panel(
+                  main_title = "Changes in Pheromone",
+                  message = "No pheromone values available"
+                )
+                return(invisible(FALSE))
+              }
+
+              cumulative_pheromone <- t(apply(pheromone_mat, 1, cumsum))
+
+              y_max <- max(cumulative_pheromone, na.rm = TRUE)
+
+              if (!is.finite(y_max)) {
+                plot_empty_panel(
+                  main_title = "Changes in Pheromone",
+                  message = "No finite pheromone values available"
+                )
+                return(invisible(FALSE))
+              }
+
+              plot(
+                run,
+                cumulative_pheromone[, ncol(cumulative_pheromone)],
+                type = "n",
+                ylim = c(0, y_max),
+                xlab = "Run",
+                ylab = "Total Pheromone",
+                main = "Changes in Pheromone",
+                ...
+              )
+
+              cols <- hcl.colors(ncol(pheromone_mat), palette = "Set 3")
+
+              lower <- rep(0, length(run))
+
+              for (i in seq_len(ncol(pheromone_mat))) {
+                upper <- cumulative_pheromone[, i]
+
+                polygon(
+                  x = c(run, rev(run)),
+                  y = c(upper, rev(lower)),
+                  col = cols[i],
+                  border = "black",
+                  lwd = 0.1
+                )
+
+                lower <- upper
+              }
+
+              box()
+              invisible(TRUE)
             }
 
-            if (type %in% c("all", "beta")) {
-              beta_plot <-
-                ggplot2::ggplot(
-                  summary_results,
-                  ggplot2::aes(x = .data$run, y = .data$mean.beta)
-                ) +
-                ggplot2::geom_line() +
-                ggplot2::ylab(expression("Mean " * beta)) +
-                ggplot2::xlab("Run") +
-                ggplot2::ggtitle(expression("Changes in Mean " * beta)) +
-                ggrepel::geom_text_repel(ggplot2::aes(label = ifelse(
-                  run %in% c(1, max(run)),
-                  round(mean.beta, 3), ""
-                )), vjust = 0, na.rm = T) +
-                ggplot2::theme_bw() +
-                ggplot2::theme(
-                  legend.position = "none",
-                  plot.title = ggplot2::element_text(
-                    size = 23,
-                    face = "bold",
-                    hjust = .5
-                  )
-                )
-            }
+            plot_metric <- function(column, ylab, main_title) {
 
-            if (type %in% c("all", "variance")) {
-              variance_plot <-
-                ggplot2::ggplot(
-                  summary_results,
-                  ggplot2::aes(x = .data$run, y = .data$mean.var.exp)
-                ) +
-                ggplot2::geom_line() +
-                ggplot2::ylab(expression("Mean Variance Explained")) +
-                ggplot2::xlab("Run") +
-                ggplot2::ggtitle(expression("Changes in Mean Variance Explained")) +
-                ggrepel::geom_text_repel(ggplot2::aes(label = ifelse(
-                  run %in% c(1, max(run)),
-                  round(mean.var.exp, 3), ""
-                )), vjust = 0, na.rm = T) +
-                ggplot2::theme_bw() +
-                ggplot2::theme(
-                  legend.position = "none",
-                  plot.title = ggplot2::element_text(
-                    size = 16,
-                    face = "bold",
-                    hjust = .5
-                  )
+              if (!column %in% names(summary_results)) {
+                plot_empty_panel(
+                  main_title = main_title,
+                  message = paste0("Column '", column, "' not found")
                 )
+                return(invisible(FALSE))
+              }
+
+              y_values <- summary_results[[column]]
+
+              if (
+                length(y_values) == 0 ||
+                length(y_values) != length(run) ||
+                all(is.na(y_values))
+              ) {
+                plot_empty_panel(
+                  main_title = main_title,
+                  message = paste0("Column '", column, "' is empty")
+                )
+                return(invisible(FALSE))
+              }
+
+              finite_values <- is.finite(y_values) & is.finite(run)
+
+              if (!any(finite_values)) {
+                plot_empty_panel(
+                  main_title = main_title,
+                  message = paste0("Column '", column, "' has no finite values")
+                )
+                return(invisible(FALSE))
+              }
+
+              plot(
+                run,
+                y_values,
+                type = "l",
+                xlab = "Run",
+                ylab = ylab,
+                main = main_title,
+                ...
+              )
+
+              endpoint_runs <- range(run[finite_values], na.rm = TRUE)
+
+              endpoint_index <- which(
+                run %in% endpoint_runs &
+                  is.finite(y_values)
+              )
+
+              if (length(endpoint_index) > 0) {
+                text(
+                  x = run[endpoint_index],
+                  y = y_values[endpoint_index],
+                  labels = round(y_values[endpoint_index], 3),
+                  pos = rep(c(4, 2), length.out = length(endpoint_index)),
+                  cex = 0.8
+                )
+              }
+
+              box()
+              invisible(TRUE)
             }
 
             if (type == "all") {
-              plots <-
-                list(
-                  "Pheromone" = pheromone_plot, "Gamma" = gamma_plot,
-                  "Beta" = beta_plot, "Variance" = variance_plot
-                  )
+
+              par(mfrow = c(2, 2))
+
+              plot_pheromone()
+
+              plot_metric(
+                column = "mean.gamma",
+                ylab = expression("Mean " * gamma),
+                main_title = expression("Changes in Mean " * gamma)
+              )
+
+              plot_metric(
+                column = "mean.beta",
+                ylab = expression("Mean " * beta),
+                main_title = expression("Changes in Mean " * beta)
+              )
+
+              plot_metric(
+                column = "mean.var.exp",
+                ylab = "Mean Variance Explained",
+                main_title = "Changes in Mean Variance Explained"
+              )
+
             } else if (type == "pheromone") {
-              plots <-
-                pheromone_plot
+
+              plot_pheromone()
+
             } else if (type == "gamma") {
-              plots <-
-                gamma_plot
+
+              plot_metric(
+                column = "mean.gamma",
+                ylab = expression("Mean " * gamma),
+                main_title = expression("Changes in Mean " * gamma)
+              )
+
             } else if (type == "beta") {
-              plots <-
-                beta_plot
-            } else {
-              plots <-
-                variance_plot
+
+              plot_metric(
+                column = "mean.beta",
+                ylab = expression("Mean " * beta),
+                main_title = expression("Changes in Mean " * beta)
+              )
+
+            } else if (type == "variance") {
+
+              plot_metric(
+                column = "mean.var.exp",
+                ylab = "Mean Variance Explained",
+                main_title = "Changes in Mean Variance Explained"
+              )
             }
 
-            plots
+            invisible(x)
           }
-          )
+        )
 
 #' Summary method for class `ACO`
 #'

@@ -4,7 +4,7 @@
 \alias{plot,ACO,ANY-method}
 \title{Plot method for class `ACO`}
 \usage{
-\S4method{plot}{ACO,ANY}(x, y, type = "all", ...)
+\S4method{plot}{ACO,ANY}(x, y, type = c("all", "pheromone", "gamma", "beta", "variance"), ...)
 }
 \arguments{
 \item{x, y}{An S4 object of class `ACO`}
