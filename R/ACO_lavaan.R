@@ -451,8 +451,8 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         errors <- modelCheck@errors
         # Check the above messages and set pheromone to zero under 'bad' circumstances
         if (length(warnings) > 0 | length(errors) > 0) {
-          if (grepl(paste0(bad.errors, collapse = "|"), errors, ignore.case = T) ||
-              (grepl(paste0(bad.warnings, collapse = "|", warnings, ignore.case = T)))) {
+          if (any(grepl(paste0(bad.errors, collapse = "|"), errors, ignore.case = T)) ||
+              any(grepl(paste0(bad.warnings, collapse = "|"), warnings, ignore.case = T))) {
             pheromone <- 0
             
             # writes feedback about non-convergence and non-positive definite.
@@ -558,10 +558,11 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         best.so.far.model <- antResults[[bestAnt, 'model.output']]
         best.so.far.syntax <- antResults[[bestAnt, 'model.syntax']]
 
-        if (!all(sapply(antResults[-1,'solution'], FUN = identical, antResults[1, 'solution']))) {
-          # re-starts count.
+        if (!identical(best.so.far.solution, previous.solution)) {
+          # re-starts count, since the best-so-far solution changed from the previous run.
           count <- 1
         }
+        previous.solution <- best.so.far.solution
       } else {
 
         # advances count.
