@@ -418,52 +418,6 @@ test_that(
     )
   }
 )
-# consecutiveRestart ####
-test_that(
-  "consecutiveRestart produces the correct model depending on the value of consecutive", {
-    # currently not really testing due to how consecutiveRestart is working
-    bestModel <-
-      modelWarningCheck(
-        lavaan::cfa(
-          model =
-            ' visual  =~ x1 + x2 + x3
-            textual =~ x4 + x5 + x6
-            speed   =~ x7 + x8 + x9',
-          data = lavaan::HolzingerSwineford1939
-        ),
-        modelSyntax =
-          ' visual  =~ x1 + x2 + x3
-            textual =~ x4 + x5 + x6
-            speed   =~ x7 + x8 + x9'
-      )
-    currentModel <-
-      testedModel <-
-      modelWarningCheck(
-        lavaan::cfa(
-          model =
-          ' visual  =~ x1 + x2 + x4
-            textual =~ x3 + x5 + x7
-            speed   =~ x6 + x8 + x9',
-          data = lavaan::HolzingerSwineford1939
-        ),
-        modelSyntax =
-          ' visual  =~ x1 + x2 + x4
-            textual =~ x3 + x5 + x7
-            speed   =~ x6 + x8 + x9'
-      )
-    consecutive = 1
-
-    # consecutive < maxConsecutiveSelection, do not replace currentModel
-    expect_false(
-      c(
-        consecutiveRestart(
-          maxConsecutiveSelection = 25,
-          consecutive = 1
-          ), identical(currentModel, bestModel)
-      )
-    )
-  }
-)
 # checkModels ####
 test_that(
   "checkModels returns the appropriate bestModel depending on the conditions", {
@@ -861,6 +815,120 @@ test_that(
       fitStatTestCheck(measures = c('cfi','tli','rmsea'),
                        test = "(cfi >> 0.95)&(tli > 0.95)&(rmsea < 0.06)"),
     )
+  }
+)
+
+# randomNeighborShort item-name collateral corruption ####
+# KNOWN BUG (see code review): the gsub() pattern used to swap an item out of
+# the model syntax is anchored with a trailing "\\b" only (internals.R ~164),
+# not a leading one. An item name that is a *suffix* of another item's name
+# (e.g. "SubItem1" ends in "Item1") can therefore get silently rewritten even
+# though it was never selected for replacement. This test pins the CURRENT
+# (buggy) behavior with a seed that deterministically selects "Item1" as the
+# item to change; once the leading boundary is fixed, "SubItem1" should stay
+# untouched and this test will need updating to expect_equal(..., "SubItem1").
+test_that(
+  "randomNeighborShort corrupts an unrelated item whose name shares a suffix with the changed item", {
+    corruptionData <- as.data.frame(
+      matrix(rnorm(4 * 100), ncol = 4)
+    )
+    names(corruptionData) <- c("Item1", "SubItem1", "Item2", "Item2b")
+    corruptionModel <- "f =~ Item1 + SubItem1"
+    currentModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model = corruptionModel,
+          data = corruptionData,
+          std.lv = TRUE
+        ),
+        modelSyntax = corruptionModel
+      )
+    lavaanSpecs <-
+      list(model.type = "cfa",
+           estimator = "default",
+           ordered = NULL,
+           int.ov.free = TRUE,
+           int.lv.free = FALSE,
+           auto.fix.first = FALSE,
+           std.lv = TRUE,
+           auto.fix.single = TRUE,
+           auto.var = TRUE,
+           auto.cov.lv.x = TRUE,
+           auto.th = TRUE,
+           auto.delta = TRUE,
+           auto.cov.y = TRUE)
+
+    set.seed(4)
+    corrupted <- randomNeighborShort(
+      currentModelObject = currentModel,
+      numChanges = 1,
+      allItems = c("Item1", "SubItem1", "Item2", "Item2b"),
+      data = corruptionData,
+      bifactor = FALSE,
+      init.model = corruptionModel,
+      lavaan.model.specs = lavaanSpecs
+    )
+
+    # "Item1" was replaced as intended...
+    expect_false(grepl("\\bItem1\\b", corrupted@model.syntax))
+    # ...but "SubItem1" was never chosen for replacement and, correctly,
+    # should have survived untouched. It does not: it was collaterally
+    # rewritten to "SubItem2" because "Item1" is a suffix of "SubItem1".
+    expect_false(grepl("SubItem1", corrupted@model.syntax))
+  }
+)
+
+# consecutiveRestart actually restarts the chain ####
+test_that(
+  "consecutiveRestart restarts to bestModel once maxConsecutiveSelection is reached, and is a no-op otherwise", {
+    bestModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model =
+            ' visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
+            speed   =~ x7 + x8 + x9',
+          data = lavaan::HolzingerSwineford1939
+        ),
+        modelSyntax =
+          ' visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
+            speed   =~ x7 + x8 + x9'
+      )
+    currentModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model =
+          ' visual  =~ x1 + x2 + x4
+            textual =~ x3 + x5 + x7
+            speed   =~ x6 + x8 + x9',
+          data = lavaan::HolzingerSwineford1939
+        ),
+        modelSyntax =
+          ' visual  =~ x1 + x2 + x4
+            textual =~ x3 + x5 + x7
+            speed   =~ x6 + x8 + x9'
+      )
+
+    # consecutive < maxConsecutiveSelection: currentModel and consecutive pass through unchanged
+    noRestart <- consecutiveRestart(
+      maxConsecutiveSelection = 25,
+      consecutive = 1,
+      currentModel = currentModel,
+      bestModel = bestModel
+    )
+    expect_identical(noRestart$currentModel, currentModel)
+    expect_equal(noRestart$consecutive, 1)
+
+    # consecutive == maxConsecutiveSelection: restarts to bestModel and resets the counter
+    restart <- consecutiveRestart(
+      maxConsecutiveSelection = 25,
+      consecutive = 25,
+      currentModel = currentModel,
+      bestModel = bestModel
+    )
+    expect_identical(restart$currentModel, bestModel)
+    expect_equal(restart$consecutive, 0)
   }
 )
 
