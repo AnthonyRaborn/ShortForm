@@ -394,11 +394,19 @@ selectionFunction <-
   }
 
 consecutiveRestart <-
-  function(maxConsecutiveSelection = 25, consecutive) {
+  function(maxConsecutiveSelection = 25, consecutive, currentModel, bestModel) {
     if (consecutive == maxConsecutiveSelection) {
-      currentModel <- bestModel
-      consecutive <- 0
+      return(
+        list(
+          currentModel = bestModel,
+          consecutive = 0
+        )
+      )
     }
+    list(
+      currentModel = currentModel,
+      consecutive = consecutive
+    )
   }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
