@@ -200,8 +200,8 @@ simulatedAnnealing <-
     } else if (restartCriteria == "consecutive") {
       restartCriteria <- consecutiveRestart
     } else {
-      restartCriteria <- function(maxConsecutiveSelection, consecutive) {
-        
+      restartCriteria <- function(maxConsecutiveSelection, consecutive, currentModel, bestModel) {
+        list(currentModel = currentModel, consecutive = consecutive)
       }
       warning(
         "The restart criteria should to be either \"consecutive\" (the default) or a custom function. It has been set to NULL so the algorithm will not restart at all."
@@ -289,6 +289,7 @@ simulatedAnnealing <-
             )
           }
           # select between random model and current model
+          previousModel <- currentModel
           currentModel <- selectionFunction(
             currentModelObject = currentModel,
             randomNeighborModel = randomNeighborModel,
@@ -297,6 +298,12 @@ simulatedAnnealing <-
             fitStatistic = fitStatistic,
             consecutive = consecutive
           )
+          # track how many times in a row the same model has been selected
+          consecutive <- if (identical(currentModel@model.syntax, previousModel@model.syntax)) {
+            consecutive + 1
+          } else {
+            0
+          }
           # record fit
           allFit[currentStep + 1] <- tryCatch(
             lavaan::fitmeasures(object = currentModel@model.output, fit.measures = fitStatistic),
@@ -320,10 +327,14 @@ simulatedAnnealing <-
           allModel <- c(allModel, currentModel@model.syntax)
     
           # restart if the same model was chosen too many times
-          restartCriteria(
+          restartResult <- restartCriteria(
             maxConsecutiveSelection = maximumConsecutive,
-            consecutive = consecutive
+            consecutive = consecutive,
+            currentModel = currentModel,
+            bestModel = bestModel
           )
+          currentModel <- restartResult$currentModel
+          consecutive <- restartResult$consecutive
           currentStep <- currentStep + 1
           
         }
