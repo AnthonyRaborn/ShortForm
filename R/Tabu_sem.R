@@ -49,7 +49,7 @@ tabu.sem <- function(init.model,
   start.time = Sys.time()
   # Initialize objective function and best model
   best.obj <- all.obj <- current.obj <- obj(init.model)
-  best.model <- current.model <- init.model
+  best.mod <- current.mod <- init.model
   best.binvec <- current.binvec <- ptab
 
   tabu.list <- vector("numeric")
