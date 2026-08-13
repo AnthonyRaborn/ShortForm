@@ -67,7 +67,8 @@ tabu.sem <- function(init.model,
       tmp.binvec$free[j] <- bin
       fitmodel <- refit.model(init.model, tmp.binvec)
 
-      if (fitmodel@Fit@converged & !any(is.na(fitmodel@Fit@se))) {
+      if (!inherits(fitmodel, "try-error") &&
+          fitmodel@Fit@converged && !any(is.na(fitmodel@Fit@se))) {
         fit.val <- obj(fitmodel)
       } else {
         fit.val <- NA
@@ -83,6 +84,14 @@ tabu.sem <- function(init.model,
 
     # Get just models not on Tabu list
     valid <- valid[!(valid %in% tabu.list)]
+
+    if (length(valid) == 0) {
+      # no candidate neighbor is both valid (converged, non-error) and
+      # outside the tabu list this iteration; keep the current state and
+      # try again next iteration rather than crashing
+      all.obj <- c(all.obj, current.obj)
+      next
+    }
 
     # Out of valid models, pick model with best objective function value
     indx <- which.min(tmp.obj[valid])
