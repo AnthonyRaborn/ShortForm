@@ -42,13 +42,9 @@ randomInitialModel <-
   
   newModelSyntax <- c()
   for (i in 1:length(factors)) {
-    newModelSyntax[i] <- paste(
-      factors[i],
-      "=~",
-      paste(newItemsPerFactor[[i]], collapse = " + ")
-    )
+    newModelSyntax[i] <- buildFactor(factors[i], newItemsPerFactor[[i]])
   }
-  newModelSyntax <- 
+  newModelSyntax <-
     paste(newModelSyntax, externalRelation, factorRelation, sep = "\n")
   newModelSyntax <-
     stringr::str_replace_all(newModelSyntax, "\n\n", "\n")
@@ -160,10 +156,10 @@ randomNeighborShort <-
     for (i in 1:length(factors)) {
       for (j in 1:numChanges) {
         currentItems[[i]] <-
-          gsub(
-            pattern = paste0(changingItems[j], "\\b"),
-            replacement = replacementItem[j],
-            x = currentItems[[i]]
+          replaceItem(
+            items = currentItems[[i]],
+            oldItem = changingItems[j],
+            newItem = replacementItem[j]
           )
       }
     }
@@ -181,11 +177,7 @@ randomNeighborShort <-
                          simplify = T)
     )
     for (i in 1:length(factors)) {
-      newModelSyntax[i] <- paste(
-        factors[i],
-        "=~",
-        paste(currentItems[[i]], collapse = " + ")
-      )
+      newModelSyntax[i] <- buildFactor(factors[i], currentItems[[i]])
     }
     
     newModelSyntax <- stringr::str_flatten(newModelSyntax,
@@ -254,9 +246,9 @@ randomNeighborFull <-
         model = prevModel$model,
         data = data
       ),
-      modelSyntax = prevModel$model
+      modelSyntax = parTableToSyntax(prevModel$model)
     )
-    
+
     return(randomNeighborModel)
   }
 
