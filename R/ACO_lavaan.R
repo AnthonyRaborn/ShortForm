@@ -329,7 +329,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # use a default set of specifications that fits a CFA
   default.lavaan.model.specs = list(
     model.type = "cfa", auto.var = T, estimator = "default",
-    ordered = T, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
+    ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
     auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
     auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL,
     group.equal = "loadings", group.partial = NULL, group.w.free = FALSE
@@ -337,6 +337,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   mapply(assign, names(default.lavaan.model.specs), default.lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
   # overwrite with user-provided definitions
   mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
+  # validate that every required element is still present after merging the
+  # user-provided overrides on top of the defaults above
+  checkModelSpecs(mget(names(default.lavaan.model.specs), envir = antcolony.lavaan.env))
 
   # create values of "bad warnings" and "bad errors" that result in uninterpretable models
   bad.warnings <- c(
@@ -451,8 +454,8 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         errors <- modelCheck@errors
         # Check the above messages and set pheromone to zero under 'bad' circumstances
         if (length(warnings) > 0 | length(errors) > 0) {
-          if (grepl(paste0(bad.errors, collapse = "|"), errors, ignore.case = T) ||
-              (grepl(paste0(bad.warnings, collapse = "|", warnings, ignore.case = T)))) {
+          if (any(grepl(paste0(bad.errors, collapse = "|"), errors, ignore.case = T)) ||
+              any(grepl(paste0(bad.warnings, collapse = "|"), warnings, ignore.case = T))) {
             pheromone <- 0
             
             # writes feedback about non-convergence and non-positive definite.
@@ -558,10 +561,11 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         best.so.far.model <- antResults[[bestAnt, 'model.output']]
         best.so.far.syntax <- antResults[[bestAnt, 'model.syntax']]
 
-        if (!all(sapply(antResults[-1,'solution'], FUN = identical, antResults[1, 'solution']))) {
-          # re-starts count.
+        if (!identical(best.so.far.solution, previous.solution)) {
+          # re-starts count, since the best-so-far solution changed from the previous run.
           count <- 1
         }
+        previous.solution <- best.so.far.solution
       } else {
 
         # advances count.

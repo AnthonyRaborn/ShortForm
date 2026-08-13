@@ -210,6 +210,35 @@ test_that(
 #
 #   }
 # )
+
+# randomNeighborFull ####
+# FIXED (see code review): randomChangesRows previously sampled directly
+# from currentModelParamsLV$id via sample(x, size = numChanges). R's
+# sample() has a well-known footgun: when x is a single number, sample(x, n)
+# samples from 1:x rather than returning x, so a model with exactly one
+# latent-variable-related candidate parameter could have an entirely
+# unrelated row flipped instead. Selection is now done by sampling row
+# *positions* with sample.int() and indexing into id, which is correct
+# regardless of how many candidate rows there are.
+test_that(
+  "randomNeighborFull produces a modelCheck object with valid, refittable syntax", {
+    defaultModel <-
+      ' visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6'
+    fit <- lavaan::cfa(model = defaultModel, data = lavaan::HolzingerSwineford1939, std.lv = TRUE)
+
+    set.seed(1)
+    result <- randomNeighborFull(
+      currentModelObject = fit,
+      numChanges = 1,
+      data = lavaan::HolzingerSwineford1939
+    )
+
+    expect_s4_class(result, "modelCheck")
+    expect_type(result@model.syntax, "character")
+  }
+)
+
 # goal ####
 test_that(
   "goal returns the 'energy' value of a fit statistic test, including in cases of NA fit", {
@@ -415,52 +444,6 @@ test_that(
       ),
       "^((?!Probability:))",
       perl = TRUE
-    )
-  }
-)
-# consecutiveRestart ####
-test_that(
-  "consecutiveRestart produces the correct model depending on the value of consecutive", {
-    # currently not really testing due to how consecutiveRestart is working
-    bestModel <-
-      modelWarningCheck(
-        lavaan::cfa(
-          model =
-            ' visual  =~ x1 + x2 + x3
-            textual =~ x4 + x5 + x6
-            speed   =~ x7 + x8 + x9',
-          data = lavaan::HolzingerSwineford1939
-        ),
-        modelSyntax =
-          ' visual  =~ x1 + x2 + x3
-            textual =~ x4 + x5 + x6
-            speed   =~ x7 + x8 + x9'
-      )
-    currentModel <-
-      testedModel <-
-      modelWarningCheck(
-        lavaan::cfa(
-          model =
-          ' visual  =~ x1 + x2 + x4
-            textual =~ x3 + x5 + x7
-            speed   =~ x6 + x8 + x9',
-          data = lavaan::HolzingerSwineford1939
-        ),
-        modelSyntax =
-          ' visual  =~ x1 + x2 + x4
-            textual =~ x3 + x5 + x7
-            speed   =~ x6 + x8 + x9'
-      )
-    consecutive = 1
-
-    # consecutive < maxConsecutiveSelection, do not replace currentModel
-    expect_false(
-      c(
-        consecutiveRestart(
-          maxConsecutiveSelection = 25,
-          consecutive = 1
-          ), identical(currentModel, bestModel)
-      )
     )
   }
 )
@@ -861,6 +844,118 @@ test_that(
       fitStatTestCheck(measures = c('cfi','tli','rmsea'),
                        test = "(cfi >> 0.95)&(tli > 0.95)&(rmsea < 0.06)"),
     )
+  }
+)
+
+# randomNeighborShort item-name collateral corruption ####
+# FIXED (see code review): the gsub() pattern used to swap an item out of the
+# model syntax was anchored with a trailing "\\b" only (internals.R ~164), not
+# a leading one, so an item name that is a *suffix* of another item's name
+# (e.g. "SubItem1" ends in "Item1") could get silently rewritten even though
+# it was never selected for replacement. randomNeighborShort now delegates to
+# the shared replaceItem() helper (R/lavaan_syntax_helpers.R), which anchors
+# both sides.
+test_that(
+  "randomNeighborShort does not corrupt an unrelated item whose name shares a suffix with the changed item", {
+    corruptionData <- as.data.frame(
+      matrix(rnorm(4 * 100), ncol = 4)
+    )
+    names(corruptionData) <- c("Item1", "SubItem1", "Item2", "Item2b")
+    corruptionModel <- "f =~ Item1 + SubItem1"
+    currentModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model = corruptionModel,
+          data = corruptionData,
+          std.lv = TRUE
+        ),
+        modelSyntax = corruptionModel
+      )
+    lavaanSpecs <-
+      list(model.type = "cfa",
+           estimator = "default",
+           ordered = NULL,
+           int.ov.free = TRUE,
+           int.lv.free = FALSE,
+           auto.fix.first = FALSE,
+           std.lv = TRUE,
+           auto.fix.single = TRUE,
+           auto.var = TRUE,
+           auto.cov.lv.x = TRUE,
+           auto.th = TRUE,
+           auto.delta = TRUE,
+           auto.cov.y = TRUE)
+
+    set.seed(4)
+    corrupted <- randomNeighborShort(
+      currentModelObject = currentModel,
+      numChanges = 1,
+      allItems = c("Item1", "SubItem1", "Item2", "Item2b"),
+      data = corruptionData,
+      bifactor = FALSE,
+      init.model = corruptionModel,
+      lavaan.model.specs = lavaanSpecs
+    )
+
+    # "Item1" was replaced as intended...
+    expect_false(grepl("\\bItem1\\b", corrupted@model.syntax))
+    # ...and "SubItem1" was never chosen for replacement, so it survives
+    # untouched even though "Item1" is a suffix of its name.
+    expect_true(grepl("SubItem1", corrupted@model.syntax))
+  }
+)
+
+# consecutiveRestart actually restarts the chain ####
+test_that(
+  "consecutiveRestart restarts to bestModel once maxConsecutiveSelection is reached, and is a no-op otherwise", {
+    bestModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model =
+            ' visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
+            speed   =~ x7 + x8 + x9',
+          data = lavaan::HolzingerSwineford1939
+        ),
+        modelSyntax =
+          ' visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
+            speed   =~ x7 + x8 + x9'
+      )
+    currentModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model =
+          ' visual  =~ x1 + x2 + x4
+            textual =~ x3 + x5 + x7
+            speed   =~ x6 + x8 + x9',
+          data = lavaan::HolzingerSwineford1939
+        ),
+        modelSyntax =
+          ' visual  =~ x1 + x2 + x4
+            textual =~ x3 + x5 + x7
+            speed   =~ x6 + x8 + x9'
+      )
+
+    # consecutive < maxConsecutiveSelection: currentModel and consecutive pass through unchanged
+    noRestart <- consecutiveRestart(
+      maxConsecutiveSelection = 25,
+      consecutive = 1,
+      currentModel = currentModel,
+      bestModel = bestModel
+    )
+    expect_identical(noRestart$currentModel, currentModel)
+    expect_equal(noRestart$consecutive, 1)
+
+    # consecutive == maxConsecutiveSelection: restarts to bestModel and resets the counter
+    restart <- consecutiveRestart(
+      maxConsecutiveSelection = 25,
+      consecutive = 25,
+      currentModel = currentModel,
+      bestModel = bestModel
+    )
+    expect_identical(restart$currentModel, bestModel)
+    expect_equal(restart$consecutive, 0)
   }
 )
 

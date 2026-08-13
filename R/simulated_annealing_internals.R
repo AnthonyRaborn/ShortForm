@@ -42,13 +42,9 @@ randomInitialModel <-
   
   newModelSyntax <- c()
   for (i in 1:length(factors)) {
-    newModelSyntax[i] <- paste(
-      factors[i],
-      "=~",
-      paste(newItemsPerFactor[[i]], collapse = " + ")
-    )
+    newModelSyntax[i] <- buildFactor(factors[i], newItemsPerFactor[[i]])
   }
-  newModelSyntax <- 
+  newModelSyntax <-
     paste(newModelSyntax, externalRelation, factorRelation, sep = "\n")
   newModelSyntax <-
     stringr::str_replace_all(newModelSyntax, "\n\n", "\n")
@@ -160,10 +156,10 @@ randomNeighborShort <-
     for (i in 1:length(factors)) {
       for (j in 1:numChanges) {
         currentItems[[i]] <-
-          gsub(
-            pattern = paste0(changingItems[j], "\\b"),
-            replacement = replacementItem[j],
-            x = currentItems[[i]]
+          replaceItem(
+            items = currentItems[[i]],
+            oldItem = changingItems[j],
+            newItem = replacementItem[j]
           )
       }
     }
@@ -181,11 +177,7 @@ randomNeighborShort <-
                          simplify = T)
     )
     for (i in 1:length(factors)) {
-      newModelSyntax[i] <- paste(
-        factors[i],
-        "=~",
-        paste(currentItems[[i]], collapse = " + ")
-      )
+      newModelSyntax[i] <- buildFactor(factors[i], currentItems[[i]])
     }
     
     newModelSyntax <- stringr::str_flatten(newModelSyntax,
@@ -230,8 +222,11 @@ randomNeighborFull <-
       paramTable[paramTable$lhs %in% latentVariables, ]
     
     # randomly select rows to make changes to
+    # (indexing by position, not sampling the id values directly)
     randomChangesRows <-
-      sample(currentModelParamsLV$id, size = numChanges)
+      currentModelParamsLV$id[
+        sample.int(length(currentModelParamsLV$id), size = numChanges)
+      ]
     changeParamTable <- paramTable[randomChangesRows, ]
     
     # make the changes. If currently free, fix to 0; if fixed to 0, set to free
@@ -254,9 +249,9 @@ randomNeighborFull <-
         model = prevModel$model,
         data = data
       ),
-      modelSyntax = prevModel$model
+      modelSyntax = parTableToSyntax(prevModel$model)
     )
-    
+
     return(randomNeighborModel)
   }
 
@@ -394,11 +389,19 @@ selectionFunction <-
   }
 
 consecutiveRestart <-
-  function(maxConsecutiveSelection = 25, consecutive) {
+  function(maxConsecutiveSelection = 25, consecutive, currentModel, bestModel) {
     if (consecutive == maxConsecutiveSelection) {
-      currentModel <- bestModel
-      consecutive <- 0
+      return(
+        list(
+          currentModel = bestModel,
+          consecutive = 0
+        )
+      )
     }
+    list(
+      currentModel = currentModel,
+      consecutive = consecutive
+    )
   }
 
 checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {

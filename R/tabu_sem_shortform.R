@@ -138,6 +138,7 @@ tabuShortForm <- function(originalData,
                            verbose = FALSE,
                            parallel = T) {
   start.time = Sys.time()
+  checkModelSpecs(lavaan.model.specs)
   mapply(
     assign,
     names(lavaan.model.specs),
@@ -262,12 +263,9 @@ tabuShortForm <- function(originalData,
 
       for (k in 1:nrow(itemChange)) {
         newItems <-
-          gsub(pattern = paste0(itemChange[k, 1], "\\b"), replacement = itemChange[k, 2], currentItems)
+          replaceItem(items = currentItems, oldItem = itemChange[k, 1], newItem = itemChange[k, 2])
         newCurrentFactor <-
-          paste(
-            factors[j], "=~",
-            paste(newItems, collapse = " + ")
-          )
+          buildFactor(factors[j], newItems)
 
         currentModelSyntax[grepl(paste0(factors[j], ".*=~"), currentModelSyntax)] <-
           newCurrentFactor

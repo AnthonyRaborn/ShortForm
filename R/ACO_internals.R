@@ -26,7 +26,7 @@ antcolonyNewModel <-
 
       # replaces the lavaan syntax for factor specification.
       factor.position <- grep(paste(factorNames[factor], "[ ]{0,}=~"), model, ignore.case = T)
-      model[factor.position] <- paste(factorNames[factor], "=~", paste(items, collapse = " + "))
+      model[factor.position] <- buildFactor(factorNames[factor], items)
       all.items <- c(all.items, items)
     }
   } else {
@@ -44,12 +44,12 @@ antcolonyNewModel <-
 
       # replaces the lavaan syntax for factor specification.
       factor.position <- grep(paste(factorNames[factor], "=~"), model, ignore.case = T)
-      model[factor.position] <- paste(factorNames[factor], "=~", paste(items, collapse = " + "))
+      model[factor.position] <- buildFactor(factorNames[factor], items)
       all.items <- c(all.items, items)
     }
 
     # add bifactor items
-    model[grep(paste(bifactor, "=~"), model)] <- paste(bifactor, "=~", paste(all.items, collapse = " + "))
+    model[grep(paste(bifactor, "=~"), model)] <- buildFactor(bifactor, all.items)
     selected.items[[length(itemList)]] <- bifactor.items
   }
 
