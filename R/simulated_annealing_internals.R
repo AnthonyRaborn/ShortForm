@@ -222,8 +222,11 @@ randomNeighborFull <-
       paramTable[paramTable$lhs %in% latentVariables, ]
     
     # randomly select rows to make changes to
+    # (indexing by position, not sampling the id values directly)
     randomChangesRows <-
-      sample(currentModelParamsLV$id, size = numChanges)
+      currentModelParamsLV$id[
+        sample.int(length(currentModelParamsLV$id), size = numChanges)
+      ]
     changeParamTable <- paramTable[randomChangesRows, ]
     
     # make the changes. If currently free, fix to 0; if fixed to 0, set to free
