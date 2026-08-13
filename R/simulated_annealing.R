@@ -35,7 +35,9 @@
 #' @param items A `character` vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.
 #' @param setChains Numeric. Sets the number of parallel chains to run. Default to `1`, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than `1` result in the chains running on parallel processes using the `doSNOW` and `foreach` packages.
-#' @param shortForm Logical. Are you creating a short form (`TRUE`) or not (`FALSE`)? Default is `TRUE`.
+#' @param shortForm Deprecated; no longer has any effect. Whether short-form
+#'  (item-swap) or full-model (parameter free/fix) neighbors are generated is
+#'  now determined automatically by whether `maxItems` is supplied.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
 #' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
@@ -165,8 +167,14 @@ simulatedAnnealing <-
       cat("\nFinished initializing short form options.")
     } else {
       # if not using the short form option
+      currentModel <-
+        bestModel <-
+        modelWarningCheck(
+          initialModel,
+          modelSyntax = parTableToSyntax(lavaan::parTable(initialModel))
+        )
       bestFit <- tryCatch(
-        lavaan::fitmeasures(object = bestModel, fit.measures = fitStatistic),
+        lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
         error = function(e, checkMaximize = maximize) {
           if (length(e) > 0) {
             if (checkMaximize == TRUE) {
@@ -179,6 +187,11 @@ simulatedAnnealing <-
       )
     }
 
+    # whether short-form (item-swap) or full-model (parameter free/fix)
+    # neighbors are generated is entirely determined by maxItems -- the two
+    # code paths above already assume this, so shortForm is derived here
+    # rather than trusted as an independently user-set value.
+    shortForm <- !is.null(maxItems)
 
     #### selecting functions for use in algorithm ####
     if (temperature == "linear") {
@@ -273,7 +286,7 @@ simulatedAnnealing <-
           # generate random model
           if (shortForm == FALSE) {
             randomNeighborModel <- randomNeighborFull(
-              currentModelObject = currentModel,
+              currentModelObject = currentModel@model.output,
               numChanges = numChanges,
               data = originalData
             )

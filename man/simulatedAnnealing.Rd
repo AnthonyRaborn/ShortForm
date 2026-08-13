@@ -63,7 +63,9 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 
 \item{setChains}{Numeric. Sets the number of parallel chains to run. Default to \code{1}, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than \code{1} result in the chains running on parallel processes using the \code{doSNOW} and \code{foreach} packages.}
 
-\item{shortForm}{Logical. Are you creating a short form (\code{TRUE}) or not (\code{FALSE})? Default is \code{TRUE}.}
+\item{shortForm}{Deprecated; no longer has any effect. Whether short-form
+(item-swap) or full-model (parameter free/fix) neighbors are generated is
+now determined automatically by whether \code{maxItems} is supplied.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }
