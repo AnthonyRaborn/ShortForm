@@ -11,6 +11,29 @@ output:
 
 # *News*
 
+# ShortForm v0.5.9
+
+## Bugfixes
+
+- Fixed simulatedAnnealing crashing when run without maxItems (i.e., full-model rather than short-form usage)
+- Fixed tabu.sem and tabuShortForm erroring instead of returning a result when no candidate model improved on the initial model
+- Fixed simulatedAnnealing's restart-after-stagnation logic throwing an error instead of restarting
+- Fixed antcolony.lavaan's stopping rule comparing the wrong ant solutions, and a warning/error check that could crash a run
+- Fixed a bug where swapping an item for a short form could silently corrupt an unrelated item whose name happened to share a suffix (affected simulatedAnnealing and tabuShortForm)
+
+## Updates
+
+- Consolidated the lavaan model syntax-building logic shared by the ACO, SA, and Tabu algorithms into common internal helper functions
+- Added substantial unit test coverage for the top-level antcolony.lavaan, simulatedAnnealing, tabuShortForm, and tabu.sem functions
+- Deprecated the shortForm argument in simulatedAnnealing; this is now determined automatically from maxItems
+
+## To Do
+
+Note--these are not required for 0.5.9, but are on the roadmap for future updates.
+
+- refactor all major functions (0.6.0)
+- standardize function inputs, arguments, and outputs (0.7.0)
+
 # ShortForm v0.5.8
 
 ## Bugfixes
@@ -22,14 +45,6 @@ output:
 
 - Removed dependencies on ggplot2, ggrepel, and tidyr (ACO and TS plot methods)
 - Added some additional unit tests
-
-## To Do
-
-Note--these are not required for 0.5.8, but are on the roadmap for future updates.
-
-- add additional unit tests (maybe for 0.5.9)
-- refactor all major functions (0.6.0)
-- standardize function inputs, arguments, and outputs (0.7.0)
 
 =======
 
