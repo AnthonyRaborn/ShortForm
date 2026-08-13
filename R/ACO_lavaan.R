@@ -329,7 +329,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # use a default set of specifications that fits a CFA
   default.lavaan.model.specs = list(
     model.type = "cfa", auto.var = T, estimator = "default",
-    ordered = T, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
+    ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
     auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
     auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL,
     group.equal = "loadings", group.partial = NULL, group.w.free = FALSE
@@ -337,6 +337,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   mapply(assign, names(default.lavaan.model.specs), default.lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
   # overwrite with user-provided definitions
   mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
+  # validate that every required element is still present after merging the
+  # user-provided overrides on top of the defaults above
+  checkModelSpecs(mget(names(default.lavaan.model.specs), envir = antcolony.lavaan.env))
 
   # create values of "bad warnings" and "bad errors" that result in uninterpretable models
   bad.warnings <- c(

@@ -138,6 +138,7 @@ tabuShortForm <- function(originalData,
                            verbose = FALSE,
                            parallel = T) {
   start.time = Sys.time()
+  checkModelSpecs(lavaan.model.specs)
   mapply(
     assign,
     names(lavaan.model.specs),

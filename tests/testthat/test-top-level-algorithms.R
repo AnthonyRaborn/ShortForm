@@ -228,3 +228,49 @@ test_that(
     expect_s4_class(result, "ACO")
   }
 )
+
+# antcolony.lavaan() -- partial lavaan.model.specs override ####
+test_that(
+  "antcolony.lavaan runs end-to-end with a partial lavaan.model.specs override", {
+    set.seed(1)
+    result <- antcolony.lavaan(
+      data = lavaan::HolzingerSwineford1939,
+      ants = 2, evaporation = 0.7,
+      antModel = " visual  =~ x1 + x2 + x3
+                   textual =~ x4 + x5 + x6
+                   speed   =~ x7 + x8 + x9 ",
+      list.items = list(c("x1", "x2", "x3"), c("x4", "x5", "x6"), c("x7", "x8", "x9")),
+      full = 9, i.per.f = c(3, 3, 3), factors = c("visual", "textual", "speed"),
+      steps = 2, fit.indices = c("cfi"), fit.statistics.test = "(cfi > 0.6)",
+      lavaan.model.specs = list(estimator = "ML"),
+      summaryfile = NULL, feedbackfile = NULL, max.run = 2, parallel = FALSE
+    )
+
+    expect_s4_class(result, "ACO")
+  }
+)
+
+# tabuShortForm() -- checkModelSpecs ####
+test_that(
+  "tabuShortForm errors clearly when lavaan.model.specs is incomplete", {
+    set.seed(1)
+    data(simulated_test_data)
+    shortAntModel <- "
+    Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+    Ability ~ Outcome
+    "
+
+    expect_error(
+      tabuShortForm(
+        initialModel = shortAntModel,
+        originalData = simulated_test_data,
+        numItems = 7,
+        niter = 1,
+        tabu.size = 3,
+        parallel = FALSE,
+        lavaan.model.specs = list(estimator = "ML")
+      ),
+      "have not been specified"
+    )
+  }
+)
