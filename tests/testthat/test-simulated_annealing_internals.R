@@ -819,16 +819,15 @@ test_that(
 )
 
 # randomNeighborShort item-name collateral corruption ####
-# KNOWN BUG (see code review): the gsub() pattern used to swap an item out of
-# the model syntax is anchored with a trailing "\\b" only (internals.R ~164),
-# not a leading one. An item name that is a *suffix* of another item's name
-# (e.g. "SubItem1" ends in "Item1") can therefore get silently rewritten even
-# though it was never selected for replacement. This test pins the CURRENT
-# (buggy) behavior with a seed that deterministically selects "Item1" as the
-# item to change; once the leading boundary is fixed, "SubItem1" should stay
-# untouched and this test will need updating to expect_equal(..., "SubItem1").
+# FIXED (see code review): the gsub() pattern used to swap an item out of the
+# model syntax was anchored with a trailing "\\b" only (internals.R ~164), not
+# a leading one, so an item name that is a *suffix* of another item's name
+# (e.g. "SubItem1" ends in "Item1") could get silently rewritten even though
+# it was never selected for replacement. randomNeighborShort now delegates to
+# the shared replaceItem() helper (R/lavaan_syntax_helpers.R), which anchors
+# both sides.
 test_that(
-  "randomNeighborShort corrupts an unrelated item whose name shares a suffix with the changed item", {
+  "randomNeighborShort does not corrupt an unrelated item whose name shares a suffix with the changed item", {
     corruptionData <- as.data.frame(
       matrix(rnorm(4 * 100), ncol = 4)
     )
@@ -871,10 +870,9 @@ test_that(
 
     # "Item1" was replaced as intended...
     expect_false(grepl("\\bItem1\\b", corrupted@model.syntax))
-    # ...but "SubItem1" was never chosen for replacement and, correctly,
-    # should have survived untouched. It does not: it was collaterally
-    # rewritten to "SubItem2" because "Item1" is a suffix of "SubItem1".
-    expect_false(grepl("SubItem1", corrupted@model.syntax))
+    # ...and "SubItem1" was never chosen for replacement, so it survives
+    # untouched even though "Item1" is a suffix of its name.
+    expect_true(grepl("SubItem1", corrupted@model.syntax))
   }
 )
 

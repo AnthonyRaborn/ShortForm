@@ -29,15 +29,16 @@ test_that(
 )
 
 # simulatedAnnealing() -- full model (non-short-form) mode ####
-# KNOWN BUG (see code review): when maxItems is NULL, simulatedAnnealing()
-# never initializes bestModel/currentModel before using them (they are only
-# assigned inside the `if (!is.null(maxItems))` branch), so the "full model"
-# usage documented in ?simulatedAnnealing's own first example crashes
-# immediately. This test pins that current crash; once bestModel/currentModel
-# are initialized from initialModel in the else branch, this test should be
-# replaced with one asserting a successful SA run.
+# FIXED (see code review): when maxItems was NULL, simulatedAnnealing() never
+# initialized bestModel/currentModel before using them, so the "full model"
+# usage documented in ?simulatedAnnealing's own first example crashed
+# immediately. bestModel/currentModel are now initialized from initialModel
+# via parTableToSyntax() (R/lavaan_syntax_helpers.R), and shortForm is now
+# derived from maxItems instead of trusted as an independent argument, so the
+# loop correctly dispatches to randomNeighborFull() instead of
+# randomNeighborShort().
 test_that(
-  "simulatedAnnealing errors on the documented full-model (non-short-form) usage", {
+  "simulatedAnnealing runs end-to-end and returns an SA object for the documented full-model (non-short-form) usage", {
     set.seed(1)
     fittedModel <- lavaan::cfa(
       model =
@@ -47,16 +48,19 @@ test_that(
       data = lavaan::HolzingerSwineford1939
     )
 
-    expect_error(
+    result <- suppressWarnings(
       simulatedAnnealing(
         initialModel = fittedModel,
         originalData = lavaan::HolzingerSwineford1939,
         maxSteps = 3,
         fitStatistic = "cfi",
         maximize = FALSE
-      ),
-      "bestModel|currentModel"
+      )
     )
+
+    expect_s4_class(result, "SA")
+    expect_s4_class(result@best_model, "modelCheck")
+    expect_true(is.numeric(result@best_fit))
   }
 )
 
