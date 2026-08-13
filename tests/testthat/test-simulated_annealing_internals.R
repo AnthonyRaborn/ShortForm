@@ -210,6 +210,35 @@ test_that(
 #
 #   }
 # )
+
+# randomNeighborFull ####
+# FIXED (see code review): randomChangesRows previously sampled directly
+# from currentModelParamsLV$id via sample(x, size = numChanges). R's
+# sample() has a well-known footgun: when x is a single number, sample(x, n)
+# samples from 1:x rather than returning x, so a model with exactly one
+# latent-variable-related candidate parameter could have an entirely
+# unrelated row flipped instead. Selection is now done by sampling row
+# *positions* with sample.int() and indexing into id, which is correct
+# regardless of how many candidate rows there are.
+test_that(
+  "randomNeighborFull produces a modelCheck object with valid, refittable syntax", {
+    defaultModel <-
+      ' visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6'
+    fit <- lavaan::cfa(model = defaultModel, data = lavaan::HolzingerSwineford1939, std.lv = TRUE)
+
+    set.seed(1)
+    result <- randomNeighborFull(
+      currentModelObject = fit,
+      numChanges = 1,
+      data = lavaan::HolzingerSwineford1939
+    )
+
+    expect_s4_class(result, "modelCheck")
+    expect_type(result@model.syntax, "character")
+  }
+)
+
 # goal ####
 test_that(
   "goal returns the 'energy' value of a fit statistic test, including in cases of NA fit", {
