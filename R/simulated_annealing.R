@@ -233,29 +233,17 @@ simulatedAnnealing <-
       )
     }
     #### prepare parallel processing ####
+    parallelSetup <- setupParallelCluster(setChains > 1, min(setChains, parallel::detectCores()))
+    cl <- parallelSetup$cluster
+    num_workers <- parallelSetup$num_workers
+    `%dopar%` <- parallelSetup$dopar
+
     if (setChains > 1) {
-      chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-      progressPar <- function(n) {
+      progressCallback <- function(n) {
         cat(paste("Chain number ", n, " complete. \n", sep = ""))
       }
-      
-      if (nzchar(chk) && chk == "TRUE") {
-        # use 2 cores in CRAN/Travis/AppVeyor
-        num_workers <- 2L
-      } else {
-        if (setChains <= parallel::detectCores()) {
-          num_workers <- setChains
-        } else { 
-          # use all cores in devtools::test()
-          num_workers <- parallel::detectCores()
-          }
-      }
-      cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-      doSNOW::registerDoSNOW(cl)
-      
     } else {
-      num_workers <- 1L
-      progressSeq <- function(currentStep, maxSteps) {
+      progressCallback <- function(currentStep, maxSteps) {
         cat(paste0(
           "\r Current Step = ",
           currentStep,
@@ -264,17 +252,9 @@ simulatedAnnealing <-
           ".  "
         ), file = stdout())
       }
-      
-      
     }
-    
-    `%dopar%` <- foreach::`%dopar%`
-    if (setChains > 1) {
-      opts <- list(progress = progressPar)
-    } else {
-      opts <- list(progress = progressSeq)
-    }
-    
+    opts <- list(progress = progressCallback)
+
     chains = setChains
     currentStep <- 1
     consecutive <- 0
@@ -373,10 +353,9 @@ simulatedAnnealing <-
       }
     
     
+    teardownParallelCluster(cl)
+
     if (setChains > 1) {
-      foreach::registerDoSEQ()
-      parallel::stopCluster(cl)
-      
       best_fit <-
         ifelse(maximize,
                max(as.numeric(chainResults[,'bestFit'])),

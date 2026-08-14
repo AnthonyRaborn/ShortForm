@@ -229,23 +229,10 @@ tabuShortForm <- function(originalData,
   all.syntax[1] <-
     paste0(current.syntax, collapse = "")
 
-  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-  
-  if (parallel) {
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      num_workers <- 2L
-    } else {
-      # use all cores in devtools::test()
-      num_workers <- parallel::detectCores()
-    }
-    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-    doSNOW::registerDoSNOW(cl)
-    `%dopar%` <- foreach::`%dopar%`
-  } else {
-    num_workers = 1
-    `%dopar%` <- foreach::`%do%`
-  }
+  parallelSetup <- setupParallelCluster(parallel, parallel::detectCores())
+  cl <- parallelSetup$cluster
+  num_workers <- parallelSetup$num_workers
+  `%dopar%` <- parallelSetup$dopar
   
   
   
@@ -399,10 +386,7 @@ tabuShortForm <- function(originalData,
     }
   }
   
-  if (parallel) {
-    foreach::registerDoSEQ()
-    parallel::stopCluster(cl)
-  }
+  teardownParallelCluster(cl)
 
   if (class(best.obj)[1] == "lavaan.vector") {
     temp = as.numeric(best.obj)

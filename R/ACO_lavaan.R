@@ -361,26 +361,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
     "missing observed variables in dataset"
   )
 
-  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-  if (parallel) {
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      num_workers <- 2L
-    } else {
-      # use all cores in devtools::test()
-      num_workers <- parallel::detectCores()
-    }
-
-    `%dopar%` <- foreach::`%dopar%`
-    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-    doSNOW::registerDoSNOW(cl)
-
-  } else {
-    `%dopar%` <- foreach::`%do%`
-    num_workers = 1
-
-  }
+  parallelSetup <- setupParallelCluster(parallel, parallel::detectCores())
+  cl <- parallelSetup$cluster
+  num_workers <- parallelSetup$num_workers
+  `%dopar%` <- parallelSetup$dopar
 
   ant = 0L
   progress <- function(n) {
@@ -614,10 +598,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
     }
 
-  if (parallel) {
-    foreach::registerDoSEQ()
-    parallel::stopCluster(cl)
-  }
+  teardownParallelCluster(cl)
 
   print("Compiling results.")
 
