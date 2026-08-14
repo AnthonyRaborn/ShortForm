@@ -1,8 +1,8 @@
 Package: ShortForm
 Type: Package
 Title: Automatic Short Form Creation
-Version: 0.5.9
-Date: 2026-08-13
+Version: 1.0.0
+Date: 2026-08-14
 Authors@R: c(person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", 
     role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8083-4739")), 
     person("Walter", "Leite", email = "Walter.Leite@coe.ufl.edu", role = "aut"))
