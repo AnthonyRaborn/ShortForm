@@ -3,11 +3,55 @@
 
 # *News*
 
-# ShortForm v0.6.0
+# ShortForm v1.0.0
+
+## Breaking Changes
+
+This release standardizes the three top-level algorithm functions’
+arguments and, in a few cases, their names, so the same concept is
+expressed the same way regardless of which algorithm you’re calling.
+
+- Renamed `antcolony.lavaan()` to `antColony()`, and `tabuShortForm()`
+  to `tabuSearch()`, to match `simulatedAnnealing()`’s naming style.
+  `antcolony.mplus()` and `tabu.sem()` (the lower-level Tabu function)
+  are unchanged.
+- Renamed `antColony()`’s `antModel` argument to `initialModel`,
+  matching `simulatedAnnealing()`/`tabuSearch()`.
+- Unified item/factor specification across all three functions:
+  `antColony()`’s `list.items`, `full`, `i.per.f`, and `factors`
+  arguments are replaced by `items` (an optional flat vector of
+  candidate item names, defaulting to `colnames(data)`) and
+  `itemsPerFactor` (target item count per factor); `factors` is now
+  always derived from `initialModel`’s syntax, the same way
+  `simulatedAnnealing()` already did it. `simulatedAnnealing()`’s
+  `maxItems` and `tabuSearch()`’s `numItems` are both renamed to
+  `itemsPerFactor` to match, and `tabuSearch()` gains the same optional
+  `items` argument.
+- Renamed the iteration-count argument to `maxIterations` across all
+  three functions (previously `simulatedAnnealing()`’s `maxSteps`,
+  `tabuSearch()`’s `niter`, and `antColony()`’s `max.run`).
+  `antColony()`’s `steps` argument (its separate, stagnation-based
+  stopping rule) is unchanged.
+- Unified `bifactor` to a `character` factor name (or `NULL`) across all
+  three functions. `simulatedAnnealing()`/`tabuSearch()` previously took
+  a logical flag and always assumed the *last* factor in the model
+  syntax was the bifactor; they now name it explicitly, matching
+  `antColony()`’s existing behavior.
+- Replaced `simulatedAnnealing()`’s `fitStatistic`/`maximize` arguments
+  with `criterion`/`negateCriterion`, matching
+  `tabuSearch()`/`tabu.sem()`. `criterion` now accepts either a
+  `character` fit-measure name (e.g. `"cfi"`) or an arbitrary function
+  for all three of `simulatedAnnealing()`, `tabuSearch()`, and
+  `tabu.sem()` (previously function-only for the latter two).
+- Removed `antColony()`’s `summaryfile`/`feedbackfile` arguments and
+  their file-writing side effects; the same information is already
+  available from the returned object’s `summary`/`final_solution` slots
+  and the console progress output. Added a `verbose` argument (matching
+  `tabuSearch()`) to control that console progress output.
 
 ## Bugfixes
 
-- Fixed tabuShortForm crashing with “could not find function ‘%dopar%’”
+- Fixed tabuSearch crashing with “could not find function ‘%dopar%’”
   when run with parallel = TRUE under CRAN-style core-limited
   environments (e.g., when `_R_CHECK_LIMIT_CORES_` is set)
 - Fixed simulatedAnnealing hanging indefinitely when a candidate
@@ -17,10 +61,10 @@
   entirely, rather than just failing to converge
 - Fixed tabu.sem crashing when every candidate neighbor was invalid or
   already on the tabu list
-- Fixed antcolony.lavaan crashing when a partial lavaan.model.specs
-  override was supplied, due to an internal default for `ordered` that
-  didn’t match the function’s own documented default
-- Fixed antcolony.lavaan silently dropping the
+- Fixed antColony crashing when a partial lavaan.model.specs override
+  was supplied, due to an internal default for `ordered` that didn’t
+  match the function’s own documented default
+- Fixed antColony silently dropping the
   `group`/`group.label`/`group.equal`/`group.partial`/`group.w.free`
   elements of lavaan.model.specs, due to a duplicated `auto.var` entry
   in its internal defaults and those elements never being wired into the
@@ -30,35 +74,39 @@
   restored its per-step “Current Step” progress output (previously
   assigned to an unreachable code path) for both serial and parallel
   runs
+- Fixed simulatedAnnealing and tabu.sem crashing with “missing value
+  where TRUE/FALSE needed” whenever a candidate (or the initial) model’s
+  criterion value came back NA – most easily triggered by
+  under-identified or poorly-specified models. An NA candidate is now
+  always treated as worse than the current best, and an NA best is
+  always displaced by any valid candidate.
 
 ## Updates
 
-- Reworked negateCriterion (tabu.sem, tabuShortForm) so it genuinely
+- Reworked negateCriterion (tabu.sem, tabuSearch) so it genuinely
   controls whether the search looks for the largest or smallest value of
   the objective/criterion function, rather than requiring users to
   pre-negate their own criterion function beforehand
-- Renamed tabu.sem’s `obj` argument to `criterion`, matching
-  tabuShortForm
-- Changed tabuShortForm’s default criterion from a pre-negated `-cfi` to
+- Renamed tabu.sem’s `obj` argument to `criterion`, matching tabuSearch
+- Changed tabuSearch’s default criterion from a pre-negated `-cfi` to
   plain `cfi`
 - Extended partial lavaan.model.specs overrides (previously only
-  supported by antcolony.lavaan) to simulatedAnnealing and
-  tabuShortForm, with new typo detection for unrecognized element names
-  across all three algorithms
+  supported by antColony) to simulatedAnnealing and tabuSearch, with new
+  typo detection for unrecognized element names across all three
+  algorithms
 - Added a burn_in argument and whole-number axis ticks to
   simulatedAnnealing’s plot method
 - Consolidated TS’s show/summary model-syntax reconstruction into one
   shared internal helper
-- Function calls for simulatedAnnealing, tabuShortForm, tabu.sem, and
-  antcolony.lavaan are now captured with every argument resolved
-  (specified or defaulted), including the actual merged
-  lavaan.model.specs used
-- Corrected @return documentation for tabu.sem, tabuShortForm,
-  simulatedAnnealing, and antcolony.lavaan to describe their actual S4
-  return types instead of stale list descriptions
+- Function calls for simulatedAnnealing, tabuSearch, tabu.sem, and
+  antColony are now captured with every argument resolved (specified or
+  defaulted), including the actual merged lavaan.model.specs used
+- Corrected @return documentation for tabu.sem, tabuSearch,
+  simulatedAnnealing, and antColony to describe their actual S4 return
+  types instead of stale list descriptions
 - Consolidated the parallel cluster bootstrap/teardown boilerplate
-  shared by antcolony.lavaan, simulatedAnnealing, and tabuShortForm into
-  shared internal helpers
+  shared by antColony, simulatedAnnealing, and tabuSearch into shared
+  internal helpers
 - Replaced internal `mapply(assign, ...)` variable-splatting with
   `do.call()` (where the values were only ever fed into a single
   downstream `lavaan()` call) or plain named-list access (where a couple
@@ -66,18 +114,13 @@
   internal environments in the process
 - Added the selected criterion/fit-statistic and its final-model value
   to the show/summary output for SA, TS, and ACO objects
-
-## To Do
-
-Note–these are not required for 0.6.0, but are on the roadmap for future
-updates.
-
-- standardize function inputs, arguments, and outputs (0.7.0)
+- Added a shared `resolveCriterion()` internal helper so `criterion` can
+  be a character fit-measure name or a function everywhere it’s accepted
 
 # ShortForm v0.5.9
 
 Note: v0.5.9 was an internal version only and was not released to CRAN;
-the changes below were included in the v.0.6.0 release.
+the changes below were included in the v1.0.0 release.
 
 ## Bugfixes
 
