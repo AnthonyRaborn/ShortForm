@@ -366,6 +366,15 @@ checkModels <- function(currentModel, criterionFn, negateCriterion, bestFit = be
     return(bestModel)
   }
   currentFit <- fitWarningCheck(criterionFn(currentModel@model.output))
+  # an NA candidate fit can never displace the current best; an NA best (e.g.
+  # the initial model failed to produce a valid fit) is always displaced by
+  # any valid candidate
+  if (is.na(currentFit)) {
+    return(bestModel)
+  }
+  if (is.na(bestFit)) {
+    return(currentModel)
+  }
   if (negateCriterion == TRUE) {
     if (currentFit > bestFit) {
       bestModel <- currentModel
@@ -376,11 +385,7 @@ checkModels <- function(currentModel, criterionFn, negateCriterion, bestFit = be
     if (currentFit < bestFit) {
       bestModel <- currentModel
     } else {
-      if (currentFit < bestFit) {
-        bestModel <- currentModel
-      } else {
-        bestModel <- bestModel
-      }
+      bestModel <- bestModel
     }
   }
 

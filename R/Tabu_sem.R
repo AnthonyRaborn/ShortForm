@@ -127,8 +127,11 @@ tabu.sem <- function(init.model,
       tabu.list <- tabu.list[1:tabu.size]
     }
 
-    # Update if the current model is better than the best model
-    if (isBetter(current.obj, best.obj)) {
+    # Update if the current model is better than the best model. current.obj
+    # is guaranteed non-NA here (drawn from tmp.obj[valid], which excludes
+    # NAs), but best.obj can still be NA if init.model's objective value was
+    # NA -- in that case any valid current.obj is automatically the new best.
+    if (is.na(best.obj) || isBetter(current.obj, best.obj)) {
       best.obj <- current.obj
       best.mod <- current.mod
       best.binvec <- current.binvec
