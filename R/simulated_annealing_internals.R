@@ -1,41 +1,32 @@
-randomInitialModel <- 
+randomInitialModel <-
   function(init.model,
-           maxItems,
+           itemCounts,
            allItems,
            initialData,
-           bifactorModel,
+           bifactor,
            lavaan.model.specs) {
-    mapply(
-      assign,
-      names(lavaan.model.specs),
-      lavaan.model.specs,
-      MoreArgs = list(envir = environment())
-    )
   # extract the latent factor syntax
-  mapply(
-    assign,
-    c("factors", "itemsPerFactor"),
-    syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems),
-    MoreArgs = list(envir = environment())
-  )
-  
+  extracted <- syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems)
+  factors <- extracted$factors
+  itemsPerFactor <- extracted$itemsPerFactor
+
   # save the external relationships
   vectorModel <- unlist(strsplit(x = init.model, split = "\\n"))
   externalRelation <- vectorModel[grep(" ~ ", vectorModel)]
   factorRelation <- vectorModel[grep(" ~~ ", vectorModel)]
-  
-  # reduce the number of items for each factor according to maxItems
+
+  # reduce the number of items for each factor according to itemCounts
   newItemsPerFactor <- list()
   for (i in 1:length(itemsPerFactor)) {
-    newItemsPerFactor[[i]] <- 
-      sample(x = unique(unlist(itemsPerFactor[i])), 
-             size = unlist(maxItems[i]))
+    newItemsPerFactor[[i]] <-
+      sample(x = unique(unlist(itemsPerFactor[i])),
+             size = unlist(itemCounts[i]))
   }
   
-  if (bifactorModel == TRUE) {
-    # if bifactorModel == TRUE, fix the items so the newItems all load on the bifactor
-    # assumes that the bifactor latent variable is the last one
-    newItemsPerFactor[[length(itemsPerFactor)]] <- unlist(newItemsPerFactor[1:(length(itemsPerFactor) - 1)])
+  if (!is.null(bifactor)) {
+    # fix the items so the newItems all load on the named bifactor factor
+    bifactorIndex <- match(bifactor, factors)
+    newItemsPerFactor[[bifactorIndex]] <- unlist(newItemsPerFactor[-bifactorIndex])
   }
   
   # create the new model syntax
@@ -51,22 +42,9 @@ randomInitialModel <-
   
   # fit the new model
   newModel <- modelWarningCheck(
-    lavaan::lavaan(
-      model = newModelSyntax,
-      data = initialData,
-      model.type = model.type,
-      int.ov.free = int.ov.free,
-      int.lv.free = int.lv.free,
-      auto.fix.first = auto.fix.first,
-      std.lv = std.lv,
-      auto.fix.single = auto.fix.single,
-      auto.var = auto.var,
-      auto.cov.lv.x = auto.cov.lv.x,
-      auto.th = auto.th,
-      auto.delta = auto.delta,
-      auto.cov.y = auto.cov.y,
-      ordered = ordered,
-      estimator = estimator,
+    do.call(
+      lavaan::lavaan,
+      c(list(model = newModelSyntax, data = initialData), lavaan.model.specs)
     ),
     modelSyntax = newModelSyntax
   )
@@ -79,36 +57,29 @@ randomNeighborShort <-
            numChanges,
            allItems,
            data,
-           bifactor = FALSE,
+           bifactor = NULL,
            init.model,
            lavaan.model.specs) {
     
-    mapply(
-      assign,
-      c("factors", "itemsPerFactor"),
-      syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems),
-      MoreArgs = list(envir = environment())
-    )
-    
-    mapply(
-      assign,
-      names(lavaan.model.specs),
-      lavaan.model.specs,
-      MoreArgs = list(envir = environment())
-    )
+    # only itemsPerFactor is needed from this extraction -- its "factors" is
+    # immediately superseded by the extraction below, which re-derives
+    # factors from the currentModelObject's (possibly already-changed) syntax
+    itemsPerFactor <- syntaxExtraction(
+      initialModelSyntaxFile = init.model, items = allItems
+    )$itemsPerFactor
+
     # take the model syntax from the currentModelObject
-    internalModelObject <- 
-      stringr::str_split(currentModelObject@model.syntax, 
+    internalModelObject <-
+      stringr::str_split(currentModelObject@model.syntax,
                          pattern = "\n",
                          simplify = T)
-    
+
     # extract the latent factor syntax
-    mapply(
-      assign,
-      c("factors", "currentItems"),
-      syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
-      MoreArgs = list(envir = environment())
+    extractedCurrent <- syntaxExtraction(
+      initialModelSyntaxFile = internalModelObject, items = allItems
     )
+    factors <- extractedCurrent$factors
+    currentItems <- extractedCurrent$itemsPerFactor
     
     # randomly select current items to replace
     
@@ -130,31 +101,47 @@ randomNeighborShort <-
     }
     changingItems <- c()
     replacementItem <- c()
+    availableFactors <- if (!is.null(bifactor)) {
+      seq_len(length(factors))[-match(bifactor, factors)]
+    } else {
+      seq_len(length(factors))
+    }
     for (i in 1:numChanges) {
-      # randomly select factor to have an item changed
-      if (bifactor) {
-        currentFactor <- sample(1:(length(factors) - 1), 1)
+      # only consider factors that still have both an item left to change
+      # and an unused replacement available -- sampling directly from what's
+      # left (instead of sample-then-retry-until-unique) makes it impossible
+      # to loop forever when a factor's pool has been exhausted
+      feasibleFactors <- Filter(
+        function(f) {
+          length(setdiff(currentItems[[f]], changingItems)) > 0 &&
+            length(setdiff(replacementItemPool[[f]], replacementItem)) > 0
+        },
+        availableFactors
+      )
+      if (length(feasibleFactors) == 0) {
+        # no factor has any remaining capacity for another change; make
+        # fewer changes than requested rather than hanging or erroring
+        break
+      }
+      currentFactor <- if (length(feasibleFactors) == 1) {
+        feasibleFactors
       } else {
-        currentFactor <- sample(1:length(factors), 1)
+        sample(feasibleFactors, 1)
       }
-      # randomly select the item to be changed
-      changingItemTemp <- c()
-      changingItemTemp <- sample(currentItems[[currentFactor]], 1)
-      while (changingItemTemp %in% changingItems ||
-             length(changingItemTemp %in% changingItems) == 0) {
-        changingItemTemp <- sample(currentItems[[currentFactor]], 1)
-      }
+
+      # randomly select the item to be changed, from only the items not
+      # already selected for this factor
+      changingItemTemp <- sample(setdiff(currentItems[[currentFactor]], changingItems), 1)
       changingItems <- c(changingItems, changingItemTemp)
-      # Sample an item from the items in the item pool
-      tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
-      while (tempReplacementItems %in% replacementItem) {
-        tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
-      }
+
+      # Sample a replacement item, from only the items not already used
+      tempReplacementItems <- sample(setdiff(replacementItemPool[[currentFactor]], replacementItem), 1)
       replacementItem <- c(replacementItem, tempReplacementItems)
     }
-    
+    numChanges <- length(changingItems)
+
     for (i in 1:length(factors)) {
-      for (j in 1:numChanges) {
+      for (j in seq_len(numChanges)) {
         currentItems[[i]] <-
           replaceItem(
             items = currentItems[[i]],
@@ -164,10 +151,10 @@ randomNeighborShort <-
       }
     }
     
-    if (bifactor == TRUE) {
-      # if bifactor == TRUE, fix the items so the newItems all load on the bifactor
-      # assumes that the bifactor latent variable is the last one
-      currentItems[[length(itemsPerFactor)]] <- unlist(currentItems[1:(length(itemsPerFactor) - 1)])
+    if (!is.null(bifactor)) {
+      # fix the items so the newItems all load on the named bifactor factor
+      bifactorIndex <- match(bifactor, factors)
+      currentItems[[bifactorIndex]] <- unlist(currentItems[-bifactorIndex])
     }
     
     # create the new model syntax
@@ -185,22 +172,9 @@ randomNeighborShort <-
     
     # refit the model with new items
     randomNeighborModel <- modelWarningCheck(
-      lavaan::lavaan(
-        model = newModelSyntax,
-        data = data,
-        model.type = model.type,
-        auto.var = auto.var,
-        ordered = ordered,
-        estimator = estimator,
-        int.ov.free = int.ov.free,
-        int.lv.free = int.lv.free,
-        auto.fix.first = auto.fix.first,
-        std.lv = std.lv,
-        auto.fix.single = auto.fix.single,
-        auto.cov.lv.x = auto.cov.lv.x,
-        auto.th = auto.th,
-        auto.delta = auto.delta,
-        auto.cov.y = auto.cov.y
+      do.call(
+        lavaan::lavaan,
+        c(list(model = newModelSyntax, data = data), lavaan.model.specs)
       ),
       modelSyntax = newModelSyntax
     )
@@ -256,26 +230,24 @@ randomNeighborFull <-
   }
 
 goal <-
-  function(x, fitStatistic = "cfi", maximize) {
-    # if using lavaan and a singular fit statistic,
-    if (inherits(x, "lavaan") &
-        is.character(fitStatistic) & length(fitStatistic) == 1) {
-      energy <- fitWarningCheck(lavaan::fitMeasures(x, fit.measures = fitStatistic),
-                                maximize)
-      if (is.na(energy) & maximize == TRUE) {
+  function(x, criterionFn, negateCriterion) {
+    # if using lavaan,
+    if (inherits(x, "lavaan")) {
+      energy <- fitWarningCheck(criterionFn(x))
+      if (is.na(energy) & negateCriterion == TRUE) {
         energy = -Inf
       } else if (is.na(energy)) {
         energy = Inf
       }
-      
-      if (maximize == TRUE) {
+
+      if (negateCriterion == TRUE) {
         return(-energy)
       } else {
         return(energy)
       }
     } else {
       if (inherits(x, "NULL")) {
-        if (maximize == TRUE) {
+        if (negateCriterion == TRUE) {
           return(-Inf)
         } else {
           return(Inf)
@@ -288,15 +260,15 @@ selectionFunction <-
   function (currentModelObject,
             randomNeighborModel,
             currentTemp,
-            maximize,
-            fitStatistic,
+            negateCriterion,
+            criterionFn,
             consecutive)
   {
     # check if the randomNeighborModel is a valid model for use
     if (!inherits(randomNeighborModel, "modelCheck")) {
       return(currentModelObject)
     }
-    
+
     # check that the current model isn't null
     if (!inherits(currentModelObject, "modelCheck")) {
       return(randomNeighborModel)
@@ -304,11 +276,10 @@ selectionFunction <-
     if (is.null(currentModelObject@model.output)) {
       return(randomNeighborModel)
     }
-    
+
     randomNeighborConverge <-
       tryCatch(
-        lavaan::fitmeasures(object = randomNeighborModel@model.output,
-                            fit.measures = fitStatistic),
+        criterionFn(randomNeighborModel@model.output),
         error = function(e) {
           if (length(e) > 0) {
             NULL
@@ -319,31 +290,23 @@ selectionFunction <-
       cat("\rNew model did not converge.                                                                                          ")
       return(currentModelObject)
     }
-    if ( 
+    if (
       length(randomNeighborModel@warnings) > 0 |
-      length(randomNeighborModel@errors) > 0 
+      length(randomNeighborModel@errors) > 0
     ) {
       return(currentModelObject)
     }
-    
+
     # this is the Kirkpatrick et al. method of selecting between currentModel and randomNeighborModel
-    if (goal(randomNeighborModel@model.output, fitStatistic, maximize) < goal(currentModelObject@model.output, fitStatistic, maximize)) {
+    if (goal(randomNeighborModel@model.output, criterionFn, negateCriterion) < goal(currentModelObject@model.output, criterionFn, negateCriterion)) {
       cat(paste0(
         "\rOld Fit: ",
         round(as.numeric(
-          fitWarningCheck(
-            lavaan::fitmeasures(object = currentModelObject@model.output,
-                                fit.measures = fitStatistic),
-            maximize
-          )
+          fitWarningCheck(criterionFn(currentModelObject@model.output))
         ), 3),
         " New Fit: ",
         round(as.numeric(
-          fitWarningCheck(
-            lavaan::fitmeasures(object = randomNeighborModel@model.output,
-                                fit.measures = fitStatistic),
-            maximize
-          )
+          fitWarningCheck(criterionFn(randomNeighborModel@model.output))
         ), 3),
         "                                                                    "
       ))
@@ -351,17 +314,17 @@ selectionFunction <-
       return(randomNeighborModel)
     } else {
       probability <- exp(-(
-        goal(randomNeighborModel@model.output, fitStatistic, maximize) - goal(currentModelObject@model.output, fitStatistic, maximize)
+        goal(randomNeighborModel@model.output, criterionFn, negateCriterion) - goal(currentModelObject@model.output, criterionFn, negateCriterion)
       ) / currentTemp)
-      
+
       if (is.nan(probability)) probability = 0
-      
+
       if (probability > stats::runif(1)) {
         newModel <- randomNeighborModel
       } else {
         newModel <- currentModelObject
       }
-      
+
       consecutive <- ifelse(
         identical(
           lavaan::parameterTable(newModel@model.output),
@@ -372,15 +335,9 @@ selectionFunction <-
       )
       cat(paste0(
         "\rOld Fit: ",
-        round(as.numeric(
-          lavaan::fitmeasures(object = currentModelObject@model.output,
-                              fit.measures = fitStatistic)
-        ), 3),
+        round(as.numeric(criterionFn(currentModelObject@model.output)), 3),
         " New Fit: ",
-        round(as.numeric(
-          lavaan::fitmeasures(object = randomNeighborModel@model.output,
-                              fit.measures = fitStatistic)
-        ), 3),
+        round(as.numeric(criterionFn(randomNeighborModel@model.output)), 3),
         " Probability: ",
         round(probability, 3)
       ))
@@ -404,15 +361,21 @@ consecutiveRestart <-
     )
   }
 
-checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit = bestFit, bestModel) {
+checkModels <- function(currentModel, criterionFn, negateCriterion, bestFit = bestFit, bestModel) {
   if (is.null(currentModel)|!inherits(currentModel, "modelCheck")) {
     return(bestModel)
   }
-  currentFit <- fitWarningCheck(
-    lavaan::fitmeasures(object = currentModel@model.output, fit.measures = fitStatistic),
-    maximize
-  )
-  if (maximize == TRUE) {
+  currentFit <- fitWarningCheck(criterionFn(currentModel@model.output))
+  # an NA candidate fit can never displace the current best; an NA best (e.g.
+  # the initial model failed to produce a valid fit) is always displaced by
+  # any valid candidate
+  if (is.na(currentFit)) {
+    return(bestModel)
+  }
+  if (is.na(bestFit)) {
+    return(currentModel)
+  }
+  if (negateCriterion == TRUE) {
     if (currentFit > bestFit) {
       bestModel <- currentModel
     } else {
@@ -422,11 +385,7 @@ checkModels <- function(currentModel, fitStatistic, maximize = maximize, bestFit
     if (currentFit < bestFit) {
       bestModel <- currentModel
     } else {
-      if (currentFit < bestFit) {
-        bestModel <- currentModel
-      } else {
-        bestModel <- bestModel
-      }
+      bestModel <- bestModel
     }
   }
 
@@ -496,7 +455,7 @@ syntaxExtraction <- function(initialModelSyntaxFile, items) {
 }
 
 fitWarningCheck <-
-  function(expr, maximize) {
+  function(expr) {
     value <- withCallingHandlers(tryCatch(
       expr,
       error = function(e) {
@@ -542,6 +501,26 @@ checkModelSpecs <-
       stop(errorMessage)
     }
   }
+
+# fills in any lavaan.model.specs elements the user omitted with the
+# algorithm's own defaultSpecs (so a partial override like
+# list(estimator = "wls") is respected without requiring the full list),
+# while rejecting any user-supplied name that defaultSpecs doesn't
+# recognize (almost always a typo, e.g. "autovar" instead of "auto.var")
+mergeModelSpecs <- function(userSpecs, defaultSpecs) {
+  unrecognized <- setdiff(names(userSpecs), names(defaultSpecs))
+  if (length(unrecognized) > 0) {
+    errorMessage <-
+      paste0("The following elements of lavaan.model.specs are not recognized:\n\n",
+             paste(unrecognized, collapse = "\n"),
+             "\n\nPlease check for typos. If you intended to pass one of these to lavaan directly, it is not currently supported by this function.")
+    stop(errorMessage)
+  }
+
+  merged <- utils::modifyList(defaultSpecs, userSpecs, keep.null = TRUE)
+  checkModelSpecs(merged)
+  merged
+}
 
 fitmeasuresCheck <-
   function(

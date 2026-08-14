@@ -10,16 +10,16 @@
 #'  }
 "simulated_test_data"
 
-#' Model syntax for the example in the \code{\link{antcolony.lavaan}} function.
+#' Model syntax for the example in the \code{\link{antColony}} function.
 #'
-#' A character vector containing the model syntax used for the one factor, 56-item example in the \code{\link{antcolony.lavaan}}.
+#' A character vector containing the model syntax used for the one factor, 56-item example in the \code{\link{antColony}}.
 #'
 #' @format A character vector.
 "exampleAntModel"
 
-#' Model syntax for the short example in the \code{\link{antcolony.lavaan}} function.
+#' Model syntax for the short example in the \code{\link{antColony}} function.
 #'
-#' A character vector containing the model syntax used for the one factor, 15-item, example in the \code{\link{antcolony.lavaan}}.
+#' A character vector containing the model syntax used for the one factor, 15-item, example in the \code{\link{antColony}}.
 #'
 #' @format A character vector.
 "shortExampleAntModel"

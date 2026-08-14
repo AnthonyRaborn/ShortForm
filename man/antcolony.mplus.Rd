@@ -280,10 +280,10 @@ abilityShortForm <- antcolony.mplus(
 \doi{10.1080/00273170802285743}
 }
 \seealso{
-\code{\link{antcolony.lavaan}}
+\code{\link{antColony}}
 
 Other Ant Colony Algorithms:
-\code{\link[=antcolony.lavaan]{antcolony.lavaan()}}
+\code{\link[=antColony]{antColony()}}
 }
 \author{
 Walter Leite; Anthony W Raborn, \email{anthony.w.raborn@gmail.com}

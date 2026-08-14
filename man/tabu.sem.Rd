@@ -6,7 +6,14 @@
 performs a Tabu model specification search. Currently only supports
 neighbors that are 1 move away from the current model.}
 \usage{
-tabu.sem(init.model, ptab, obj, niter = 30, tabu.size = 5)
+tabu.sem(
+  init.model,
+  ptab,
+  criterion,
+  niter = 30,
+  tabu.size = 5,
+  negateCriterion = FALSE
+)
 }
 \arguments{
 \item{init.model}{initial fitted model of class lavaan}
@@ -15,15 +22,26 @@ tabu.sem(init.model, ptab, obj, niter = 30, tabu.size = 5)
 parameters that can be modified as part of the search and how the parameters
 can be modified (fixed to what values)}
 
-\item{obj}{objective function to be MINIMIZED. Any function that takes a
-lavaan object as the sole argument and returns a numeric value can be used.}
+\item{criterion}{The objective to be minimized (or maximized, if
+`negateCriterion = TRUE`). Either a `character` fit-measure name
+recognized by \link[lavaan]{fitmeasures} (e.g. `"cfi"`), or a function
+that takes a lavaan object as its sole argument and returns a numeric
+value.}
 
 \item{niter}{number of Tabu iterations to perform}
 
 \item{tabu.size}{size of Tabu list}
+
+\item{negateCriterion}{Logical. Should the search look for the smallest
+value of `criterion` (`FALSE`, e.g. AIC, where smaller is better), or the
+largest (`TRUE`, e.g. cfi, where larger is better)? Default is `FALSE`.}
 }
 \value{
-A list with three elements: best.obj, the numerical value of the best (minimal) objective function achieved; best.mod, the final lavaan model, and best.binvec, a data.frame of the lavaan-formatted parameter table for the final model.
+An S4 object of class `TS`, with (among other slots) `best_fit`
+ holding the best (minimal, or maximal if `negateCriterion = TRUE`)
+ objective function value achieved, `best_model` the corresponding final
+ lavaan model, and `best_syntax` a data.frame of the lavaan-formatted
+ parameter table for the final model.
 }
 \description{
 Given a fitted lavaan model, a search table, and an objective criterion,
@@ -53,7 +71,7 @@ init.model <- lavaan::lavaan(
 ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 
 # Perform Tabu Search
-trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
+trial <- tabu.sem(init.model = init.model, ptab = ptab, criterion = AIC, niter = 2, tabu.size = 5)
 }
 \references{
 \doi{10.1080/10705511.2017.1409074}

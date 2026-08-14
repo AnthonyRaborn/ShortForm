@@ -1,6 +1,13 @@
 ## Resubmission
 
-This is a resubmission that fixed bugs in the main algorithm functions.
+This is a major release (1.0.0) that standardizes the arguments of the
+package's three primary algorithm functions so equivalent options (e.g.
+item/factor specification, iteration limits, the search criterion) are
+named and typed consistently across all three; two functions were renamed
+to match the third's naming convention (`antcolony.lavaan()` ->
+`antColony()`, `tabuShortForm()` -> `tabuSearch()`). It also fixes several
+crashes, most notably one triggered whenever a candidate model's fit value
+could not be computed. See NEWS.md for the full list of changes.
 
 ## Test Environments
 

@@ -157,7 +157,7 @@
 #'  coefficients (gammas)), and a series of 0/1 values indicating the items
 #'  selected in the final solution.
 #' @family Ant Colony Algorithms
-#' @seealso \code{\link{antcolony.lavaan}}
+#' @seealso \code{\link{antColony}}
 #' @examples
 #' \dontrun{
 #' # use MplusAutomation to find a 15-item short form of a simulated 56-item unidimensional test

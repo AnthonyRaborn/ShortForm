@@ -6,12 +6,22 @@
 #' @param ptab search table (e.g., created by search.prep) that lists candidate
 #'  parameters that can be modified as part of the search and how the parameters
 #'  can be modified (fixed to what values)
-#' @param obj objective function to be MINIMIZED. Any function that takes a
-#' lavaan object as the sole argument and returns a numeric value can be used.
+#' @param criterion The objective to be minimized (or maximized, if
+#'  `negateCriterion = TRUE`). Either a `character` fit-measure name
+#'  recognized by \link[lavaan]{fitmeasures} (e.g. `"cfi"`), or a function
+#'  that takes a lavaan object as its sole argument and returns a numeric
+#'  value.
 #' @param niter number of Tabu iterations to perform
 #' @param tabu.size size of Tabu list
+#' @param negateCriterion Logical. Should the search look for the smallest
+#'  value of `criterion` (`FALSE`, e.g. AIC, where smaller is better), or the
+#'  largest (`TRUE`, e.g. cfi, where larger is better)? Default is `FALSE`.
 #'
-#' @return A list with three elements: best.obj, the numerical value of the best (minimal) objective function achieved; best.mod, the final lavaan model, and best.binvec, a data.frame of the lavaan-formatted parameter table for the final model.
+#' @return An S4 object of class `TS`, with (among other slots) `best_fit`
+#'  holding the best (minimal, or maximal if `negateCriterion = TRUE`)
+#'  objective function value achieved, `best_model` the corresponding final
+#'  lavaan model, and `best_syntax` a data.frame of the lavaan-formatted
+#'  parameter table for the final model.
 #' @export
 #'
 #' @examples
@@ -37,18 +47,27 @@
 #' ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 #'
 #' # Perform Tabu Search
-#' trial <- tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
+#' trial <- tabu.sem(init.model = init.model, ptab = ptab, criterion = AIC, niter = 2, tabu.size = 5)
 #' @author Carl F. Falk
 #' @references \doi{10.1080/10705511.2017.1409074}
 
 tabu.sem <- function(init.model,
                      ptab,
-                     obj,
+                     criterion,
                      niter = 30,
-                     tabu.size = 5) {
+                     tabu.size = 5,
+                     negateCriterion = FALSE) {
   start.time = Sys.time()
+  # picks the better of two objective values, and the better of a set of
+  # candidate values, according to the search direction negateCriterion asks
+  # for -- the largest value (maximizing) if TRUE, the smallest (minimizing,
+  # the default) if FALSE
+  isBetter <- if (negateCriterion) `>` else `<`
+  bestIndex <- if (negateCriterion) which.max else which.min
+  criterionFn <- resolveCriterion(criterion, negateCriterion)
+
   # Initialize objective function and best model
-  best.obj <- all.obj <- current.obj <- obj(init.model)
+  best.obj <- all.obj <- current.obj <- criterionFn(init.model)
   best.mod <- current.mod <- init.model
   best.binvec <- current.binvec <- ptab
 
@@ -69,7 +88,7 @@ tabu.sem <- function(init.model,
 
       if (!inherits(fitmodel, "try-error") &&
           fitmodel@Fit@converged && !any(is.na(fitmodel@Fit@se))) {
-        fit.val <- obj(fitmodel)
+        fit.val <- criterionFn(fitmodel)
       } else {
         fit.val <- NA
       }
@@ -94,7 +113,7 @@ tabu.sem <- function(init.model,
     }
 
     # Out of valid models, pick model with best objective function value
-    indx <- which.min(tmp.obj[valid])
+    indx <- bestIndex(tmp.obj[valid])
 
     # Move current state to next model
     current.obj <- (tmp.obj[valid])[indx]
@@ -108,8 +127,11 @@ tabu.sem <- function(init.model,
       tabu.list <- tabu.list[1:tabu.size]
     }
 
-    # Update if the current model is better than the best model
-    if (current.obj < best.obj) {
+    # Update if the current model is better than the best model. current.obj
+    # is guaranteed non-NA here (drawn from tmp.obj[valid], which excludes
+    # NAs), but best.obj can still be NA if init.model's objective value was
+    # NA -- in that case any valid current.obj is automatically the new best.
+    if (is.na(best.obj) || isBetter(current.obj, best.obj)) {
       best.obj <- current.obj
       best.mod <- current.mod
       best.binvec <- current.binvec
@@ -117,9 +139,11 @@ tabu.sem <- function(init.model,
     }
   }
 
+  capturedCall <- resolvedCall(match.call(), formals())
+
   ret <-
     new("TS",
-      function_call = match.call(),
+      function_call = capturedCall,
       all_fit = all.obj,
       best_fit = best.obj,
       best_model = best.mod,
