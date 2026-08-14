@@ -7,10 +7,11 @@
 \S4method{plot}{TS,ANY}(x, y, ...)
 }
 \arguments{
-\item{x, y}{An S4 object of class `TS`.}
+\item{x, y}{An S4 object of class `TS`. `y` is included for method
+compatibility and is not used.}
 
 \item{...}{Not used.}
 }
 \description{
-Plot method for class `TS`
+Plots the objective function's value across iterations.
 }

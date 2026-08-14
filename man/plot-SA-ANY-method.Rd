@@ -4,13 +4,24 @@
 \alias{plot,SA,ANY-method}
 \title{Plot method for class `SA`}
 \usage{
-\S4method{plot}{SA,ANY}(x, y, ...)
+\S4method{plot}{SA,ANY}(x, y, burn_in = 0, ...)
 }
 \arguments{
-\item{x, y}{An S4 object of class `SA`.}
+\item{x, y}{An S4 object of class `SA`. `y` is included for method
+compatibility and is not used.}
+
+\item{burn_in}{The number of fit results, starting with the first, to
+discard before plotting -- e.g. to exclude an unstable early period of
+the chain(s), as is common practice for Monte Carlo-style methods. Must
+be a non-negative integer less than the number of recorded steps.
+Default is `0` (no burn-in).}
 
 \item{...}{Not used.}
 }
 \description{
-Plot method for class `SA`
+Plots the model fit results from the simulated annealing
+algorithm. Up to 8 chains are plotted. Any infinite value in the fit
+history (e.g. from a chain's initial model failing to fit) is coerced to
+`NA`, excluding it from the plot rather than letting it collapse the
+fit-value axis range.
 }

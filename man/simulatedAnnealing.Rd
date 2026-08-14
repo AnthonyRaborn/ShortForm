@@ -47,7 +47,10 @@ simulatedAnnealing(
 
 \item{lavaan.model.specs}{A \code{list} which contains the specifications for the
 lavaan model. The default values are the defaults for lavaan to perform a
-CFA. See \link[lavaan]{lavaan} for more details.}
+CFA. See \link[lavaan]{lavaan} for more details. A partial list is
+accepted -- any element you omit falls back to this function's default
+for that element -- but every name you do supply must match one of the
+recognized element names, or the call errors.}
 
 \item{maxChanges}{An \code{integer} value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.}
 
@@ -70,7 +73,10 @@ now determined automatically by whether \code{maxItems} is supplied.}
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }
 \value{
-A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
+An S4 object of class \code{SA}, with (among other slots) \code{best_model}
+holding the best \code{modelCheck} found, \code{best_fit} the corresponding fit
+statistic value, and \code{all_fit} the fit statistic values found across all
+iterations.
 }
 \description{
 Simulated annealing mimics the physical process of annealing metals together. \href{https://www.science.org/doi/10.1126/science.220.4598.671}{Kirkpatrick et al. (1983)} introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.

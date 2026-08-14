@@ -13,7 +13,13 @@ An S4 class for the Tabu Search Algorithm
 \section{Slots}{
 
 \describe{
-\item{\code{function_call}}{The original function call.}
+\item{\code{function_call}}{The original function call, with every argument
+resolved (whether the caller supplied it explicitly or it fell back to
+its default) -- see `resolvedCall()`. In particular, `negateCriterion`
+(which controls whether the search looks for the largest or smallest
+value of the criterion/objective function, and is used by the `plot`
+method to label which direction is better) is read from here rather than
+from a dedicated slot.}
 
 \item{\code{all_fit}}{A summary `vector` indicating the model fit results for
 each iteration.}

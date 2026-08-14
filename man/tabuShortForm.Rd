@@ -9,11 +9,12 @@ tabuShortForm(
   initialModel,
   numItems,
   criterion = function(x) {
-     tryCatch(-lavaan::fitmeasures(object = x, fit.measures =
-    "cfi"), error = function(e) Inf)
+     tryCatch(lavaan::fitmeasures(object = x, fit.measures =
+    "cfi"), error = function(e) -Inf)
  },
   niter = 20,
   tabu.size = 5,
+  negateCriterion = TRUE,
   lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE,
     auto.fix.first = FALSE, auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x =
     TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, ordered = NULL,
@@ -30,16 +31,30 @@ tabuShortForm(
 
 \item{numItems}{A numeric vector indicating the number of items to retain for each factor.}
 
-\item{criterion}{A function calculating the objective criterion to minimize. Default is to use the built-in `rmsea` value from `lavaan::fitmeasures()`.}
+\item{criterion}{A function calculating the objective criterion to
+optimize (minimized unless `negateCriterion = TRUE`). Default is to use
+the built-in `cfi` value from `lavaan::fitmeasures()`, maximized (since
+`negateCriterion` defaults to `TRUE`).}
 
 \item{niter}{A numeric value indicating the number of iterations (model specification selections)
 to perform. Default is 50.}
 
 \item{tabu.size}{A numeric value indicating the size of Tabu list. Default is 5.}
 
+\item{negateCriterion}{Logical. Should the search look for the smallest
+value of `criterion` (`FALSE`, e.g. chisq or AIC, where smaller is
+better), or the largest (`TRUE`, e.g. the default cfi criterion, where
+larger is better)? Default is `TRUE`, matching the default `criterion`.
+Set to `FALSE` if you supply a custom `criterion` that should be
+minimized directly, like the built-in chisq/AIC examples below.}
+
 \item{lavaan.model.specs}{A list which contains the specifications for the
 lavaan model. The default values are the defaults for lavaan to perform a
-CFA. See \link[lavaan]{lavaan} for more details.}
+CFA. See \link[lavaan]{lavaan} for more details. A partial list is
+accepted -- any element you omit falls back to this function's default
+for that element -- but every name you do supply must match one of the
+recognized element names, or the call errors (this catches typos, e.g.
+`autovar` instead of `auto.var`, instead of silently ignoring them).}
 
 \item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).}
 
@@ -49,7 +64,9 @@ CFA. See \link[lavaan]{lavaan} for more details.}
 function will utilize all available cores. Default is \code{TRUE}.}
 }
 \value{
-A named list with the best value of the objective function (`best.obj`) and the best lavaan model object (`best.mod`).
+An S4 object of class `TS`, with (among other slots) `best_fit`
+ holding the best objective function value achieved and `best_model` the
+ corresponding final lavaan model.
 }
 \description{
 Given an initial (full) lavaan model string, the original data, a criterion
@@ -138,6 +155,9 @@ tabuShort <- tabuShortForm(
   initialModel = tabuModel, originalData = tabuData,
   numItems = c(3, 3, 3, 3),
   criterion = tabuCriterion,
+  # smaller chisq is better, so this should be minimized directly
+  # (unlike the default cfi criterion, which should be maximized)
+  negateCriterion = FALSE,
   niter = 20, tabu.size = 10
 )
 }

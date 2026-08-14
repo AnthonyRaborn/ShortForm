@@ -80,10 +80,13 @@ of ants in a row for which the model does not change.}
 \item{lavaan.model.specs}{A list which contains the specifications for the
 lavaan model. The default values are the defaults for lavaan to perform a
 CFA. These are automatically set internally, then updated by the user-provided
-values. Note that this drastically affects the algorithm, and care must be 
+values -- a partial list is accepted, and any element you omit falls back
+to the default for that element. Every name you do supply must match one
+of the recognized element names, or the call errors.
+Note that this drastically affects the algorithm, and care must be
 taken to ensure that the algorithm can fit valid models as it searches for
 the best model. See the default arguments for examples of what you can change
-and \link[lavaan]{lavaan} for more details on what arguments are available 
+and \link[lavaan]{lavaan} for more details on what arguments are available
 to change.}
 
 \item{pheromone.calculation}{A character string specifying the method for
@@ -128,15 +131,17 @@ function will utilize all available cores (up to the number of ants). Default
 is \code{TRUE}.}
 }
 \value{
-A list with four elements: the first containing a named matrix with
- final model's best fit indices, the final pheromone level (either the mean
- of the standardized regression coefficients (gammas, betas, or both), or the mean variance
- explained), and a series of 0/1 values indicating the items selected in the
- final solution,  the second element containing tbe summary matrix of the
- best fit statistic value(s) for each run, the items chosen for said best fit,
- the mean gamma, beta, and variance explained for the best fit, and the item pheromone
- levels after each run, the third containing the best-fitting lavaan model
- object, and the fourth containing the best-fitting model syntax.
+An S4 object of class `ACO`, with (among other slots)
+ `final_solution` holding a named matrix with the final model's best fit
+ indices, the final pheromone level (either the mean of the standardized
+ regression coefficients (gammas, betas, or both), or the mean variance
+ explained), and a series of 0/1 values indicating the items selected in
+ the final solution; `summary` holding the summary data.frame of the best
+ fit statistic value(s) for each run, the items chosen for said best fit,
+ the mean gamma, beta, and variance explained for the best fit, and the
+ item pheromone levels after each run; `best_model` holding the
+ best-fitting lavaan model object; and `best_syntax` holding the
+ best-fitting model syntax.
 }
 \description{
 The Ant Colony Optimization (ACO) algorithm (Dorigo & Stutzle,
