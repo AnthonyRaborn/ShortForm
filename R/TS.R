@@ -2,14 +2,20 @@ setClassUnion("charactorORdata.frame", c("character","data.frame"))
 
 #' An S4 class for the Tabu Search Algorithm
 #'
-#' @slot function_call The original function call.
+#' @slot function_call The original function call, with every argument
+#' resolved (whether the caller supplied it explicitly or it fell back to
+#' its default) -- see `resolvedCall()`. In particular, `negateCriterion`
+#' (which controls whether the search looks for the largest or smallest
+#' value of the criterion/objective function, and is used by the `plot`
+#' method to label which direction is better) is read from here rather than
+#' from a dedicated slot.
 #' @slot all_fit A summary `vector` indicating the model fit results for
 #' each iteration.
 #' @slot best_fit The best model fit result using the selected `fitStatistic`. A numeric value or vector, possibly named.
 #' @slot best_model A `lavaan` object of the final solution.
 #' @slot best_syntax A `character` vector of the final solution model syntax.
 #' @slot runtime A `difftime` object of the total run time of the function.
-#' @slot final_tabu_list The final list of Tabu models. Each element of the list is a `lavaan` object. 
+#' @slot final_tabu_list The final list of Tabu models. Each element of the list is a `lavaan` object.
 #'
 #' @importFrom methods new show
 #'
@@ -29,47 +35,55 @@ setClass('TS',
            )
 )
 
+# converts a Tabu search parameter table (best_syntax, when returned as a
+# data.frame by tabu.sem()) into lavaan model syntax text, keeping only the
+# currently-active (free) loadings and covariances. Shared by show() and
+# summary() so the two never drift.
+binvecToSyntax <- function(best_syntax) {
+  if (!is.data.frame(best_syntax)) {
+    return(best_syntax)
+  }
+
+  factors <- unique(best_syntax$lhs)
+  model.syntax <- c()
+  for (i in factors) {
+    factorRows <- which(best_syntax$lhs == i &
+                          best_syntax$op == "=~" &
+                          best_syntax$free == 1)
+    model.syntax <- c(model.syntax,
+                      paste0(i, " =~ ",
+                             paste0(best_syntax$rhs[factorRows],
+                                    collapse = " + "
+                                    )
+                             )
+                      )
+  }
+  for (i in factors) {
+    factorRows <- which(best_syntax$lhs == i &
+                          best_syntax$op == "~~" &
+                          best_syntax$free == 1)
+    if (length(factorRows) > 0) {
+      model.syntax <- c(model.syntax,
+                        paste0(i, " ~~ ",
+                               paste0(best_syntax$rhs[factorRows],
+                                      collapse = " + "
+                               )
+                        )
+      )
+    }
+  }
+  paste0(model.syntax, collapse = "\n")
+}
+
 #' Print method for class `TS`
-#' 
+#'
 #' @param object An S4 object of class `TS`.
-#' 
+#'
 #' @export
 setMethod('show',
           signature = 'TS',
           definition = function(object) {
-            # check if the lavaan_partable was returned (a data.frame)
-            if (is.data.frame(object@best_syntax)) {
-              # convert to model.syntax for printing
-              factors = unique(object@best_syntax$lhs)
-              model.syntax = c()
-              for (i in factors) {
-                factorRows = which(object@best_syntax$lhs==i&
-                                     object@best_syntax$op=="=~"&
-                                     object@best_syntax$free==1)
-                model.syntax = c(model.syntax,
-                                 paste0(i, " =~ ", 
-                                        paste0(object@best_syntax$rhs[factorRows],
-                                               collapse = " + "
-                                               )
-                                        )
-                                 )
-              }
-              for (i in factors) {
-                factorRows = which(object@best_syntax$lhs==i&
-                                     object@best_syntax$op=="~~"&
-                                     object@best_syntax$free==1)
-                if (length(factorRows) > 0) {
-                  model.syntax = c(model.syntax,
-                                   paste0(i, " ~~ ", 
-                                          paste0(object@best_syntax$rhs[factorRows],
-                                                 collapse = " + "
-                                          )
-                                   )
-                  )
-                }
-              }
-              model.syntax = paste0(model.syntax, collapse = "\n")
-              } else (model.syntax = object@best_syntax)
+            model.syntax <- binvecToSyntax(object@best_syntax)
             line0 = c("Algorithm: Tabu Search")
             line1 = paste0(
               "Total Run Time: ",
@@ -97,10 +111,13 @@ setMethod('show',
 )
 
 #' Plot method for class `TS`
-#' 
-#' @param x,y An S4 object of class `TS`.
+#'
+#' @description Plots the objective function's value across iterations.
+#'
+#' @param x,y An S4 object of class `TS`. `y` is included for method
+#'  compatibility and is not used.
 #' @param ... Not used.
-#' 
+#'
 #' @export
 setMethod("plot",
           signature = "TS",
@@ -123,12 +140,19 @@ setMethod("plot",
               return(invisible(x))
             }
 
+            negateCriterion <- extractCallArg(x@function_call, "negateCriterion")
+            axisNote <- if (isTRUE(negateCriterion)) {
+              " (higher = better fit)"
+            } else {
+              " (lower = better fit)"
+            }
+
             plot(
               x = iterations,
               y = fit_values,
               type = "l",
               xlab = "Iteration",
-              ylab = paste("Model Fit Value(s):", names(x@best_fit)),
+              ylab = paste0("Model Fit Value(s): ", names(x@best_fit), axisNote),
               main = "Changes in Model Fit Value per Iteration",
               ...
             )
@@ -147,40 +171,8 @@ setMethod("plot",
 setMethod('summary',
           signature = 'TS',
           definition = function(object) {
-            # check if the lavaan_partable was returned (a data.frame)
-            if (is.data.frame(object@best_syntax)) {
-              # convert to model.syntax for printing
-              factors = unique(object@best_syntax$lhs)
-              model.syntax = c()
-              for (i in factors) {
-                factorRows = which(object@best_syntax$lhs==i&
-                                     object@best_syntax$op=="=~"&
-                                     object@best_syntax$free==1)
-                model.syntax = c(model.syntax,
-                                 paste0(i, " =~ ", 
-                                        paste0(object@best_syntax$rhs[factorRows],
-                                               collapse = " + "
-                                        )
-                                 )
-                )
-              }
-              for (i in factors) {
-                factorRows = which(object@best_syntax$lhs==i&
-                                     object@best_syntax$op=="~~"&
-                                     object@best_syntax$free==1)
-                if (length(factorRows) > 0) {
-                  model.syntax = c(model.syntax,
-                                   paste0(i, " ~~ ", 
-                                          paste0(object@best_syntax$rhs[factorRows],
-                                                 collapse = " + "
-                                          )
-                                   )
-                  )
-                }
-              }
-              model.syntax = paste0(model.syntax, collapse = "\n")
-            } else (model.syntax = object@best_syntax)
-            
+            model.syntax <- binvecToSyntax(object@best_syntax)
+
             line0 = c("Algorithm: Tabu Search")
             line1 = paste0(
               "Total Run Time: ",

@@ -9,10 +9,19 @@
 #' @param initialModel The initial model (typically the full form) as a character vector with lavaan model.syntax.
 #' @param originalData The original data frame with variable names.
 #' @param numItems A numeric vector indicating the number of items to retain for each factor.
-#' @param criterion A function calculating the objective criterion to minimize. Default is to use the built-in `rmsea` value from `lavaan::fitmeasures()`.
+#' @param criterion A function calculating the objective criterion to
+#'  optimize (minimized unless `negateCriterion = TRUE`). Default is to use
+#'  the built-in `cfi` value from `lavaan::fitmeasures()`, maximized (since
+#'  `negateCriterion` defaults to `TRUE`).
 #' @param niter A numeric value indicating the number of iterations (model specification selections)
 #' to perform. Default is 50.
 #' @param tabu.size A numeric value indicating the size of Tabu list. Default is 5.
+#' @param negateCriterion Logical. Should the search look for the smallest
+#'  value of `criterion` (`FALSE`, e.g. chisq or AIC, where smaller is
+#'  better), or the largest (`TRUE`, e.g. the default cfi criterion, where
+#'  larger is better)? Default is `TRUE`, matching the default `criterion`.
+#'  Set to `FALSE` if you supply a custom `criterion` that should be
+#'  minimized directly, like the built-in chisq/AIC examples below.
 #' @param lavaan.model.specs A list which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
 #'  CFA. See \link[lavaan]{lavaan} for more details. A partial list is
@@ -111,6 +120,9 @@
 #'   initialModel = tabuModel, originalData = tabuData,
 #'   numItems = c(3, 3, 3, 3),
 #'   criterion = tabuCriterion,
+#'   # smaller chisq is better, so this should be minimized directly
+#'   # (unlike the default cfi criterion, which should be maximized)
+#'   negateCriterion = FALSE,
 #'   niter = 20, tabu.size = 10
 #' )
 #' }
@@ -119,12 +131,13 @@ tabuShortForm <- function(originalData,
                            initialModel,
                            numItems,
                            criterion = function(x) {
-                             tryCatch(-lavaan::fitmeasures(object = x, fit.measures = "cfi"),
-                               error = function(e) Inf
+                             tryCatch(lavaan::fitmeasures(object = x, fit.measures = "cfi"),
+                               error = function(e) -Inf
                              )
                            },
                            niter = 20,
                            tabu.size = 5,
+                           negateCriterion = TRUE,
                            lavaan.model.specs = list(
                              int.ov.free = TRUE,
                              int.lv.free = FALSE,
@@ -182,6 +195,13 @@ tabuShortForm <- function(originalData,
                        bifactorModel = bifactor,
                        lavaan.model.specs = lavaan.model.specs)
 
+  # picks the better of two objective values, and the better of a set of
+  # candidate values, according to the search direction negateCriterion asks
+  # for -- the largest value (maximizing) if TRUE, the smallest (minimizing)
+  # if FALSE
+  isBetter <- if (negateCriterion) `>` else `<`
+  bestIndex <- if (negateCriterion) which.max else which.min
+
   best.obj <- all.obj <- current.obj <- criterion(init.model@model.output)
   best.mod <- current.model <- init.model@model.output
   best.syntax <- current.syntax <- init.model@model.syntax
@@ -219,10 +239,9 @@ tabuShortForm <- function(originalData,
       # use all cores in devtools::test()
       num_workers <- parallel::detectCores()
     }
-      cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
-      doSNOW::registerDoSNOW(cl)
-      `%dopar%` <- foreach::`%dopar%`
-    }
+    cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
+    doSNOW::registerDoSNOW(cl)
+    `%dopar%` <- foreach::`%dopar%`
   } else {
     num_workers = 1
     `%dopar%` <- foreach::`%do%`
@@ -351,7 +370,7 @@ tabuShortForm <- function(originalData,
     }
 
     # Out of valid models, pick model with best objective function value
-    indx <- which.min(tmp.obj[newValid])
+    indx <- bestIndex(tmp.obj[newValid])
 
     # Move current state to next model
     current.obj <- (tmp.obj[newValid])[indx]
@@ -372,7 +391,7 @@ tabuShortForm <- function(originalData,
     }
 
     # Update if the current model is better than the best model
-    if (current.obj < best.obj) {
+    if (isBetter(current.obj, best.obj)) {
       best.obj <- current.obj
       best.mod <- current.mod
       best.syntax <- current.syntax
