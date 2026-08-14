@@ -168,13 +168,7 @@
 #'   antModel = " visual  =~ x1 + x2 + x3
 #'              textual =~ x4 + x5 + x6
 #'              speed   =~ x7 + x8 + x9 ",
-#'   list.items = list(c(
-#'     "x1",
-#'     "x2", "x3"
-#'   ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
-#'     c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
-#'     c("cfi"), fit.statistics.test = "(cfi > 0.6)", summaryfile =
-#'     NULL, feedbackfile = NULL, max.run = 2, parallel = FALSE
+#'     c("cfi"), fit.statistics.test = "(cfi > 0.6)",
 #' )
 #' \dontrun{
 #' # using simulated test data and the default values for lavaan.model.specs
@@ -249,9 +243,7 @@
 #'   steps = 20, 
 #'   fit.indices = c("cfi.scaled"), 
 #'   fit.statistics.test = "(cfi.scaled > 0.90)", 
-#'   summaryfile = NULL, 
-#'   feedbackfile = NULL, 
-#'   max.run = 500, 
+#'   maxIterations = 500,
 #'   parallel = T
 #' )
 #' # note that this example will take a bit of time to run
@@ -286,19 +278,13 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   if (pheromone.calculation %in% c("gamma", "beta", "regression", "variance") == FALSE) {
     stop("Pheromone calculation not recognized! Enter one of \'gamma\', \'beta\', \'regression\' or \'variance\'.")
   }
-  # create initial, empty files to be used
-  if (length(summaryfile) > 0) {
-    write(x = "", file = summaryfile)
-  }
+
 
   summaryObject <- matrix(
     nrow = 1,
     ncol = (full + 3 + 3 + length(fit.indices) + full)
   )
 
-  if (length(feedbackfile) > 0) {
-    write(x = "", file = feedbackfile)
-  }
   # creates the table of initial pheromone levels.
   include <- rep(2, full)
   # puts initial best solution (all items selected).
@@ -437,21 +423,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           if (any(grepl(paste0(bad.errors, collapse = "|"), errors, ignore.case = T)) ||
               any(grepl(paste0(bad.warnings, collapse = "|"), warnings, ignore.case = T))) {
             pheromone <- 0
-            
-            # writes feedback about non-convergence and non-positive definite.
-            if (length(summaryfile) > 0) {
-              fit.info <- matrix(c(select.indicator, run, count, ant, 999, 999, round((include), 5)), 1, )
-              write.table(fit.info,
-                          file = summaryfile, append = T,
-                          quote = F, sep = " ", row.names = F, col.names = F
-              )
-            }
-            
-            # provide feedback about search.
-            if (length(feedbackfile) > 0) {
-              feedback <- c(paste("<h1>", run, "-", count, "-", ant, "-", step, "- Failure", "</h1>"))
-              write(feedback, file = feedbackfile, append = T)
-            }
             # finishes if for non-convergent cases.
           }
         }
@@ -461,20 +432,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             fitIndices = fit.indices
           )
 
-          mapply(assign, names(modelInfo), modelInfo, MoreArgs = list(envir = antcolony.lavaan.env))
-          mapply(assign, names(antcolony.lavaan.env$model.fit), antcolony.lavaan.env$model.fit, MoreArgs = list(envir = antcolony.lavaan.env))
-
-          # provide feedback about search.
-          if (length(feedbackfile) > 0) {
-            feedback <- c(paste(
-              "<h1>", "run:", run, "count:", count, "ant:", ant, "step:", step, "<br>",
-              "Fit Statistics:", antcolony.lavaan.env$model.fit, "<br>",
-              "GAMMA:", mean(antcolony.lavaan.env$std.gammas),
-              "BETA:", mean(antcolony.lavaan.env$std.betas),
-              "VAR.EXP:", mean(antcolony.lavaan.env$variance.explained), "</h1>"
-            ))
-            write(feedback, file = feedbackfile, append = T)
-          }
+          mapply(assign, names(antColonyEnv$model.fit), antColonyEnv$model.fit, MoreArgs = list(envir = antColonyEnv))
 
           # implements fit requirement.
           if (eval(parse(text = fit.statistics.test),
@@ -591,7 +549,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   teardownParallelCluster(cl)
 
+  if (verbose) {
   print("Compiling results.")
+  }
 
   summaryObject <- data.frame(summaryObject)[-1, ]
   colnames(summaryObject) <-
