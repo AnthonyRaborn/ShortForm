@@ -92,14 +92,15 @@ setMethod('show',
 )
 
 # builds the "Criterion: ... \nFinal Model Value: ..." line shared by SA's
-# show() and summary(), reading fitStatistic/maximize from the captured
-# function call and the resulting value from best_fit
+# show() and summary(), reading the (unevaluated) criterion expression and
+# negateCriterion from the captured function call and the resulting value
+# from best_fit
 saCriterionLine <- function(object) {
-  fitStatistic <- extractCallArg(object@function_call, "fitStatistic")
-  maximize <- extractCallArg(object@function_call, "maximize")
+  criterionExpr <- object@function_call$criterion
+  negateCriterion <- extractCallArg(object@function_call, "negateCriterion")
   paste0(
-    "\nCriterion: ", fitStatistic,
-    " (", if (isTRUE(maximize)) "maximized" else "minimized", ")",
+    "\nCriterion: ", paste(deparse(criterionExpr), collapse = " "),
+    " (", if (isTRUE(negateCriterion)) "maximized" else "minimized", ")",
     "\nFinal Model Value: ", paste(round(object@best_fit, 3), collapse = ", "),
     "\n"
   )

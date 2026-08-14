@@ -5,9 +5,9 @@
 #' @details \strong{Outline of the Pieces of the Simulated Annealing Algorithm}
 #' * initialModel -- the initial, full form
 #' * currentModel -- the model of the current step
-#' * maxSteps -- the maximum number of steps (iterations)
+#' * maxIterations -- the maximum number of steps (iterations)
 #' * currentStep -- the current step
-#' * currentTemp -- the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly -- generated models
+#' * currentTemp -- the current temperature. A function of the number of steps (such that temp = 0 at maxIterations), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly -- generated models
 #' * randomNeighbor -- a function that determines how the form is changed at each step. Should be able to change one or more parameters, and should have a way to control how many are changed.
 #' * goal -- a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energy function
 #' * selectionFunction -- a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a Uniform(0,1) variable to determine if accepted or not. A standard version of this is:
@@ -19,10 +19,15 @@
 #'
 #' @param initialModel The initial model as a `character` vector with lavaan model.syntax.
 #' @param originalData The original `data.frame` with variable names.
-#' @param maxSteps The number of iterations for which the algorithm will run.
-#' @param fitStatistic Either a single model fit statistic produced by lavaan, or a user-defined fit statistic function.
+#' @param maxIterations The number of iterations for which the algorithm will run.
+#' @param criterion Either a `character` fit-measure name recognized by
+#'  \link[lavaan]{fitmeasures} (e.g. `"cfi"`), or a function that takes a
+#'  fitted `lavaan` object and returns a single numeric value.
 #' @param temperature Either an acceptable `character` value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".
-#' @param maximize Logical indicating if the goal is to maximize (`TRUE`) the fitStatistic for model selection.
+#' @param negateCriterion Logical. Should the search look for the largest
+#'  value of `criterion` (`TRUE`, e.g. CFI, where larger is better), or the
+#'  smallest value of `criterion` (`FALSE`, e.g. RMSEA, where smaller is
+#'  better)?
 #' @param Kirkpatrick Either `TRUE` to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.
 #' @param randomNeighbor Either `TRUE` to use the included function for randomNeighbor selection, or a user-defined function for creating random models.
 #' @param lavaan.model.specs A `list` which contains the specifications for the
@@ -34,13 +39,17 @@
 #' @param maxChanges An `integer` value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.
 #' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
 #' @param maximumConsecutive A positive `integer` value used with restartCriteria.
-#' @param maxItems When creating a short form, a `vector` of the number of items per factor you want the short form to contain. Defaults to `NULL`.
-#' @param items A `character` vector of item names. Defaults to `NULL`. Ignored if `maxItems==FALSE`.
-#' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if `maxItems==FALSE`.
+#' @param itemsPerFactor When creating a short form, a `vector` of the number of items per factor you want the short form to contain. Defaults to `NULL`.
+#' @param items A `character` vector of candidate item names. Defaults to
+#'  `NULL`, which uses all column names in `originalData`. Ignored if
+#'  `itemsPerFactor` is `NULL`.
+#' @param bifactor Either the name of the factor that all of the retained
+#'  items will load on (as a `character` value), or `NULL` if the model is
+#'  not a bifactor model. Ignored if `itemsPerFactor` is `NULL`.
 #' @param setChains Numeric. Sets the number of parallel chains to run. Default to `1`, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than `1` result in the chains running on parallel processes using the `doSNOW` and `foreach` packages.
 #' @param shortForm Deprecated; no longer has any effect. Whether short-form
 #'  (item-swap) or full-model (parameter free/fix) neighbors are generated is
-#'  now determined automatically by whether `maxItems` is supplied.
+#'  now determined automatically by whether `itemsPerFactor` is supplied.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
 #' @return An S4 object of class `SA`, with (among other slots) `best_model`
@@ -57,15 +66,15 @@
 #'     model = exampleAntModel,
 #'     data = simulated_test_data
 #'   ),
-#'   originalData = simulated_test_data, maxSteps = 3,
-#'   fitStatistic = "rmsea", maximize = FALSE
+#'   originalData = simulated_test_data, maxIterations = 3,
+#'   criterion = "rmsea", negateCriterion = FALSE
 #' )
 #' summary(trial1) # shows the resulting model
 #'
 #' trial2 <- simulatedAnnealing(
 #'   initialModel = exampleAntModel,
 #'   originalData = simulated_test_data,
-#'   maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56)
+#'   maxIterations = 2, itemsPerFactor = 30, items = paste0("Item", 1:56)
 #' )
 #' summary(trial2) # shows the resulting model
 #' }
@@ -76,10 +85,10 @@
 simulatedAnnealing <-
   function(initialModel,
            originalData,
-           maxSteps,
-           fitStatistic = "cfi",
+           maxIterations,
+           criterion = "cfi",
            temperature = "linear",
-           maximize = TRUE,
+           negateCriterion = TRUE,
            Kirkpatrick = TRUE,
            randomNeighbor = TRUE,
            lavaan.model.specs = list(
@@ -100,9 +109,9 @@ simulatedAnnealing <-
            maxChanges = 5,
            restartCriteria = "consecutive",
            maximumConsecutive = 25,
-           maxItems = NULL,
+           itemsPerFactor = NULL,
            items = NULL,
-           bifactor = FALSE,
+           bifactor = NULL,
            setChains = 1,
            shortForm = T,
            ...) {
@@ -116,6 +125,11 @@ simulatedAnnealing <-
     }
     allFit <- c()
 
+    # resolves criterion (a fit-measure name or an arbitrary function) into a
+    # single function(fittedModel) -> numeric, with a direction-aware
+    # error-fallback sentinel for the fit-measure-name case
+    criterionFn <- resolveCriterion(criterion, negateCriterion)
+
     # fill in any lavaan.model.specs the user omitted with this function's
     # own defaults, so a partial override is respected without requiring
     # the full list; errors on any unrecognized (likely misspelled) name
@@ -124,45 +138,31 @@ simulatedAnnealing <-
       eval(formals(sys.function())$lavaan.model.specs)
     )
 
-    if (!is.null(maxItems)) {
+    if (!is.null(itemsPerFactor)) {
       # if using the short form option
       cat("Initializing short form creation.")
-      
+
+      if (is.null(items)) {
+        items <- colnames(originalData)
+      }
       extracted <- syntaxExtraction(initialModel, items = items)
       factors <- extracted$factors
       allItems <- extracted$itemsPerFactor
 
       currentModel <-
-        bestModel <- 
+        bestModel <-
         randomInitialModel(init.model = initialModel,
-                           maxItems = maxItems,
+                           itemCounts = itemsPerFactor,
                            allItems = allItems,
                            initialData = originalData,
-                           bifactorModel = bifactor,
+                           bifactor = bifactor,
                            lavaan.model.specs = lavaan.model.specs
       )
       cat(paste0(
         "\nThe initial short form is:\n",
         paste0(currentModel@model.syntax, collapse = "")
       ))
-      bestFit <-
-        tryCatch(
-          lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
-          error = function(e, checkMaximize = maximize) {
-            if (length(e) > 0) {
-              if (checkMaximize == TRUE) {
-                return(0)
-                } else {
-                  return(Inf)
-                }
-            }
-            }
-          )
-      if (is.null(items)) {
-        stop(
-          "To use this function for short forms, you need to set both the maxItems to consider as well as the names of the items."
-        )
-      }
+      bestFit <- criterionFn(bestModel@model.output)
 
       cat("\nUsing the short form randomNeighbor function.")
       cat("\nFinished initializing short form options.")
@@ -174,25 +174,14 @@ simulatedAnnealing <-
           initialModel,
           modelSyntax = parTableToSyntax(lavaan::parTable(initialModel))
         )
-      bestFit <- tryCatch(
-        lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
-        error = function(e, checkMaximize = maximize) {
-          if (length(e) > 0) {
-            if (checkMaximize == TRUE) {
-              return(0)
-            } else {
-              return(Inf)
-            }
-          }
-        }
-      )
+      bestFit <- criterionFn(bestModel@model.output)
     }
 
     # whether short-form (item-swap) or full-model (parameter free/fix)
-    # neighbors are generated is entirely determined by maxItems -- the two
+    # neighbors are generated is entirely determined by itemsPerFactor -- the two
     # code paths above already assume this, so shortForm is derived here
     # rather than trusted as an independently user-set value.
-    shortForm <- !is.null(maxItems)
+    shortForm <- !is.null(itemsPerFactor)
 
     #### selecting functions for use in algorithm ####
     if (temperature == "linear") {
@@ -232,12 +221,12 @@ simulatedAnnealing <-
     }
     opts <- list(progress = chainProgressCallback)
 
-    stepProgressCallback <- function(currentStep, maxSteps) {
+    stepProgressCallback <- function(currentStep, maxIterations) {
       cat(paste0(
         "\r Current Step = ",
         currentStep,
         " of a maximum ",
-        maxSteps,
+        maxIterations,
         ".  "
       ), file = stdout())
     }
@@ -258,7 +247,7 @@ simulatedAnnealing <-
       foreach::foreach(chain = 1:chains, .inorder = F, .combine = rbind, 
                        .options.snow = opts) %dopar% {
 
-        while (currentStep < maxSteps) {
+        while (currentStep < maxIterations) {
           
           # how many changes to make?
           numChanges <- sample(1:maxChanges, size = 1)
@@ -285,9 +274,9 @@ simulatedAnnealing <-
           currentModel <- selectionFunction(
             currentModelObject = currentModel,
             randomNeighborModel = randomNeighborModel,
-            currentTemp = temperatureFunction(currentStep, maxSteps),
-            maximize = maximize,
-            fitStatistic = fitStatistic,
+            currentTemp = temperatureFunction(currentStep, maxIterations),
+            negateCriterion = negateCriterion,
+            criterionFn = criterionFn,
             consecutive = consecutive
           )
           # track how many times in a row the same model has been selected
@@ -298,7 +287,7 @@ simulatedAnnealing <-
           }
           # record fit
           allFit[currentStep + 1] <- tryCatch(
-            lavaan::fitmeasures(object = currentModel@model.output, fit.measures = fitStatistic),
+            criterionFn(currentModel@model.output),
             error = function(e) {
               if (length(e) > 0) {
                 bestFit
@@ -306,9 +295,9 @@ simulatedAnnealing <-
             }
           )
           # check for current best model
-          bestModel <- checkModels(currentModel, fitStatistic, maximize, bestFit, bestModel)
+          bestModel <- checkModels(currentModel, criterionFn, negateCriterion, bestFit, bestModel)
           bestFit <- tryCatch(
-            lavaan::fitmeasures(object = bestModel@model.output, fit.measures = fitStatistic),
+            criterionFn(bestModel@model.output),
             error = function(e) {
               if (length(e) > 0) {
                 bestFit
@@ -328,7 +317,7 @@ simulatedAnnealing <-
           currentModel <- restartResult$currentModel
           consecutive <- restartResult$consecutive
           currentStep <- currentStep + 1
-          stepProgressCallback(currentStep, maxSteps)
+          stepProgressCallback(currentStep, maxIterations)
 
         }
         returnList <-
@@ -345,7 +334,7 @@ simulatedAnnealing <-
 
     if (setChains > 1) {
       best_fit <-
-        ifelse(maximize,
+        ifelse(negateCriterion,
                max(as.numeric(chainResults[,'bestFit'])),
                min(as.numeric(chainResults[,'bestFit']))
         )
