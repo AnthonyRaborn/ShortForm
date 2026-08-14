@@ -143,15 +143,17 @@
 #' @param parallel An option for using parallel processing. If \code{TRUE}, the
 #'  function will utilize all available cores (up to the number of ants). Default
 #'  is \code{TRUE}.
-#' @return A list with four elements: the first containing a named matrix with
-#'  final model's best fit indices, the final pheromone level (either the mean
-#'  of the standardized regression coefficients (gammas, betas, or both), or the mean variance
-#'  explained), and a series of 0/1 values indicating the items selected in the
-#'  final solution,  the second element containing tbe summary matrix of the
-#'  best fit statistic value(s) for each run, the items chosen for said best fit,
-#'  the mean gamma, beta, and variance explained for the best fit, and the item pheromone
-#'  levels after each run, the third containing the best-fitting lavaan model
-#'  object, and the fourth containing the best-fitting model syntax.
+#' @return An S4 object of class `ACO`, with (among other slots)
+#'  `final_solution` holding a named matrix with the final model's best fit
+#'  indices, the final pheromone level (either the mean of the standardized
+#'  regression coefficients (gammas, betas, or both), or the mean variance
+#'  explained), and a series of 0/1 values indicating the items selected in
+#'  the final solution; `summary` holding the summary data.frame of the best
+#'  fit statistic value(s) for each run, the items chosen for said best fit,
+#'  the mean gamma, beta, and variance explained for the best fit, and the
+#'  item pheromone levels after each run; `best_model` holding the
+#'  best-fitting lavaan model object; and `best_syntax` holding the
+#'  best-fitting model syntax.
 #'
 #' @family Ant Colony Algorithms
 #' @seealso \code{\link{antcolony.mplus}}

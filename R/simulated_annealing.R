@@ -43,7 +43,10 @@
 #'  now determined automatically by whether `maxItems` is supplied.
 #' @param ... Further arguments to be passed to other functions. Not implemented for any of the included functions.
 #'
-#' @return A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
+#' @return An S4 object of class `SA`, with (among other slots) `best_model`
+#'  holding the best `modelCheck` found, `best_fit` the corresponding fit
+#'  statistic value, and `all_fit` the fit statistic values found across all
+#'  iterations.
 #'
 #' @examples
 #' \dontrun{

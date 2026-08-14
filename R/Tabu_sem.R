@@ -10,8 +10,11 @@
 #' lavaan object as the sole argument and returns a numeric value can be used.
 #' @param niter number of Tabu iterations to perform
 #' @param tabu.size size of Tabu list
-#'
-#' @return A list with three elements: best.obj, the numerical value of the best (minimal) objective function achieved; best.mod, the final lavaan model, and best.binvec, a data.frame of the lavaan-formatted parameter table for the final model.
+#' @return An S4 object of class `TS`, with (among other slots) `best_fit`
+#'  holding the best (minimal, or maximal if `negateCriterion = TRUE`)
+#'  objective function value achieved, `best_model` the corresponding final
+#'  lavaan model, and `best_syntax` a data.frame of the lavaan-formatted
+#'  parameter table for the final model.
 #' @export
 #'
 #' @examples

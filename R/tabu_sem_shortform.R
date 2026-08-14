@@ -15,13 +15,19 @@
 #' @param tabu.size A numeric value indicating the size of Tabu list. Default is 5.
 #' @param lavaan.model.specs A list which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
-#'  CFA. See \link[lavaan]{lavaan} for more details.
+#'  CFA. See \link[lavaan]{lavaan} for more details. A partial list is
+#'  accepted -- any element you omit falls back to this function's default
+#'  for that element -- but every name you do supply must match one of the
+#'  recognized element names, or the call errors (this catches typos, e.g.
+#'  `autovar` instead of `auto.var`, instead of silently ignoring them).
 #' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).
 #' @param verbose Logical. If `TRUE`, prints out the initial short form and the selected short form at the end of each iteration.
 #' @param parallel An option for using parallel processing. If \code{TRUE}, the 
 #'  function will utilize all available cores. Default is \code{TRUE}.
 #'
-#' @return A named list with the best value of the objective function (`best.obj`) and the best lavaan model object (`best.mod`).
+#' @return An S4 object of class `TS`, with (among other slots) `best_fit`
+#'  holding the best objective function value achieved and `best_model` the
+#'  corresponding final lavaan model.
 #' @export
 #'
 #' @examples
@@ -383,6 +389,7 @@ tabuShortForm <- function(originalData,
     names(temp) = names(best.obj)
     best.obj = temp
   }
+
   # capture the full call with every argument resolved (specified or not),
   # then substitute the actual *merged* lavaan.model.specs (computed near
   # the top of this function) in place of whatever partial/omitted
