@@ -124,9 +124,10 @@ Ability ~ Outcome
 result_TS <- tabuShortForm(
   initialModel = shortAntModel,
   originalData = simulated_test_data, numItems = 7,
-  niter = 1, tabu.size = 3, parallel = FALSE
+  niter = 10, tabu.size = 3, parallel = FALSE
 )
 summary(result_TS)
+plot(result_TS)
 ```
 
 ## Workflow
