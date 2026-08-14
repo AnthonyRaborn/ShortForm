@@ -13,10 +13,10 @@ test_that(
       simulatedAnnealing(
         initialModel = defaultModel,
         originalData = lavaan::HolzingerSwineford1939,
-        maxSteps = 3,
-        fitStatistic = "cfi",
-        maximize = TRUE,
-        maxItems = c(2, 2, 2),
+        maxIterations = 3,
+        criterion = "cfi",
+        negateCriterion = TRUE,
+        itemsPerFactor = c(2, 2, 2),
         items = paste0("x", 1:9)
       )
     )
@@ -41,10 +41,10 @@ test_that(
       simulatedAnnealing(
         initialModel = defaultModel,
         originalData = lavaan::HolzingerSwineford1939,
-        maxSteps = 3,
-        fitStatistic = "cfi",
-        maximize = TRUE,
-        maxItems = c(2, 2, 2),
+        maxIterations = 3,
+        criterion = "cfi",
+        negateCriterion = TRUE,
+        itemsPerFactor = c(2, 2, 2),
         items = paste0("x", 1:9),
         maxChanges = 1,
         lavaan.model.specs = list(estimator = "ML")
@@ -67,10 +67,10 @@ test_that(
       simulatedAnnealing(
         initialModel = defaultModel,
         originalData = lavaan::HolzingerSwineford1939,
-        maxSteps = 3,
-        fitStatistic = "cfi",
-        maximize = TRUE,
-        maxItems = c(2, 2, 2),
+        maxIterations = 3,
+        criterion = "cfi",
+        negateCriterion = TRUE,
+        itemsPerFactor = c(2, 2, 2),
         items = paste0("x", 1:9),
         maxChanges = 1,
         lavaan.model.specs = list(estmator = "ML")
@@ -81,13 +81,13 @@ test_that(
 )
 
 # simulatedAnnealing() -- full model (non-short-form) mode ####
-# FIXED (see code review): when maxItems was NULL, simulatedAnnealing() never
-# initialized bestModel/currentModel before using them, so the "full model"
-# usage documented in ?simulatedAnnealing's own first example crashed
+# FIXED (see code review): when itemsPerFactor was NULL, simulatedAnnealing()
+# never initialized bestModel/currentModel before using them, so the "full
+# model" usage documented in ?simulatedAnnealing's own first example crashed
 # immediately. bestModel/currentModel are now initialized from initialModel
 # via parTableToSyntax() (R/lavaan_syntax_helpers.R), and shortForm is now
-# derived from maxItems instead of trusted as an independent argument, so the
-# loop correctly dispatches to randomNeighborFull() instead of
+# derived from itemsPerFactor instead of trusted as an independent argument,
+# so the loop correctly dispatches to randomNeighborFull() instead of
 # randomNeighborShort().
 test_that(
   "simulatedAnnealing runs end-to-end and returns an SA object for the documented full-model (non-short-form) usage", {
@@ -104,9 +104,9 @@ test_that(
       simulatedAnnealing(
         initialModel = fittedModel,
         originalData = lavaan::HolzingerSwineford1939,
-        maxSteps = 3,
-        fitStatistic = "cfi",
-        maximize = FALSE
+        maxIterations = 3,
+        criterion = "cfi",
+        negateCriterion = FALSE
       )
     )
 
@@ -116,9 +116,9 @@ test_that(
   }
 )
 
-# tabuShortForm() ####
+# tabuSearch() ####
 test_that(
-  "tabuShortForm runs end-to-end and returns a TS object", {
+  "tabuSearch runs end-to-end and returns a TS object", {
     set.seed(1)
     shortAntModel <- "
     Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
@@ -126,11 +126,11 @@ test_that(
     "
     data(simulated_test_data)
 
-    result <- tabuShortForm(
+    result <- tabuSearch(
       initialModel = shortAntModel,
       originalData = simulated_test_data,
-      numItems = 7,
-      niter = 1,
+      itemsPerFactor = 7,
+      maxIterations = 1,
       tabu.size = 3,
       parallel = FALSE
     )
@@ -261,50 +261,70 @@ test_that(
   }
 )
 
-# antcolony.lavaan() ####
+# antColony() ####
 test_that(
-  "antcolony.lavaan runs end-to-end and returns an ACO object", {
+  "antColony runs end-to-end and returns an ACO object", {
     set.seed(1)
-    result <- antcolony.lavaan(
+    result <- antColony(
       data = lavaan::HolzingerSwineford1939,
       ants = 2, evaporation = 0.7,
-      antModel = " visual  =~ x1 + x2 + x3
+      initialModel = " visual  =~ x1 + x2 + x3
                    textual =~ x4 + x5 + x6
                    speed   =~ x7 + x8 + x9 ",
-      list.items = list(c("x1", "x2", "x3"), c("x4", "x5", "x6"), c("x7", "x8", "x9")),
-      full = 9, i.per.f = c(3, 3, 3), factors = c("visual", "textual", "speed"),
+      itemsPerFactor = c(3, 3, 3),
       steps = 2, fit.indices = c("cfi"), fit.statistics.test = "(cfi > 0.6)",
-      summaryfile = NULL, feedbackfile = NULL, max.run = 2, parallel = FALSE
+      maxIterations = 2, parallel = FALSE, verbose = FALSE
     )
 
     expect_s4_class(result, "ACO")
   }
 )
 
-# antcolony.lavaan() -- partial lavaan.model.specs override ####
+# antColony() -- partial lavaan.model.specs override ####
 test_that(
-  "antcolony.lavaan runs end-to-end with a partial lavaan.model.specs override", {
+  "antColony runs end-to-end with a partial lavaan.model.specs override", {
     set.seed(1)
-    result <- antcolony.lavaan(
+    result <- antColony(
       data = lavaan::HolzingerSwineford1939,
       ants = 2, evaporation = 0.7,
-      antModel = " visual  =~ x1 + x2 + x3
+      initialModel = " visual  =~ x1 + x2 + x3
                    textual =~ x4 + x5 + x6
                    speed   =~ x7 + x8 + x9 ",
-      list.items = list(c("x1", "x2", "x3"), c("x4", "x5", "x6"), c("x7", "x8", "x9")),
-      full = 9, i.per.f = c(3, 3, 3), factors = c("visual", "textual", "speed"),
+      itemsPerFactor = c(3, 3, 3),
       steps = 2, fit.indices = c("cfi"), fit.statistics.test = "(cfi > 0.6)",
       lavaan.model.specs = list(estimator = "ML"),
-      summaryfile = NULL, feedbackfile = NULL, max.run = 2, parallel = FALSE
+      maxIterations = 2, parallel = FALSE, verbose = FALSE
     )
 
     expect_s4_class(result, "ACO")
   }
 )
 
-# tabuShortForm() -- mergeModelSpecs (partial override + typo detection) ####
+# antColony() -- items defaults to colnames(data) when using sample.cov requires items ####
 test_that(
-  "tabuShortForm accepts a partial lavaan.model.specs, filling the rest from its defaults", {
+  "antColony errors clearly when items is NULL and data is also NULL (sample.cov path)", {
+    set.seed(1)
+    holzingerCov <- stats::cov(lavaan::HolzingerSwineford1939[, paste0("x", 1:9)])
+
+    expect_error(
+      antColony(
+        sample.cov = holzingerCov, sample.nobs = nrow(lavaan::HolzingerSwineford1939),
+        ants = 2, evaporation = 0.7,
+        initialModel = " visual  =~ x1 + x2 + x3
+                     textual =~ x4 + x5 + x6
+                     speed   =~ x7 + x8 + x9 ",
+        itemsPerFactor = c(3, 3, 3),
+        steps = 2, fit.indices = c("cfi"), fit.statistics.test = "(cfi > 0.6)",
+        maxIterations = 2, parallel = FALSE, verbose = FALSE
+      ),
+      "items"
+    )
+  }
+)
+
+# tabuSearch() -- mergeModelSpecs (partial override + typo detection) ####
+test_that(
+  "tabuSearch accepts a partial lavaan.model.specs, filling the rest from its defaults", {
     set.seed(1)
     data(simulated_test_data)
     shortAntModel <- "
@@ -312,11 +332,11 @@ test_that(
     Ability ~ Outcome
     "
 
-    result <- tabuShortForm(
+    result <- tabuSearch(
       initialModel = shortAntModel,
       originalData = simulated_test_data,
-      numItems = 7,
-      niter = 1,
+      itemsPerFactor = 7,
+      maxIterations = 1,
       tabu.size = 3,
       parallel = FALSE,
       lavaan.model.specs = list(estimator = "ML")
@@ -327,7 +347,7 @@ test_that(
 )
 
 test_that(
-  "tabuShortForm errors clearly when lavaan.model.specs has an unrecognized (likely misspelled) name", {
+  "tabuSearch errors clearly when lavaan.model.specs has an unrecognized (likely misspelled) name", {
     set.seed(1)
     data(simulated_test_data)
     shortAntModel <- "
@@ -336,11 +356,11 @@ test_that(
     "
 
     expect_error(
-      tabuShortForm(
+      tabuSearch(
         initialModel = shortAntModel,
         originalData = simulated_test_data,
-        numItems = 7,
-        niter = 1,
+        itemsPerFactor = 7,
+        maxIterations = 1,
         tabu.size = 3,
         parallel = FALSE,
         lavaan.model.specs = list(estmator = "ML")
@@ -350,7 +370,7 @@ test_that(
   }
 )
 
-# tabuShortForm() -- parallel cluster setup under CRAN-check core limits ####
+# tabuSearch() -- parallel cluster setup under CRAN-check core limits ####
 # FIXED (see comparison against the abandoned refactorSA/refactorTS branches):
 # when parallel = TRUE and _R_CHECK_LIMIT_CORES_ is set (as it is on CRAN's
 # check machines), the cluster (`cl`) and `%dopar%` were only ever created in
@@ -360,7 +380,7 @@ test_that(
 # have this bug (their cluster setup is unconditional within the `parallel`
 # branch); Tabu's has been aligned to match.
 test_that(
-  "tabuShortForm runs under simulated CRAN core-limit conditions", {
+  "tabuSearch runs under simulated CRAN core-limit conditions", {
     previousLimitCores <- Sys.getenv("_R_CHECK_LIMIT_CORES_", unset = NA)
     Sys.setenv("_R_CHECK_LIMIT_CORES_" = "TRUE")
     on.exit(
@@ -377,11 +397,11 @@ test_that(
     Ability ~ Outcome
     "
 
-    result <- tabuShortForm(
+    result <- tabuSearch(
       initialModel = shortAntModel,
       originalData = simulated_test_data,
-      numItems = 7,
-      niter = 1,
+      itemsPerFactor = 7,
+      maxIterations = 1,
       tabu.size = 3
     )
 

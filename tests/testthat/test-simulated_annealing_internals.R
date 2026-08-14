@@ -10,10 +10,10 @@ test_that(
       textual  =~ x4 + x5 + x6
       speed    =~ x7 + x8 + x9
       bifactor =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9'
-    maxItems <- c(2,2,2)
+    itemCounts <- c(2,2,2)
     allItems <- paste0("x", 1:9)
     data <- lavaan::HolzingerSwineford1939
-    bifactor <- FALSE
+    bifactor <- NULL
     lavaanSpecs <-
       list(model.type = "cfa",
            estimator = "ML",
@@ -36,30 +36,30 @@ test_that(
            group.partial = NULL,
            group.w.free = FALSE)
 
-    ## bifactorModel == FALSE ####
+    ## bifactor == NULL ####
     # should output a modelCheck object
     expect_s4_class(
       randomInitialModel(
         init.model = defaultModel,
-        maxItems = maxItems,
+        itemCounts = itemCounts,
         allItems = allItems,
         initialData = data,
-        bifactorModel = bifactor,
+        bifactor = bifactor,
         lavaan.model.specs = lavaanSpecs
       ),
       'modelCheck'
     )
 
-    # bifactor == TRUE ####
-    bifactor = TRUE
+    # bifactor == a named factor ####
+    bifactor = "speed"
     # should output a list
     expect_s4_class(
       randomInitialModel(
         init.model = defaultModel,
-        maxItems = maxItems,
+        itemCounts = itemCounts,
         allItems = allItems,
         initialData = data,
-        bifactorModel = bifactor,
+        bifactor = bifactor,
         lavaan.model.specs = lavaanSpecs
       ),
       'modelCheck'
@@ -93,7 +93,7 @@ test_that(
           model = defaultBifactor,
           data = lavaan::HolzingerSwineford1939
         ),
-        modelSyntax = defaultModel
+        modelSyntax = defaultBifactor
       )
     lavaanSpecs <-
       list(model.type = "cfa",
@@ -117,7 +117,7 @@ test_that(
            group.partial = NULL,
            group.w.free = FALSE)
 
-    ## bifactorModel == FALSE ####
+    ## bifactor == NULL ####
     # should output a modelCheck object
     expect_s4_class(
       randomNeighborShort(
@@ -125,7 +125,7 @@ test_that(
         numChanges = 1,
         allItems = paste0("x", 1:9),
         data = lavaan::HolzingerSwineford1939,
-        bifactor = FALSE,
+        bifactor = NULL,
         init.model = defaultModel,
         lavaan.model.specs = lavaanSpecs
       ),
@@ -133,7 +133,7 @@ test_that(
     )
 
 
-    # bifactorModel == FALSE ####
+    ## bifactor == a named factor ####
     # should output a modelCheck object
     expect_s4_class(
       randomNeighborShort(
@@ -141,7 +141,7 @@ test_that(
         numChanges = 1,
         allItems = paste0("x", 1:9),
         data = lavaan::HolzingerSwineford1939,
-        bifactor = TRUE,
+        bifactor = "bifactor",
         init.model = defaultBifactor,
         lavaan.model.specs = lavaanSpecs
       ),
@@ -187,7 +187,7 @@ test_that(
       numChanges = 5,
       allItems = c("Item1", "Item2", "Item3", "Item4"),
       data = tinyData,
-      bifactor = FALSE,
+      bifactor = NULL,
       init.model = tinyModel,
       lavaan.model.specs = lavaanSpecs
     )
@@ -320,12 +320,15 @@ test_that(
             speed   =~ x7 + x8 + x9 + x1 + x2 + x3'
       )
 
+    cfiFn <- function(m) fitmeasures(object = m, fit.measures = 'cfi')
+    rmseaFn <- function(m) fitmeasures(object = m, fit.measures = 'rmsea')
+
     # lavaan input with single, maximized fit statistic should equal the negative value of the fit statistic
     expect_equal(
       goal(
         x = currentModel@model.output,
-        fitStatistic = 'cfi',
-        maximize = T
+        criterionFn = cfiFn,
+        negateCriterion = T
         ),
       -fitmeasures(
         object = currentModel@model.output,
@@ -337,8 +340,8 @@ test_that(
     expect_equal(
       goal(
         x = currentModel@model.output,
-        fitStatistic = 'rmsea',
-        maximize = F
+        criterionFn = rmseaFn,
+        negateCriterion = F
       ),
       fitmeasures(
         object = currentModel@model.output,
@@ -350,8 +353,8 @@ test_that(
     expect_equal(
       goal(
         x = currentBadModel@model.output,
-        fitStatistic = 'cfi',
-        maximize = T
+        criterionFn = cfiFn,
+        negateCriterion = T
       ),
       Inf
     )
@@ -360,8 +363,8 @@ test_that(
     expect_equal(
       goal(
         x = currentBadModel@model.output,
-        fitStatistic = 'rmsea',
-        maximize = F
+        criterionFn = rmseaFn,
+        negateCriterion = F
       ),
       Inf
     )
@@ -417,6 +420,7 @@ test_that(
       )
     currentTemp <-
       0.5
+    cfiFn <- function(m) lavaan::fitmeasures(object = m, fit.measures = "cfi")
 
     # new model does not converge, so return currentModelObject with message
     expect_equal(
@@ -424,8 +428,8 @@ test_that(
         currentModelObject = currentModel,
         randomNeighborModel = currentBadModel,
         currentTemp = currentTemp,
-        maximize = TRUE,
-        fitStatistic = "cfi",
+        negateCriterion = TRUE,
+        criterionFn = cfiFn,
         consecutive = 1
       ),
       currentModel
@@ -435,8 +439,8 @@ test_that(
         currentModelObject = currentModel,
         randomNeighborModel = currentBadModel,
         currentTemp = currentTemp,
-        maximize = TRUE,
-        fitStatistic = "cfi",
+        negateCriterion = TRUE,
+        criterionFn = cfiFn,
         consecutive = 1
       ),
       "New model did not converge."
@@ -448,8 +452,8 @@ test_that(
         currentModelObject = NULL,
         randomNeighborModel = currentBadModel,
         currentTemp = currentTemp,
-        maximize = TRUE,
-        fitStatistic = "cfi",
+        negateCriterion = TRUE,
+        criterionFn = cfiFn,
         consecutive = 1
       ),
       currentBadModel
@@ -461,8 +465,8 @@ test_that(
         currentModelObject = currentModel,
         randomNeighborModel = NULL,
         currentTemp = currentTemp,
-        maximize = TRUE,
-        fitStatistic = "cfi",
+        negateCriterion = TRUE,
+        criterionFn = cfiFn,
         consecutive = 1
       ),
       currentModel
@@ -474,8 +478,8 @@ test_that(
         currentModelObject = intermediateModel,
         randomNeighborModel = currentModel,
         currentTemp = currentTemp,
-        maximize = TRUE,
-        fitStatistic = "cfi",
+        negateCriterion = TRUE,
+        criterionFn = cfiFn,
         consecutive = 1
       ),
       "Probability:"
@@ -487,8 +491,8 @@ test_that(
         currentModelObject = currentModel,
         randomNeighborModel = intermediateModel,
         currentTemp = currentTemp,
-        maximize = TRUE,
-        fitStatistic = "cfi",
+        negateCriterion = TRUE,
+        criterionFn = cfiFn,
         consecutive = 1
       ),
       "^((?!Probability:))",
@@ -527,12 +531,15 @@ test_that(
           textual =~ x4 + x5 + x6 + x8 + x9'
       )
 
+    cfiFn2 <- function(m) fitmeasures(m, 'cfi')
+    rmseaFn2 <- function(m) fitmeasures(m, 'rmsea')
+
     # model is null, return bestModel
     expect_equal(
       checkModels(
         currentModel = NULL,
-        fitStatistic = 'cfi',
-        maximize = TRUE,
+        criterionFn = cfiFn2,
+        negateCriterion = TRUE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'cfi'),
         bestModel = bestHolzinger
       ),
@@ -544,8 +551,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = bestHolzinger,
-        fitStatistic = 'cfi',
-        maximize = TRUE,
+        criterionFn = cfiFn2,
+        negateCriterion = TRUE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'cfi'),
         bestModel = bestHolzinger
       ),
@@ -556,8 +563,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = badHolzinger,
-        fitStatistic = 'cfi',
-        maximize = TRUE,
+        criterionFn = cfiFn2,
+        negateCriterion = TRUE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'cfi'),
         bestModel = bestHolzinger
       ),
@@ -568,8 +575,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = bestHolzinger,
-        fitStatistic = 'cfi',
-        maximize = TRUE,
+        criterionFn = cfiFn2,
+        negateCriterion = TRUE,
         bestFit = fitmeasures(badHolzinger@model.output, 'cfi'),
         bestModel = badHolzinger
       ),
@@ -580,8 +587,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = "bestHolzinger",
-        fitStatistic = 'cfi',
-        maximize = TRUE,
+        criterionFn = cfiFn2,
+        negateCriterion = TRUE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'cfi'),
         bestModel = bestHolzinger
       ),
@@ -593,8 +600,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = bestHolzinger,
-        fitStatistic = 'cfi',
-        maximize = TRUE,
+        criterionFn = cfiFn2,
+        negateCriterion = TRUE,
         bestFit = fitmeasures(badHolzinger@model.output, 'cfi'),
         bestModel = badHolzinger
       ),
@@ -606,8 +613,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = bestHolzinger,
-        fitStatistic = 'rmsea',
-        maximize = FALSE,
+        criterionFn = rmseaFn2,
+        negateCriterion = FALSE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'rmsea'),
         bestModel = bestHolzinger
       ),
@@ -618,8 +625,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = badHolzinger,
-        fitStatistic = 'rmsea',
-        maximize = FALSE,
+        criterionFn = rmseaFn2,
+        negateCriterion = FALSE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'rmsea'),
         bestModel = bestHolzinger
       ),
@@ -630,8 +637,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = bestHolzinger,
-        fitStatistic = 'rmsea',
-        maximize = FALSE,
+        criterionFn = rmseaFn2,
+        negateCriterion = FALSE,
         bestFit = fitmeasures(badHolzinger@model.output, 'rmsea'),
         bestModel = badHolzinger
       ),
@@ -642,8 +649,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = "bestHolzinger",
-        fitStatistic = 'rmsea',
-        maximize = FALSE,
+        criterionFn = rmseaFn2,
+        negateCriterion = FALSE,
         bestFit = fitmeasures(bestHolzinger@model.output, 'rmsea'),
         bestModel = bestHolzinger
       ),
@@ -655,8 +662,8 @@ test_that(
     expect_equal(
       checkModels(
         currentModel = bestHolzinger,
-        fitStatistic = 'rmsea',
-        maximize = FALSE,
+        criterionFn = rmseaFn2,
+        negateCriterion = FALSE,
         bestFit = fitmeasures(badHolzinger@model.output, 'rmsea'),
         bestModel = badHolzinger
       ),
@@ -774,31 +781,20 @@ test_that(
     # normal input/output
     expect_equal(
       object =
-        fitWarningCheck(expr = exampleCFI,
-                        maximize = TRUE),
+        fitWarningCheck(expr = exampleCFI),
       expected = exampleCFI
     )
 
     expect_equal(
       object =
-        fitWarningCheck(expr = exampleChisq,
-                        maximize = FALSE),
+        fitWarningCheck(expr = exampleChisq),
       expected = exampleChisq
     )
 
-    # error input, maximize
+    # error input
     expect_equal(
       object =
-        fitWarningCheck(expr = 'exampleNull'/2,
-                        maximize = TRUE),
-      expected = NA
-    )
-
-    # error input, minimize
-    expect_equal(
-      object =
-        fitWarningCheck(expr = 'exampleNull'/2,
-                        maximize = FALSE),
+        fitWarningCheck(expr = 'exampleNull'/2),
       expected = NA
     )
   }
@@ -1001,7 +997,7 @@ test_that(
       numChanges = 1,
       allItems = c("Item1", "SubItem1", "Item2", "Item2b"),
       data = corruptionData,
-      bifactor = FALSE,
+      bifactor = NULL,
       init.model = corruptionModel,
       lavaan.model.specs = lavaanSpecs
     )

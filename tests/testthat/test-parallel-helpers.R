@@ -1,5 +1,5 @@
 # setupParallelCluster() / teardownParallelCluster() ####
-# Shared by antcolony.lavaan, simulatedAnnealing, and tabuShortForm, which
+# Shared by antColony, simulatedAnnealing, and tabuSearch, which
 # previously each hand-rolled their own copy of this CRAN-check-aware
 # cluster bootstrap. simulatedAnnealing's copy always used `%dopar%` even
 # when running serially (no cluster registered), which produced a spurious

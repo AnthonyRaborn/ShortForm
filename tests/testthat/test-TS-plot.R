@@ -1,7 +1,7 @@
 # negateCriterion (via function_call) ####
 # Tabu search's comparison direction is controlled by negateCriterion: if
 # FALSE (the tabu.sem() default), the search looks for the SMALLEST value of
-# criterion (current.obj < best.obj); if TRUE (the tabuShortForm() default,
+# criterion (current.obj < best.obj); if TRUE (the tabuSearch() default,
 # matching its default cfi criterion), the search looks for the LARGEST
 # value (current.obj > best.obj). criterion/obj is always supplied on its
 # natural scale (e.g. plain cfi, not -cfi) -- negateCriterion picks the
@@ -55,7 +55,7 @@ test_that(
     )
     fakeTSMaximize <- makeFakeTS(
       c(0.90, 0.95, 0.99),
-      quote(tabuShortForm(initialModel = m, originalData = d, numItems = 5, negateCriterion = TRUE))
+      quote(tabuSearch(initialModel = m, originalData = d, itemsPerFactor = 5, negateCriterion = TRUE))
     )
 
     grDevices::pdf(NULL)
@@ -84,7 +84,7 @@ test_that(
   }
 )
 
-# tabu.sem() / tabuShortForm() -- negateCriterion wiring ####
+# tabu.sem() / tabuSearch() -- negateCriterion wiring ####
 test_that(
   "tabu.sem defaults negateCriterion to FALSE and minimizes criterion directly", {
     set.seed(1)
@@ -110,7 +110,7 @@ test_that(
 )
 
 test_that(
-  "tabuShortForm defaults negateCriterion to TRUE and maximizes the default (raw) cfi criterion", {
+  "tabuSearch defaults negateCriterion to TRUE and maximizes the default (raw) cfi criterion", {
     set.seed(1)
     data(simulated_test_data)
     shortAntModel <- "
@@ -118,11 +118,11 @@ test_that(
     Ability ~ Outcome
     "
 
-    result <- tabuShortForm(
+    result <- tabuSearch(
       initialModel = shortAntModel,
       originalData = simulated_test_data,
-      numItems = 7,
-      niter = 1,
+      itemsPerFactor = 7,
+      maxIterations = 1,
       tabu.size = 3,
       parallel = FALSE
     )
@@ -214,7 +214,7 @@ test_that(
 )
 
 test_that(
-  "tabuShortForm's captured function_call reflects the merged lavaan.model.specs, not the partial input", {
+  "tabuSearch's captured function_call reflects the merged lavaan.model.specs, not the partial input", {
     set.seed(1)
     data(simulated_test_data)
     shortAntModel <- "
@@ -222,11 +222,11 @@ test_that(
     Ability ~ Outcome
     "
 
-    result <- tabuShortForm(
+    result <- tabuSearch(
       initialModel = shortAntModel,
       originalData = simulated_test_data,
-      numItems = 7,
-      niter = 1,
+      itemsPerFactor = 7,
+      maxIterations = 1,
       tabu.size = 3,
       parallel = FALSE,
       lavaan.model.specs = list(estimator = "ML")
