@@ -81,18 +81,14 @@ library(ShortForm)
 # 2. Run optimization algorithm
 # 3. Evaluate resulting short form
 
-result_ACO <- antcolony.lavaan(
+result_ACO <- antColony(
     data = simulated_test_data,
-    antModel = exampleAntModel,
-    list.items = list(paste0("Item", 1:56)), 
-    full = 56, i.per.f = 15,
-    factors = "Ability", 
+    initialModel = exampleAntModel,
+    itemsPerFactor = 15,
     steps = 100,
     fit.indices = c("cfi", "rmsea"),
     fit.statistics.test = "(cfi > 0.98)&(rmsea < 0.03)",
-    summaryfile = NULL,
-    feedbackfile = NULL,
-    max.run = 200
+    maxIterations = 200
 )
 
 summary(result_ACO)
@@ -104,8 +100,8 @@ set.seed(58310)
 result_SA <- simulatedAnnealing(
   initialModel = paste("Ability =~", paste0("Item", 1:56, collapse = " + ")),
   originalData = simulated_test_data,
-  maxSteps = 20, 
-  maxItems = 40, 
+  maxIterations = 20,
+  itemsPerFactor = 40,
   items = paste0("Item", 1:56),
   setChains = 4
 )
@@ -121,10 +117,10 @@ Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
 Ability ~ Outcome
 "
 
-result_TS <- tabuShortForm(
+result_TS <- tabuSearch(
   initialModel = shortAntModel,
-  originalData = simulated_test_data, numItems = 7,
-  niter = 10, tabu.size = 3, parallel = FALSE
+  originalData = simulated_test_data, itemsPerFactor = 7,
+  maxIterations = 10, tabu.size = 3, parallel = FALSE
 )
 summary(result_TS)
 plot(result_TS)
