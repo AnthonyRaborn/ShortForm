@@ -45,3 +45,29 @@ extractCallArg <- function(call, argName, envir = baseenv()) {
   }
   eval(call[[argName]], envir = envir)
 }
+
+# normalizes a `criterion` argument (shared by simulatedAnnealing and
+# tabuSearch) into a function(fittedModel) -> numeric. `criterion` may be
+# either a character lavaan::fitmeasures() name (e.g. "cfi") or an arbitrary
+# function. negateCriterion controls the error-fallback sentinel for the
+# character case, so a failed refit always compares as "worse" regardless of
+# search direction: -Inf when negateCriterion (maximizing), Inf otherwise.
+resolveCriterion <- function(criterion, negateCriterion) {
+  if (is.character(criterion)) {
+    measure <- criterion
+    worstValue <- if (isTRUE(negateCriterion)) -Inf else Inf
+    return(function(fittedModel) {
+      # unclass() strips lavaan::fitmeasures()'s "lavaan.vector" class (kept
+      # only for its own pretty-printing) while preserving the name -- some
+      # S4 slots downstream (e.g. TS's best_fit) require a plain "numeric"
+      tryCatch(
+        unclass(lavaan::fitmeasures(fittedModel, measure)),
+        error = function(e) worstValue
+      )
+    })
+  }
+  if (is.function(criterion)) {
+    return(criterion)
+  }
+  stop("`criterion` must be a character fit-measure name from lavaan::fitmeasures (e.g. \"cfi\") or a function.")
+}
