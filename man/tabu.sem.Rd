@@ -22,9 +22,11 @@ tabu.sem(
 parameters that can be modified as part of the search and how the parameters
 can be modified (fixed to what values)}
 
-\item{criterion}{objective function to be minimized (or maximized, if
-`negateCriterion = TRUE`). Any function that takes a lavaan object as the
-sole argument and returns a numeric value can be used.}
+\item{criterion}{The objective to be minimized (or maximized, if
+`negateCriterion = TRUE`). Either a `character` fit-measure name
+recognized by \link[lavaan]{fitmeasures} (e.g. `"cfi"`), or a function
+that takes a lavaan object as its sole argument and returns a numeric
+value.}
 
 \item{niter}{number of Tabu iterations to perform}
 

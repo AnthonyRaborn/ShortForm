@@ -7,10 +7,10 @@
 simulatedAnnealing(
   initialModel,
   originalData,
-  maxSteps,
-  fitStatistic = "cfi",
+  maxIterations,
+  criterion = "cfi",
   temperature = "linear",
-  maximize = TRUE,
+  negateCriterion = TRUE,
   Kirkpatrick = TRUE,
   randomNeighbor = TRUE,
   lavaan.model.specs = list(model.type = "cfa", auto.var = TRUE, estimator = "default",
@@ -20,9 +20,9 @@ simulatedAnnealing(
   maxChanges = 5,
   restartCriteria = "consecutive",
   maximumConsecutive = 25,
-  maxItems = NULL,
+  itemsPerFactor = NULL,
   items = NULL,
-  bifactor = FALSE,
+  bifactor = NULL,
   setChains = 1,
   shortForm = T,
   ...
@@ -33,13 +33,18 @@ simulatedAnnealing(
 
 \item{originalData}{The original \code{data.frame} with variable names.}
 
-\item{maxSteps}{The number of iterations for which the algorithm will run.}
+\item{maxIterations}{The number of iterations for which the algorithm will run.}
 
-\item{fitStatistic}{Either a single model fit statistic produced by lavaan, or a user-defined fit statistic function.}
+\item{criterion}{Either a \code{character} fit-measure name recognized by
+\link[lavaan]{fitmeasures} (e.g. \code{"cfi"}), or a function that takes a
+fitted \code{lavaan} object and returns a single numeric value.}
 
 \item{temperature}{Either an acceptable \code{character} value, or a user-defined temperature function. The acceptable values are "linear", "quadratic", or "logistic".}
 
-\item{maximize}{Logical indicating if the goal is to maximize (\code{TRUE}) the fitStatistic for model selection.}
+\item{negateCriterion}{Logical. Should the search look for the largest
+value of \code{criterion} (\code{TRUE}, e.g. CFI, where larger is better), or the
+smallest value of \code{criterion} (\code{FALSE}, e.g. RMSEA, where smaller is
+better)?}
 
 \item{Kirkpatrick}{Either \code{TRUE} to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.}
 
@@ -58,17 +63,21 @@ recognized element names, or the call errors.}
 
 \item{maximumConsecutive}{A positive \code{integer} value used with restartCriteria.}
 
-\item{maxItems}{When creating a short form, a \code{vector} of the number of items per factor you want the short form to contain. Defaults to \code{NULL}.}
+\item{itemsPerFactor}{When creating a short form, a \code{vector} of the number of items per factor you want the short form to contain. Defaults to \code{NULL}.}
 
-\item{items}{A \code{character} vector of item names. Defaults to \code{NULL}. Ignored if \code{maxItems==FALSE}.}
+\item{items}{A \code{character} vector of candidate item names. Defaults to
+\code{NULL}, which uses all column names in \code{originalData}. Ignored if
+\code{itemsPerFactor} is \code{NULL}.}
 
-\item{bifactor}{Logical. Indicates if the latent model is a bifactor model. If \code{TRUE}, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if \code{maxItems==FALSE}.}
+\item{bifactor}{Either the name of the factor that all of the retained
+items will load on (as a \code{character} value), or \code{NULL} if the model is
+not a bifactor model. Ignored if \code{itemsPerFactor} is \code{NULL}.}
 
 \item{setChains}{Numeric. Sets the number of parallel chains to run. Default to \code{1}, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than \code{1} result in the chains running on parallel processes using the \code{doSNOW} and \code{foreach} packages.}
 
 \item{shortForm}{Deprecated; no longer has any effect. Whether short-form
 (item-swap) or full-model (parameter free/fix) neighbors are generated is
-now determined automatically by whether \code{maxItems} is supplied.}
+now determined automatically by whether \code{itemsPerFactor} is supplied.}
 
 \item{...}{Further arguments to be passed to other functions. Not implemented for any of the included functions.}
 }
@@ -86,9 +95,9 @@ Simulated annealing mimics the physical process of annealing metals together. \h
 \itemize{
 \item initialModel -- the initial, full form
 \item currentModel -- the model of the current step
-\item maxSteps -- the maximum number of steps (iterations)
+\item maxIterations -- the maximum number of steps (iterations)
 \item currentStep -- the current step
-\item currentTemp -- the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly -- generated models
+\item currentTemp -- the current temperature. A function of the number of steps (such that temp = 0 at maxIterations), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly -- generated models
 \item randomNeighbor -- a function that determines how the form is changed at each step. Should be able to change one or more parameters, and should have a way to control how many are changed.
 \item goal -- a function that determines the "goodness" of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energy function
 \item selectionFunction -- a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the "goodness" of the currentModel and the "goodness" of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a Uniform(0,1) variable to determine if accepted or not. A standard version of this is:
@@ -108,15 +117,15 @@ trial1 <- simulatedAnnealing(
     model = exampleAntModel,
     data = simulated_test_data
   ),
-  originalData = simulated_test_data, maxSteps = 3,
-  fitStatistic = "rmsea", maximize = FALSE
+  originalData = simulated_test_data, maxIterations = 3,
+  criterion = "rmsea", negateCriterion = FALSE
 )
 summary(trial1) # shows the resulting model
 
 trial2 <- simulatedAnnealing(
   initialModel = exampleAntModel,
   originalData = simulated_test_data,
-  maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56)
+  maxIterations = 2, itemsPerFactor = 30, items = paste0("Item", 1:56)
 )
 summary(trial2) # shows the resulting model
 }

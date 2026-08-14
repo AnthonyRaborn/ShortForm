@@ -3,7 +3,7 @@
 \docType{data}
 \name{exampleAntModel}
 \alias{exampleAntModel}
-\title{Model syntax for the example in the \code{\link{antcolony.lavaan}} function.}
+\title{Model syntax for the example in the \code{\link{antColony}} function.}
 \format{
 A character vector.
 }
@@ -11,6 +11,6 @@ A character vector.
 data(exampleAntModel)
 }
 \description{
-A character vector containing the model syntax used for the one factor, 56-item example in the \code{\link{antcolony.lavaan}}.
+A character vector containing the model syntax used for the one factor, 56-item example in the \code{\link{antColony}}.
 }
 \keyword{datasets}
