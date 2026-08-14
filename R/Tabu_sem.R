@@ -6,9 +6,11 @@
 #' @param ptab search table (e.g., created by search.prep) that lists candidate
 #'  parameters that can be modified as part of the search and how the parameters
 #'  can be modified (fixed to what values)
-#' @param criterion objective function to be minimized (or maximized, if
-#'  `negateCriterion = TRUE`). Any function that takes a lavaan object as the
-#'  sole argument and returns a numeric value can be used.
+#' @param criterion The objective to be minimized (or maximized, if
+#'  `negateCriterion = TRUE`). Either a `character` fit-measure name
+#'  recognized by \link[lavaan]{fitmeasures} (e.g. `"cfi"`), or a function
+#'  that takes a lavaan object as its sole argument and returns a numeric
+#'  value.
 #' @param niter number of Tabu iterations to perform
 #' @param tabu.size size of Tabu list
 #' @param negateCriterion Logical. Should the search look for the smallest
@@ -62,9 +64,10 @@ tabu.sem <- function(init.model,
   # the default) if FALSE
   isBetter <- if (negateCriterion) `>` else `<`
   bestIndex <- if (negateCriterion) which.max else which.min
+  criterionFn <- resolveCriterion(criterion, negateCriterion)
 
   # Initialize objective function and best model
-  best.obj <- all.obj <- current.obj <- criterion(init.model)
+  best.obj <- all.obj <- current.obj <- criterionFn(init.model)
   best.mod <- current.mod <- init.model
   best.binvec <- current.binvec <- ptab
 
@@ -85,7 +88,7 @@ tabu.sem <- function(init.model,
 
       if (!inherits(fitmodel, "try-error") &&
           fitmodel@Fit@converged && !any(is.na(fitmodel@Fit@se))) {
-        fit.val <- criterion(fitmodel)
+        fit.val <- criterionFn(fitmodel)
       } else {
         fit.val <- NA
       }

@@ -8,12 +8,15 @@
 #'
 #' @param initialModel The initial model (typically the full form) as a character vector with lavaan model.syntax.
 #' @param originalData The original data frame with variable names.
-#' @param numItems A numeric vector indicating the number of items to retain for each factor.
-#' @param criterion A function calculating the objective criterion to
-#'  optimize (minimized unless `negateCriterion = TRUE`). Default is to use
-#'  the built-in `cfi` value from `lavaan::fitmeasures()`, maximized (since
-#'  `negateCriterion` defaults to `TRUE`).
-#' @param niter A numeric value indicating the number of iterations (model specification selections)
+#' @param itemsPerFactor A numeric vector indicating the number of items to retain for each factor.
+#' @param items A `character` vector of candidate item names. Defaults to
+#'  `NULL`, which uses all column names in `originalData`.
+#' @param criterion The objective to optimize (minimized unless
+#'  `negateCriterion = TRUE`). Either a `character` fit-measure name
+#'  recognized by \link[lavaan]{fitmeasures} (e.g. `"cfi"`, the default), or
+#'  a function that takes a fitted `lavaan` object and returns a single
+#'  numeric value.
+#' @param maxIterations A numeric value indicating the number of iterations (model specification selections)
 #' to perform. Default is 50.
 #' @param tabu.size A numeric value indicating the size of Tabu list. Default is 5.
 #' @param negateCriterion Logical. Should the search look for the smallest
@@ -29,7 +32,9 @@
 #'  for that element -- but every name you do supply must match one of the
 #'  recognized element names, or the call errors (this catches typos, e.g.
 #'  `autovar` instead of `auto.var`, instead of silently ignoring them).
-#' @param bifactor Logical. Indicates if the latent model is a bifactor model. If `TRUE`, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).
+#' @param bifactor Either the name of the factor that all of the retained
+#'  items will load on (as a `character` value), or `NULL` if the model is
+#'  not a bifactor model.
 #' @param verbose Logical. If `TRUE`, prints out the initial short form and the selected short form at the end of each iteration.
 #' @param parallel An option for using parallel processing. If \code{TRUE}, the 
 #'  function will utilize all available cores. Default is \code{TRUE}.
@@ -46,10 +51,10 @@
 #' "
 #'
 #' data(simulated_test_data)
-#' tabuResult <- tabuShortForm(
+#' tabuResult <- tabuSearch(
 #'   initialModel = shortAntModel,
-#'   originalData = simulated_test_data, numItems = 7,
-#'   niter = 1, tabu.size = 3, parallel = FALSE
+#'   originalData = simulated_test_data, itemsPerFactor = 7,
+#'   maxIterations = 1, tabu.size = 3, parallel = FALSE
 #' )
 #' summary(tabuResult) # shows the resulting model
 #' \dontrun{
@@ -114,28 +119,25 @@
 #'   )
 #' }
 #'
-#' # use the tabuShortForm function
+#' # use the tabuSearch function
 #' # reduce form to the best 12 items
-#' tabuShort <- tabuShortForm(
+#' tabuShort <- tabuSearch(
 #'   initialModel = tabuModel, originalData = tabuData,
-#'   numItems = c(3, 3, 3, 3),
+#'   itemsPerFactor = c(3, 3, 3, 3),
 #'   criterion = tabuCriterion,
 #'   # smaller chisq is better, so this should be minimized directly
 #'   # (unlike the default cfi criterion, which should be maximized)
 #'   negateCriterion = FALSE,
-#'   niter = 20, tabu.size = 10
+#'   maxIterations = 20, tabu.size = 10
 #' )
 #' }
 #'
-tabuShortForm <- function(originalData,
+tabuSearch <- function(originalData,
                            initialModel,
-                           numItems,
-                           criterion = function(x) {
-                             tryCatch(lavaan::fitmeasures(object = x, fit.measures = "cfi"),
-                               error = function(e) -Inf
-                             )
-                           },
-                           niter = 20,
+                           itemsPerFactor,
+                           items = NULL,
+                           criterion = "cfi",
+                           maxIterations = 20,
                            tabu.size = 5,
                            negateCriterion = TRUE,
                            lavaan.model.specs = list(
@@ -153,7 +155,7 @@ tabuShortForm <- function(originalData,
                              model.type = "cfa",
                              estimator = "default"
                            ),
-                           bifactor = FALSE,
+                           bifactor = NULL,
                            verbose = FALSE,
                            parallel = T) {
   start.time = Sys.time()
@@ -165,25 +167,26 @@ tabuShortForm <- function(originalData,
     eval(formals(sys.function())$lavaan.model.specs)
   )
 
-  allItems <-
-    colnames(originalData)
+  allItems <- if (is.null(items)) colnames(originalData) else items
 
-  # extract the latent factor syntax
+  # extract the latent factor syntax -- candidateItems holds the per-factor
+  # candidate item NAME lists (distinct from the itemsPerFactor parameter,
+  # which holds the target item COUNT per factor)
   extracted <- syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems)
   factors <- extracted$factors
-  itemsPerFactor <- extracted$itemsPerFactor
+  candidateItems <- extracted$itemsPerFactor
 
   # save the external relationships
   vectorModel <- unlist(strsplit(x = initialModel, split = "\\n"))
   externalRelation <- vectorModel[grep("[ ]{0,}(?<!=)~ ", vectorModel, perl = T)]
   factorRelation <- vectorModel[grep("[ ]{0,}~~ ", vectorModel)]
-  
+
   init.model <-
     randomInitialModel(init.model = initialModel,
-                       maxItems = numItems,
+                       itemCounts = itemsPerFactor,
                        allItems = allItems,
                        initialData = originalData,
-                       bifactorModel = bifactor,
+                       bifactor = bifactor,
                        lavaan.model.specs = lavaan.model.specs)
 
   # picks the better of two objective values, and the better of a set of
@@ -192,11 +195,12 @@ tabuShortForm <- function(originalData,
   # if FALSE
   isBetter <- if (negateCriterion) `>` else `<`
   bestIndex <- if (negateCriterion) which.max else which.min
+  criterionFn <- resolveCriterion(criterion, negateCriterion)
 
-  best.obj <- all.obj <- current.obj <- criterion(init.model@model.output)
+  best.obj <- all.obj <- current.obj <- criterionFn(init.model@model.output)
   best.mod <- current.model <- init.model@model.output
   best.syntax <- current.syntax <- init.model@model.syntax
-  names(itemsPerFactor) <- factors
+  names(candidateItems) <- factors
   
   convergence <-
     function(x) {
@@ -205,7 +209,7 @@ tabuShortForm <- function(originalData,
       se <-
         !any(is.na(x@Fit@se))
       
-      ifelse (converge==TRUE & se == TRUE, criterion(x), NA)
+      ifelse (converge==TRUE & se == TRUE, criterionFn(x), NA)
     }
   
   if (verbose == TRUE) {
@@ -216,7 +220,7 @@ tabuShortForm <- function(originalData,
   tabu.list <- vector("list")
 
   all.syntax <-
-    vector(length = niter + 1)
+    vector(length = maxIterations + 1)
   all.syntax[1] <-
     paste0(current.syntax, collapse = "")
 
@@ -228,8 +232,8 @@ tabuShortForm <- function(originalData,
   
   
   # Do iterations
-  for (it in 1:niter) {
-    cat(paste0("\rRunning iteration ", it, " of ", niter, ".   "))
+  for (it in 1:maxIterations) {
+    cat(paste0("\rRunning iteration ", it, " of ", maxIterations, ".   "))
     # Loop through all neighbors
     tmp.obj <- vector("numeric")
     tmp.mod <- vector("list", length(factors))
@@ -245,8 +249,8 @@ tabuShortForm <- function(originalData,
         factors[-j]
 
       currentItems <-
-        itemsPerFactor[[ factors[j] ]][
-          itemsPerFactor[[ factors[j] ]] %in%
+        candidateItems[[ factors[j] ]][
+          candidateItems[[ factors[j] ]] %in%
             unlist(
               strsplit(
                 grep(paste0(factors[j], ".*=~"), currentModelSyntax, value = T),
@@ -255,8 +259,8 @@ tabuShortForm <- function(originalData,
             )
         ]
       removedItems <-
-        itemsPerFactor[[ factors[j] ]][
-          !itemsPerFactor[[ factors[j] ]] %in%
+        candidateItems[[ factors[j] ]][
+          !candidateItems[[ factors[j] ]] %in%
             unlist(
               strsplit(
                 grep(paste0(factors[j], ".*=~"), currentModelSyntax, value = T),
