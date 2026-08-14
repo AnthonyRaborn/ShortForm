@@ -261,6 +261,86 @@ test_that(
   }
 )
 
+# tabu.sem() -- criterion returns NA for the initial model ####
+# An NA candidate is now always treated as worse than the current best, and 
+# an NA best is always displaced by any valid candidate.
+test_that(
+  "tabu.sem does not crash when criterion returns NA for the initial model", {
+    set.seed(1)
+    holzingerModel <-
+      ' visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6
+        speed   =~ x7 + x8 + x9'
+
+    init.model <- lavaan::lavaan(
+      model = holzingerModel, data = lavaan::HolzingerSwineford1939,
+      auto.var = TRUE, auto.fix.first = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE
+    )
+    ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
+
+    # returns NA on its very first call (evaluating init.model), then a
+    # deterministic valid value for every subsequent call (evaluating
+    # candidate neighbors), reproducing an NA best.obj at the start of search
+    callCount <- 0
+    naFirstCallCriterion <- function(m) {
+      callCount <<- callCount + 1
+      if (callCount == 1) {
+        return(NA_real_)
+      }
+      AIC(m)
+    }
+
+    result <- suppressWarnings(
+      tabu.sem(init.model = init.model, ptab = ptab, criterion = naFirstCallCriterion, niter = 2, tabu.size = 5)
+    )
+
+    expect_s4_class(result, "TS")
+    expect_true(is.numeric(result@best_fit))
+    expect_false(is.na(result@best_fit))
+  }
+)
+
+# tabu.sem() -- criterion intermittently returns NA for candidate neighbors ####
+# regression test for the same NA-safety fix: with an objective that
+# deterministically returns NA for roughly half of all candidates (odd vs.
+# even parameter count), the search must still complete without error and
+# must never adopt an NA value as its best fit.
+test_that(
+  "tabu.sem does not crash when criterion returns NA for some candidate neighbors", {
+    set.seed(1)
+    holzingerModel <-
+      ' visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6
+        speed   =~ x7 + x8 + x9'
+
+    init.model <- lavaan::lavaan(
+      model = holzingerModel, data = lavaan::HolzingerSwineford1939,
+      auto.var = TRUE, auto.fix.first = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE
+    )
+    ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
+
+    # deterministic: NA whenever the refit model has an even number of free
+    # parameters, valid (npar) otherwise -- since each candidate flips
+    # exactly one parameter's free/fixed status, this alternates by candidate
+    naParityCriterion <- function(m) {
+      npar <- length(lavaan::coef(m))
+      if (npar %% 2 == 0) {
+        return(NA_real_)
+      }
+      npar
+    }
+
+    result <- suppressWarnings(
+      tabu.sem(init.model = init.model, ptab = ptab, criterion = naParityCriterion, niter = 3, tabu.size = 5)
+    )
+
+    expect_s4_class(result, "TS")
+    expect_true(is.numeric(result@best_fit))
+    expect_false(is.na(result@best_fit))
+    expect_false(any(is.na(result@all_fit)))
+  }
+)
+
 # antColony() ####
 test_that(
   "antColony runs end-to-end and returns an ACO object", {

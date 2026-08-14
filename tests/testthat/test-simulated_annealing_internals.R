@@ -672,6 +672,81 @@ test_that(
   }
 )
 
+# checkModels -- NA criterion values ####
+# An NA candidate is now always treated as worse than the current best, and 
+# an NA best is always displaced by any valid candidate.
+test_that(
+  "checkModels does not crash when the fit measure is NA", {
+    bestHolzinger <-
+      modelWarningCheck(
+        lavaan::lavaan(model =
+        ' visual  =~ x1 + x2 + x3
+          textual =~ x4 + x5 + x6
+          speed   =~ x7 + x8 + x9 ',
+        data = lavaan::HolzingerSwineford1939,
+        auto.var=TRUE,
+        auto.fix.first=TRUE,
+        auto.cov.lv.x=TRUE),
+        ' visual  =~ x1 + x2 + x3
+          textual =~ x4 + x5 + x6
+          speed   =~ x7 + x8 + x9 '
+      )
+    # overlapping-indicator model: an under-identified specification whose
+    # fit measures come back NA, same pattern used in the `goal` NA test above
+    currentBadModel <-
+      modelWarningCheck(
+        lavaan::cfa(
+          model =
+          ' visual  =~ x1 + x2 + x3 + x4 + x5 + x6
+            textual =~ x4 + x5 + x6 + x7 + x8 + x9
+            speed   =~ x7 + x8 + x9 + x1 + x2 + x3',
+          data = lavaan::HolzingerSwineford1939
+        ),
+        modelSyntax =
+          ' visual  =~ x1 + x2 + x3 + x4 + x5 + x6
+            textual =~ x4 + x5 + x6 + x7 + x8 + x9
+            speed   =~ x7 + x8 + x9 + x1 + x2 + x3'
+      )
+    cfiFn3 <- function(m) fitmeasures(m, 'cfi')
+    rmseaFn3 <- function(m) fitmeasures(m, 'rmsea')
+
+    # NA candidate fit: keep the existing bestModel, don't crash
+    expect_equal(
+      checkModels(
+        currentModel = currentBadModel,
+        criterionFn = cfiFn3,
+        negateCriterion = TRUE,
+        bestFit = fitmeasures(bestHolzinger@model.output, 'cfi'),
+        bestModel = bestHolzinger
+      ),
+      bestHolzinger
+    )
+    expect_equal(
+      checkModels(
+        currentModel = currentBadModel,
+        criterionFn = rmseaFn3,
+        negateCriterion = FALSE,
+        bestFit = fitmeasures(bestHolzinger@model.output, 'rmsea'),
+        bestModel = bestHolzinger
+      ),
+      bestHolzinger
+    )
+
+    # NA bestFit (e.g. the initial model produced no valid fit): any valid
+    # candidate becomes the new best, rather than crashing on the comparison
+    expect_equal(
+      checkModels(
+        currentModel = bestHolzinger,
+        criterionFn = cfiFn3,
+        negateCriterion = TRUE,
+        bestFit = NA_real_,
+        bestModel = badHolzinger
+      ),
+      bestHolzinger
+    )
+  }
+)
+
 # modelWarningCheck ####
 test_that(
   "modelWarningCheck identifies any warning/error in a model while returning model object", {
