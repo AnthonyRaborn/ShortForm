@@ -11,7 +11,41 @@ output:
 
 # *News*
 
+# ShortForm v0.6.0
+
+## Bugfixes
+
+- Fixed tabuShortForm crashing with "could not find function '%dopar%'" when run with parallel = TRUE under CRAN-style core-limited environments (e.g., when `_R_CHECK_LIMIT_CORES_` is set)
+- Fixed simulatedAnnealing hanging indefinitely when a candidate short-form change asked for more item swaps than a factor had available capacity
+- Fixed tabu.sem crashing when a candidate neighbor failed to refit entirely, rather than just failing to converge
+- Fixed tabu.sem crashing when every candidate neighbor was invalid or already on the tabu list
+- Fixed antcolony.lavaan crashing when a partial lavaan.model.specs override was supplied, due to an internal default for `ordered` that didn't match the function's own documented default
+- Fixed antcolony.lavaan silently dropping the `group`/`group.label`/`group.equal`/`group.partial`/`group.w.free` elements of lavaan.model.specs, due to a duplicated `auto.var` entry in its internal defaults and those elements never being wired into the underlying `lavaan()` call
+- Fixed simulatedAnnealing producing a spurious "multiple local function definitions for 'progressCallback'" NOTE under R CMD check, and restored its per-step "Current Step" progress output (previously assigned to an unreachable code path) for both serial and parallel runs
+
+## Updates
+
+- Reworked negateCriterion (tabu.sem, tabuShortForm) so it genuinely controls whether the search looks for the largest or smallest value of the objective/criterion function, rather than requiring users to pre-negate their own criterion function beforehand
+- Renamed tabu.sem's `obj` argument to `criterion`, matching tabuShortForm
+- Changed tabuShortForm's default criterion from a pre-negated `-cfi` to plain `cfi`
+- Extended partial lavaan.model.specs overrides (previously only supported by antcolony.lavaan) to simulatedAnnealing and tabuShortForm, with new typo detection for unrecognized element names across all three algorithms
+- Added a burn_in argument and whole-number axis ticks to simulatedAnnealing's plot method
+- Consolidated TS's show/summary model-syntax reconstruction into one shared internal helper
+- Function calls for simulatedAnnealing, tabuShortForm, tabu.sem, and antcolony.lavaan are now captured with every argument resolved (specified or defaulted), including the actual merged lavaan.model.specs used
+- Corrected @return documentation for tabu.sem, tabuShortForm, simulatedAnnealing, and antcolony.lavaan to describe their actual S4 return types instead of stale list descriptions
+- Consolidated the parallel cluster bootstrap/teardown boilerplate shared by antcolony.lavaan, simulatedAnnealing, and tabuShortForm into shared internal helpers
+- Replaced internal `mapply(assign, ...)` variable-splatting with `do.call()` (where the values were only ever fed into a single downstream `lavaan()` call) or plain named-list access (where a couple of values were unpacked for general use), removing several ad hoc internal environments in the process
+- Added the selected criterion/fit-statistic and its final-model value to the show/summary output for SA, TS, and ACO objects
+
+## To Do
+
+Note--these are not required for 0.6.0, but are on the roadmap for future updates.
+
+- standardize function inputs, arguments, and outputs (0.7.0)
+
 # ShortForm v0.5.9
+
+Note: v0.5.9 was an internal version only and was not released to CRAN; the changes below were included in the v.0.6.0 release.
 
 ## Bugfixes
 
@@ -26,13 +60,6 @@ output:
 - Consolidated the lavaan model syntax-building logic shared by the ACO, SA, and Tabu algorithms into common internal helper functions
 - Added substantial unit test coverage for the top-level antcolony.lavaan, simulatedAnnealing, tabuShortForm, and tabu.sem functions
 - Deprecated the shortForm argument in simulatedAnnealing; this is now determined automatically from maxItems
-
-## To Do
-
-Note--these are not required for 0.5.9, but are on the roadmap for future updates.
-
-- refactor all major functions (0.6.0)
-- standardize function inputs, arguments, and outputs (0.7.0)
 
 # ShortForm v0.5.8
 

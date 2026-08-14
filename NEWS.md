@@ -3,15 +3,154 @@
 
 # *News*
 
+# ShortForm v0.6.0
+
+## Bugfixes
+
+- Fixed tabuShortForm crashing with “could not find function ‘%dopar%’”
+  when run with parallel = TRUE under CRAN-style core-limited
+  environments (e.g., when `_R_CHECK_LIMIT_CORES_` is set)
+- Fixed simulatedAnnealing hanging indefinitely when a candidate
+  short-form change asked for more item swaps than a factor had
+  available capacity
+- Fixed tabu.sem crashing when a candidate neighbor failed to refit
+  entirely, rather than just failing to converge
+- Fixed tabu.sem crashing when every candidate neighbor was invalid or
+  already on the tabu list
+- Fixed antcolony.lavaan crashing when a partial lavaan.model.specs
+  override was supplied, due to an internal default for `ordered` that
+  didn’t match the function’s own documented default
+- Fixed antcolony.lavaan silently dropping the
+  `group`/`group.label`/`group.equal`/`group.partial`/`group.w.free`
+  elements of lavaan.model.specs, due to a duplicated `auto.var` entry
+  in its internal defaults and those elements never being wired into the
+  underlying `lavaan()` call
+- Fixed simulatedAnnealing producing a spurious “multiple local function
+  definitions for ‘progressCallback’” NOTE under R CMD check, and
+  restored its per-step “Current Step” progress output (previously
+  assigned to an unreachable code path) for both serial and parallel
+  runs
+
+## Updates
+
+- Reworked negateCriterion (tabu.sem, tabuShortForm) so it genuinely
+  controls whether the search looks for the largest or smallest value of
+  the objective/criterion function, rather than requiring users to
+  pre-negate their own criterion function beforehand
+- Renamed tabu.sem’s `obj` argument to `criterion`, matching
+  tabuShortForm
+- Changed tabuShortForm’s default criterion from a pre-negated `-cfi` to
+  plain `cfi`
+- Extended partial lavaan.model.specs overrides (previously only
+  supported by antcolony.lavaan) to simulatedAnnealing and
+  tabuShortForm, with new typo detection for unrecognized element names
+  across all three algorithms
+- Added a burn_in argument and whole-number axis ticks to
+  simulatedAnnealing’s plot method
+- Consolidated TS’s show/summary model-syntax reconstruction into one
+  shared internal helper
+- Function calls for simulatedAnnealing, tabuShortForm, tabu.sem, and
+  antcolony.lavaan are now captured with every argument resolved
+  (specified or defaulted), including the actual merged
+  lavaan.model.specs used
+- Corrected @return documentation for tabu.sem, tabuShortForm,
+  simulatedAnnealing, and antcolony.lavaan to describe their actual S4
+  return types instead of stale list descriptions
+- Consolidated the parallel cluster bootstrap/teardown boilerplate
+  shared by antcolony.lavaan, simulatedAnnealing, and tabuShortForm into
+  shared internal helpers
+- Replaced internal `mapply(assign, ...)` variable-splatting with
+  `do.call()` (where the values were only ever fed into a single
+  downstream `lavaan()` call) or plain named-list access (where a couple
+  of values were unpacked for general use), removing several ad hoc
+  internal environments in the process
+- Added the selected criterion/fit-statistic and its final-model value
+  to the show/summary output for SA, TS, and ACO objects
+
+## To Do
+
+Note–these are not required for 0.6.0, but are on the roadmap for future
+updates.
+
+- standardize function inputs, arguments, and outputs (0.7.0)
+
+# ShortForm v0.5.9
+
+Note: v0.5.9 was an internal version only and was not released to CRAN;
+the changes below were included in the v.0.6.0 release.
+
+## Bugfixes
+
+- Fixed simulatedAnnealing crashing when run without maxItems (i.e.,
+  full-model rather than short-form usage)
+- Fixed tabu.sem and tabuShortForm erroring instead of returning a
+  result when no candidate model improved on the initial model
+- Fixed simulatedAnnealing’s restart-after-stagnation logic throwing an
+  error instead of restarting
+- Fixed antcolony.lavaan’s stopping rule comparing the wrong ant
+  solutions, and a warning/error check that could crash a run
+- Fixed a bug where swapping an item for a short form could silently
+  corrupt an unrelated item whose name happened to share a suffix
+  (affected simulatedAnnealing and tabuShortForm)
+
+## Updates
+
+- Consolidated the lavaan model syntax-building logic shared by the ACO,
+  SA, and Tabu algorithms into common internal helper functions
+- Added substantial unit test coverage for the top-level
+  antcolony.lavaan, simulatedAnnealing, tabuShortForm, and tabu.sem
+  functions
+- Deprecated the shortForm argument in simulatedAnnealing; this is now
+  determined automatically from maxItems
+
+# ShortForm v0.5.8
+
+## Bugfixes
+
+- Fixed issue in tabuShortForm for certain parallel workflows
+- Fixed bug in tabuShortForm when using multidimensional models
+
+## Updates
+
+- Removed dependencies on ggplot2, ggrepel, and tidyr (ACO and TS plot
+  methods)
+- Added some additional unit tests
+
+=======
+
+# ShortForm v0.5.7
+
+## Bugfixes
+
+- Fixed issue in ACO algorithm where the best model was not properly
+  updating
+- Corrected use of ggplot within the ACO plot method due to depreciated
+  ggplot2 functions
+- Fixed issue in SA algorithm where models including factor
+  relationships or outcome variables were not specified correctly after
+  the initial model
+
+## Updates
+
+- Modernized the README file
+- Fixed CI/CD badge since Travis CI no longer works for this project
+
 # ShortForm v0.5.6
 
 - Updates focused on `{antcolony.lavaan}`.
-  - lavaan.model.specs now defaults to the default arugments. If a user removes the arguments, they will be provided for them. If a user overwrites a specific argument (e.g., `estimator = 'wls'`), that will be respected.
-  - Some minor adjustments to checking fitted models for specific warnings/errors that should result in better functioning when these do not exist.
+  - lavaan.model.specs now defaults to the default arugments. If a user
+    removes the arguments, they will be provided for them. If a user
+    overwrites a specific argument (e.g., `estimator = 'wls'`), that
+    will be respected.
+  - Some minor adjustments to checking fitted models for specific
+    warnings/errors that should result in better functioning when these
+    do not exist.
 
 # ShortForm v0.5.5
 
-- Further updates to handle changes to `lavaan` error/warning messages more gracefully. These should continue into the future for the SA and ACo methods without additional issues.
+- Further updates to handle changes to `lavaan` error/warning messages
+  more gracefully. These should continue into the future for the SA and
+  ACo methods without additional issues.
 
 # ShortForm v0.5.4
 
@@ -108,8 +247,8 @@
   bifactor models.
 - They should now produce actual bifactor shortforms (in 0.4.1,
   sometimes the item names would be cut off in later iterations
-  \[FIXED\] and the relationship between latent variables would be
-  changed when they should have been kept constant \[FIXED\]).
+  $$FIXED$$ and the relationship between latent variables would be
+  changed when they should have been kept constant $$FIXED$$).
 
 ## Added a package loading message
 
