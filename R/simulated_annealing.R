@@ -27,7 +27,10 @@
 #' @param randomNeighbor Either `TRUE` to use the included function for randomNeighbor selection, or a user-defined function for creating random models.
 #' @param lavaan.model.specs A `list` which contains the specifications for the
 #'  lavaan model. The default values are the defaults for lavaan to perform a
-#'  CFA. See \link[lavaan]{lavaan} for more details.
+#'  CFA. See \link[lavaan]{lavaan} for more details. A partial list is
+#'  accepted -- any element you omit falls back to this function's default
+#'  for that element -- but every name you do supply must match one of the
+#'  recognized element names, or the call errors.
 #' @param maxChanges An `integer` value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.
 #' @param restartCriteria Either "consecutive" to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.
 #' @param maximumConsecutive A positive `integer` value used with restartCriteria.
@@ -110,9 +113,15 @@ simulatedAnnealing <-
     }
     allFit <- c()
 
+    # fill in any lavaan.model.specs the user omitted with this function's
+    # own defaults, so a partial override is respected without requiring
+    # the full list; errors on any unrecognized (likely misspelled) name
+    lavaan.model.specs <- mergeModelSpecs(
+      lavaan.model.specs,
+      eval(formals(sys.function())$lavaan.model.specs)
+    )
     # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
     # solution from: https://stackoverflow.com/questions/6375790/r-creating-an-environment-in-the-globalenv-from-inside-a-function
-    checkModelSpecs(lavaan.model.specs)
     mapply(
       assign,
       names(lavaan.model.specs),

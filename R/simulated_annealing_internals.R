@@ -543,6 +543,26 @@ checkModelSpecs <-
     }
   }
 
+# fills in any lavaan.model.specs elements the user omitted with the
+# algorithm's own defaultSpecs (so a partial override like
+# list(estimator = "wls") is respected without requiring the full list),
+# while rejecting any user-supplied name that defaultSpecs doesn't
+# recognize (almost always a typo, e.g. "autovar" instead of "auto.var")
+mergeModelSpecs <- function(userSpecs, defaultSpecs) {
+  unrecognized <- setdiff(names(userSpecs), names(defaultSpecs))
+  if (length(unrecognized) > 0) {
+    errorMessage <-
+      paste0("The following elements of lavaan.model.specs are not recognized:\n\n",
+             paste(unrecognized, collapse = "\n"),
+             "\n\nPlease check for typos. If you intended to pass one of these to lavaan directly, it is not currently supported by this function.")
+    stop(errorMessage)
+  }
+
+  merged <- utils::modifyList(defaultSpecs, userSpecs, keep.null = TRUE)
+  checkModelSpecs(merged)
+  merged
+  }
+
 fitmeasuresCheck <-
   function(
     x
