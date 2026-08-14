@@ -65,13 +65,14 @@ setMethod('show',
             line0 = c("Algorithm: Simulated Annealing")
             line1 = paste0(
               "Total Run Time: ",
-              round(object@runtime[[1]], 3), 
-              " ", 
+              round(object@runtime[[1]], 3),
+              " ",
               attr(object@runtime, "units"),
               " using ",
               object@chains,
               " chains. \n"
             )
+            lineCriterion = saCriterionLine(object)
             line2 = suppressWarnings(
               stringr::str_wrap(
                 as.vector(c("Function call:\n", object@function_call, "\n")), 
@@ -85,10 +86,24 @@ setMethod('show',
                 exdent = 2), 
               collapse = "\n"
             )
-            to_console = paste0(c(line0, line1, line2, line3), collapse = "\n")
+            to_console = paste0(c(line0, line1, line2, line3, lineCriterion), collapse = "\n")
             cat(to_console)
           }
 )
+
+# builds the "Criterion: ... \nFinal Model Value: ..." line shared by SA's
+# show() and summary(), reading fitStatistic/maximize from the captured
+# function call and the resulting value from best_fit
+saCriterionLine <- function(object) {
+  fitStatistic <- extractCallArg(object@function_call, "fitStatistic")
+  maximize <- extractCallArg(object@function_call, "maximize")
+  paste0(
+    "\nCriterion: ", fitStatistic,
+    " (", if (isTRUE(maximize)) "maximized" else "minimized", ")",
+    "\nFinal Model Value: ", paste(round(object@best_fit, 3), collapse = ", "),
+    "\n"
+  )
+}
 
 #' Plot method for class `SA`
 #'
@@ -188,15 +203,16 @@ setMethod('summary',
               attr(object@runtime, "units"),
               "\n"
             )
+            lineCriterion = saCriterionLine(object)
             line2 = c(capture.output(print(object@best_model@model.output)), "\n")
             line3 = paste0(
               stringr::str_wrap(
-                c("\nFinal Model Syntax:", 
-                  unlist(strsplit(object@best_syntax, "\n"))), 
-                exdent = 2), 
+                c("\nFinal Model Syntax:",
+                  unlist(strsplit(object@best_syntax, "\n"))),
+                exdent = 2),
               collapse = "\n"
             )
-            to_console = paste0(c(line0, line1, line2, line3), collapse = "\n")
+            to_console = paste0(c(line0, line1, line2, line3, lineCriterion), collapse = "\n")
             cat(to_console)
           }
 )

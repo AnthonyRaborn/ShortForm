@@ -42,6 +42,7 @@ setMethod('show',
               attr(object@runtime, "units"),
               "\n"
             )
+            lineCriterion = acoCriterionLine(object)
             line2 = suppressWarnings(
               stringr::str_wrap(
                 as.vector(c("Function call:\n", object@function_call, "\n")),
@@ -55,10 +56,31 @@ setMethod('show',
                 exdent = 2),
               collapse = "\n"
               )
-            to_console = paste0(c(line0, line1, line2, line3), collapse = "\n")
+            to_console = paste0(c(line0, line1, line2, line3, lineCriterion), collapse = "\n")
             cat(to_console)
           }
           )
+
+# builds the "Fit Indices: ... \nFit Test: ... \nFinal Model Values: ..."
+# line shared by ACO's show() and summary(), reading fit.indices/
+# fit.statistics.test from the captured function call and the resulting
+# values from final_solution (the columns of which are named after
+# fit.indices -- see the `final.solution` construction in antcolony.lavaan())
+acoCriterionLine <- function(object) {
+  fitIndices <- extractCallArg(object@function_call, "fit.indices")
+  fitTest <- extractCallArg(object@function_call, "fit.statistics.test")
+  finalValues <- object@final_solution[1, fitIndices, drop = FALSE]
+  bestFitText <- paste(
+    colnames(finalValues), round(as.numeric(finalValues), 3),
+    sep = " = ", collapse = ", "
+  )
+  paste0(
+    "\nFit Indices: ", paste(fitIndices, collapse = ", "),
+    "\nFit Test: ", fitTest,
+    "\nFinal Model Values: ", bestFitText,
+    "\n"
+  )
+}
 
 #' Plot method for class `ACO`
 #'
@@ -308,6 +330,7 @@ setMethod('summary',
               attr(object@runtime, "units"),
               "\n"
             )
+            lineCriterion = acoCriterionLine(object)
             line2 = c(capture.output(print(object@best_model)), "\n")
             line3 = paste0(
               stringr::str_wrap(
@@ -316,7 +339,7 @@ setMethod('summary',
                 exdent = 2),
               collapse = "\n"
             )
-            to_console = paste0(c(line0, line1, line2, line3), collapse = "\n")
+            to_console = paste0(c(line0, line1, line2, line3, lineCriterion), collapse = "\n")
             cat(to_console)
           }
 )

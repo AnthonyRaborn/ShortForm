@@ -87,28 +87,49 @@ setMethod('show',
             line0 = c("Algorithm: Tabu Search")
             line1 = paste0(
               "Total Run Time: ",
-              round(object@runtime[[1]], 3), 
-              " ", 
+              round(object@runtime[[1]], 3),
+              " ",
               attr(object@runtime, "units"),
               "\n"
             )
+            lineCriterion = tsCriterionLine(object)
             line2 = suppressWarnings(
               stringr::str_wrap(
-                as.vector(c("Function call:\n", object@function_call, "\n")), 
+                as.vector(c("Function call:\n", object@function_call, "\n")),
                 exdent = 2
               )
             )
             line3 = paste0(
               stringr::str_wrap(
-                c("Final Model Syntax:", 
-                  unlist(strsplit(model.syntax, '\n'))), 
-                exdent = 2), 
+                c("Final Model Syntax:",
+                  unlist(strsplit(model.syntax, '\n'))),
+                exdent = 2),
               collapse = "\n"
             )
-            to_console = paste0(c(line0, line1, line2, line3), collapse = "\n")
+            to_console = paste0(c(line0, line1, line2, line3, lineCriterion), collapse = "\n")
             cat(to_console)
           }
 )
+
+# builds the "Criterion: ... \nFinal Model Value: ..." line shared by TS's
+# show() and summary(), reading the (unevaluated) criterion expression and
+# negateCriterion from the captured function call and the resulting value(s)
+# from best_fit
+tsCriterionLine <- function(object) {
+  criterionExpr <- object@function_call$criterion
+  negateCriterion <- extractCallArg(object@function_call, "negateCriterion")
+  bestFitText <- if (!is.null(names(object@best_fit))) {
+    paste(names(object@best_fit), round(object@best_fit, 3), sep = " = ", collapse = ", ")
+  } else {
+    paste(round(object@best_fit, 3), collapse = ", ")
+  }
+  paste0(
+    "\nCriterion: ", paste(deparse(criterionExpr), collapse = " "),
+    " (", if (isTRUE(negateCriterion)) "maximized" else "minimized", ")",
+    "\nFinal Model Value: ", bestFitText,
+    "\n"
+  )
+}
 
 #' Plot method for class `TS`
 #'
@@ -181,15 +202,16 @@ setMethod('summary',
               attr(object@runtime, "units"),
               "\n"
             )
+            lineCriterion = tsCriterionLine(object)
             line2 = c(capture.output(print(object@best_model)), "\n")
             line3 = paste0(
               stringr::str_wrap(
-                c("\nFinal Model Syntax:", 
-                  unlist(strsplit(model.syntax, "\n"))), 
-                exdent = 2), 
+                c("\nFinal Model Syntax:",
+                  unlist(strsplit(model.syntax, "\n"))),
+                exdent = 2),
               collapse = "\n"
             )
-            to_console = paste0(c(line0, line1, line2, line3), collapse = "\n")
+            to_console = paste0(c(line0, line1, line2, line3, lineCriterion), collapse = "\n")
             cat(to_console)
           }
 )
