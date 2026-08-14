@@ -218,6 +218,7 @@ tabuShortForm <- function(originalData,
     } else {
       # use all cores in devtools::test()
       num_workers <- parallel::detectCores()
+    }
       cl <- parallel::makeCluster(num_workers,type="PSOCK", outfile = "")
       doSNOW::registerDoSNOW(cl)
       `%dopar%` <- foreach::`%dopar%`
