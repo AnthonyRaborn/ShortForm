@@ -333,7 +333,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
   # use a default set of specifications that fits a CFA
   default.lavaan.model.specs = list(
-    model.type = "cfa", auto.var = T, estimator = "default",
+    model.type = "cfa", estimator = "default",
     ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
     auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
     auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL,
@@ -344,7 +344,6 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   # requiring the full list; errors on any unrecognized (likely misspelled)
   # name instead of silently ignoring it
   lavaan.model.specs <- mergeModelSpecs(lavaan.model.specs, default.lavaan.model.specs)
-  mapply(assign, names(lavaan.model.specs), lavaan.model.specs, MoreArgs = list(envir = antcolony.lavaan.env))
 
   # create values of "bad warnings" and "bad errors" that result in uninterpretable models
   bad.warnings <- c(
@@ -418,22 +417,15 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         # checks for and saves error/warning messages within the lavaan output,
         # as well as the fit indices
         modelCheck <- modelWarningCheck(
-          lavaan::lavaan(
-            model = new_ant_model, data = data, sample.cov = sample.cov,
-            sample.nobs = sample.nobs,
-            model.type = antcolony.lavaan.env$model.type,
-            ordered = antcolony.lavaan.env$ordered,
-            estimator = antcolony.lavaan.env$estimator,
-            int.ov.free = antcolony.lavaan.env$int.ov.free,
-            int.lv.free = antcolony.lavaan.env$int.lv.free,
-            auto.fix.first = antcolony.lavaan.env$auto.fix.first,
-            std.lv = antcolony.lavaan.env$std.lv,
-            auto.fix.single = antcolony.lavaan.env$auto.fix.single,
-            auto.var = antcolony.lavaan.env$auto.var,
-            auto.cov.lv.x = antcolony.lavaan.env$auto.cov.lv.x,
-            auto.th = antcolony.lavaan.env$auto.th,
-            auto.delta = antcolony.lavaan.env$auto.delta,
-            auto.cov.y = antcolony.lavaan.env$auto.cov.y
+          do.call(
+            lavaan::lavaan,
+            c(
+              list(
+                model = new_ant_model, data = data, sample.cov = sample.cov,
+                sample.nobs = sample.nobs
+              ),
+              lavaan.model.specs
+            )
           ),
           modelSyntax = new_ant_model
         )

@@ -5,12 +5,6 @@ randomInitialModel <-
            initialData,
            bifactorModel,
            lavaan.model.specs) {
-    mapply(
-      assign,
-      names(lavaan.model.specs),
-      lavaan.model.specs,
-      MoreArgs = list(envir = environment())
-    )
   # extract the latent factor syntax
   mapply(
     assign,
@@ -51,22 +45,9 @@ randomInitialModel <-
   
   # fit the new model
   newModel <- modelWarningCheck(
-    lavaan::lavaan(
-      model = newModelSyntax,
-      data = initialData,
-      model.type = model.type,
-      int.ov.free = int.ov.free,
-      int.lv.free = int.lv.free,
-      auto.fix.first = auto.fix.first,
-      std.lv = std.lv,
-      auto.fix.single = auto.fix.single,
-      auto.var = auto.var,
-      auto.cov.lv.x = auto.cov.lv.x,
-      auto.th = auto.th,
-      auto.delta = auto.delta,
-      auto.cov.y = auto.cov.y,
-      ordered = ordered,
-      estimator = estimator,
+    do.call(
+      lavaan::lavaan,
+      c(list(model = newModelSyntax, data = initialData), lavaan.model.specs)
     ),
     modelSyntax = newModelSyntax
   )
@@ -90,12 +71,6 @@ randomNeighborShort <-
       MoreArgs = list(envir = environment())
     )
     
-    mapply(
-      assign,
-      names(lavaan.model.specs),
-      lavaan.model.specs,
-      MoreArgs = list(envir = environment())
-    )
     # take the model syntax from the currentModelObject
     internalModelObject <- 
       stringr::str_split(currentModelObject@model.syntax, 
@@ -201,22 +176,9 @@ randomNeighborShort <-
     
     # refit the model with new items
     randomNeighborModel <- modelWarningCheck(
-      lavaan::lavaan(
-        model = newModelSyntax,
-        data = data,
-        model.type = model.type,
-        auto.var = auto.var,
-        ordered = ordered,
-        estimator = estimator,
-        int.ov.free = int.ov.free,
-        int.lv.free = int.lv.free,
-        auto.fix.first = auto.fix.first,
-        std.lv = std.lv,
-        auto.fix.single = auto.fix.single,
-        auto.cov.lv.x = auto.cov.lv.x,
-        auto.th = auto.th,
-        auto.delta = auto.delta,
-        auto.cov.y = auto.cov.y
+      do.call(
+        lavaan::lavaan,
+        c(list(model = newModelSyntax, data = data), lavaan.model.specs)
       ),
       modelSyntax = newModelSyntax
     )

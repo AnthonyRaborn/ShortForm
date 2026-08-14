@@ -123,14 +123,6 @@ simulatedAnnealing <-
       lavaan.model.specs,
       eval(formals(sys.function())$lavaan.model.specs)
     )
-    # creates objects in the function environment that are fed into the lavaan function in order to fine-tune the model to user specifications
-    # solution from: https://stackoverflow.com/questions/6375790/r-creating-an-environment-in-the-globalenv-from-inside-a-function
-    mapply(
-      assign,
-      names(lavaan.model.specs),
-      lavaan.model.specs,
-      MoreArgs = list(envir = environment())
-    )
 
     if (!is.null(maxItems)) {
       # if using the short form option
@@ -238,22 +230,20 @@ simulatedAnnealing <-
     num_workers <- parallelSetup$num_workers
     `%dopar%` <- parallelSetup$dopar
 
-    if (setChains > 1) {
-      progressCallback <- function(n) {
-        cat(paste("Chain number ", n, " complete. \n", sep = ""))
-      }
-    } else {
-      progressCallback <- function(currentStep, maxSteps) {
-        cat(paste0(
-          "\r Current Step = ",
-          currentStep,
-          " of a maximum ",
-          maxSteps,
-          ".  "
-        ), file = stdout())
-      }
+    chainProgressCallback <- function(n) {
+      cat(paste("Chain number ", n, " complete. \n", sep = ""))
     }
-    opts <- list(progress = progressCallback)
+    opts <- list(progress = chainProgressCallback)
+
+    stepProgressCallback <- function(currentStep, maxSteps) {
+      cat(paste0(
+        "\r Current Step = ",
+        currentStep,
+        " of a maximum ",
+        maxSteps,
+        ".  "
+      ), file = stdout())
+    }
 
     chains = setChains
     currentStep <- 1
@@ -341,7 +331,8 @@ simulatedAnnealing <-
           currentModel <- restartResult$currentModel
           consecutive <- restartResult$consecutive
           currentStep <- currentStep + 1
-          
+          stepProgressCallback(currentStep, maxSteps)
+
         }
         returnList <-
           list(

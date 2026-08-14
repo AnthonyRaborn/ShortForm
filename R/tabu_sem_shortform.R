@@ -164,12 +164,6 @@ tabuShortForm <- function(originalData,
     lavaan.model.specs,
     eval(formals(sys.function())$lavaan.model.specs)
   )
-  mapply(
-    assign,
-    names(lavaan.model.specs),
-    lavaan.model.specs,
-    MoreArgs = list(envir = environment())
-  )
 
   allItems <-
     colnames(originalData)
@@ -304,23 +298,12 @@ tabuShortForm <- function(originalData,
       foreach::foreach(model = 1:length(tmp.syntax), .inorder = T) %dopar% {
         fitmodel <-
           modelWarningCheck(
-            lavaan::lavaan(
-              model = tmp.syntax[model],
-              data = originalData,
-              model.type = model.type,
-              int.ov.free = int.ov.free,
-              int.lv.free = int.lv.free,
-              auto.fix.first = auto.fix.first,
-              std.lv = std.lv,
-              auto.fix.single = auto.fix.single,
-              auto.var = auto.var,
-              auto.cov.lv.x = auto.cov.lv.x,
-              auto.th = auto.th,
-              auto.delta = auto.delta,
-              auto.cov.y = auto.cov.y,
-              ordered = ordered,
-              estimator = estimator,
-              warn = FALSE
+            do.call(
+              lavaan::lavaan,
+              c(
+                list(model = tmp.syntax[model], data = originalData, warn = FALSE),
+                lavaan.model.specs
+              )
             ),
             newModelSyntax
           )@model.output
