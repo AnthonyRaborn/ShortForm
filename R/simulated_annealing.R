@@ -406,10 +406,18 @@ simulatedAnnealing <-
     }
     
     
+    # capture the full call with every argument resolved (specified or
+    # not), then substitute the actual *merged* lavaan.model.specs (computed
+    # near the top of this function) in place of whatever partial/omitted
+    # expression the caller wrote, so the stored call reflects what was
+    # really used, not just what was typed
+    capturedCall <- resolvedCall(match.call(), formals())
+    capturedCall$lavaan.model.specs <- lavaan.model.specs
+
     results <-
       new(
         'SA',
-        function_call = match.call(),
+        function_call = capturedCall,
         chains = setChains,
         chain_results = chainResults,
         all_fit = all_fit,

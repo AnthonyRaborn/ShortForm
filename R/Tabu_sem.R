@@ -116,10 +116,11 @@ tabu.sem <- function(init.model,
       tabu.list <- vector("numeric") # Clear Tabu list
     }
   }
+  capturedCall <- resolvedCall(match.call(), formals())
 
   ret <-
     new("TS",
-      function_call = match.call(),
+      function_call = capturedCall,
       all_fit = all.obj,
       best_fit = best.obj,
       best_model = best.mod,

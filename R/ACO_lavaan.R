@@ -642,10 +642,18 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
         )
   )
 
+  # capture the full call with every argument resolved (specified or not),
+  # then substitute the actual *merged* lavaan.model.specs (computed near
+  # the top of this function) in place of whatever partial/omitted
+  # expression the caller wrote, so the stored call reflects what was
+  # really used, not just what was typed
+  capturedCall <- resolvedCall(match.call(), formals())
+  capturedCall$lavaan.model.specs <- lavaan.model.specs
+
   results <-
     new(
       'ACO',
-      function_call = match.call(),
+      function_call = capturedCall,
       summary = summaryObject,
       final_solution = final.solution,
       best_model = best.so.far.model,
