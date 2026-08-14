@@ -169,12 +169,9 @@ tabuShortForm <- function(originalData,
     colnames(originalData)
 
   # extract the latent factor syntax
-  mapply(
-    assign,
-    c("factors", "itemsPerFactor"),
-    syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems),
-    MoreArgs = list(envir = environment())
-  )
+  extracted <- syntaxExtraction(initialModelSyntaxFile = initialModel, items = allItems)
+  factors <- extracted$factors
+  itemsPerFactor <- extracted$itemsPerFactor
 
   # save the external relationships
   vectorModel <- unlist(strsplit(x = initialModel, split = "\\n"))

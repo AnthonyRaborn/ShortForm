@@ -128,12 +128,9 @@ simulatedAnnealing <-
       # if using the short form option
       cat("Initializing short form creation.")
       
-      mapply(
-        assign,
-        c("factors", "allItems"),
-        syntaxExtraction(initialModel, items = items),
-        MoreArgs = list(envir = environment())
-      )
+      extracted <- syntaxExtraction(initialModel, items = items)
+      factors <- extracted$factors
+      allItems <- extracted$itemsPerFactor
 
       currentModel <-
         bestModel <- 

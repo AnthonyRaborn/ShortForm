@@ -390,11 +390,10 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           bifactor
         )
 
-        mapply(assign, names(newModelList), newModelList, MoreArgs = list(envir = antcolony.lavaan.env))
-
-
-        selected.items <- lapply(antcolony.lavaan.env$selected.items, sort)
-        selected.vector <- unlist(antcolony.lavaan.env$selected.items, use.names = F)
+        # only selected.items (of newModelList's input/selected.items/all.items)
+        # is used below
+        selected.items <- lapply(newModelList$selected.items, sort)
+        selected.vector <- unlist(newModelList$selected.items, use.names = F)
         select.indicator <- is.element(item.vector, selected.vector)
 
         # MODIFY LAVAAN SYNTAX

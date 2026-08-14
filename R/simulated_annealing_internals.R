@@ -6,13 +6,10 @@ randomInitialModel <-
            bifactorModel,
            lavaan.model.specs) {
   # extract the latent factor syntax
-  mapply(
-    assign,
-    c("factors", "itemsPerFactor"),
-    syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems),
-    MoreArgs = list(envir = environment())
-  )
-  
+  extracted <- syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems)
+  factors <- extracted$factors
+  itemsPerFactor <- extracted$itemsPerFactor
+
   # save the external relationships
   vectorModel <- unlist(strsplit(x = init.model, split = "\\n"))
   externalRelation <- vectorModel[grep(" ~ ", vectorModel)]
@@ -64,26 +61,25 @@ randomNeighborShort <-
            init.model,
            lavaan.model.specs) {
     
-    mapply(
-      assign,
-      c("factors", "itemsPerFactor"),
-      syntaxExtraction(initialModelSyntaxFile = init.model, items = allItems),
-      MoreArgs = list(envir = environment())
-    )
-    
+    # only itemsPerFactor is needed from this extraction -- its "factors" is
+    # immediately superseded by the extraction below, which re-derives
+    # factors from the currentModelObject's (possibly already-changed) syntax
+    itemsPerFactor <- syntaxExtraction(
+      initialModelSyntaxFile = init.model, items = allItems
+    )$itemsPerFactor
+
     # take the model syntax from the currentModelObject
-    internalModelObject <- 
-      stringr::str_split(currentModelObject@model.syntax, 
+    internalModelObject <-
+      stringr::str_split(currentModelObject@model.syntax,
                          pattern = "\n",
                          simplify = T)
-    
+
     # extract the latent factor syntax
-    mapply(
-      assign,
-      c("factors", "currentItems"),
-      syntaxExtraction(initialModelSyntaxFile = internalModelObject, items = allItems),
-      MoreArgs = list(envir = environment())
+    extractedCurrent <- syntaxExtraction(
+      initialModelSyntaxFile = internalModelObject, items = allItems
     )
+    factors <- extractedCurrent$factors
+    currentItems <- extractedCurrent$itemsPerFactor
     
     # randomly select current items to replace
     
