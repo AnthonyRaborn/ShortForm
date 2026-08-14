@@ -80,20 +80,19 @@
 #'  that is retained after evaporation between steps of the algorithm. Default
 #'  value is 0.9, indicating 10% evaporation. Should be within the range of
 #'  (0,1), exclusive.
-#' @param antModel The lavaan formatted model. See \link[lavaan]{lavaan} for more
+#' @param initialModel The lavaan formatted model. See \link[lavaan]{lavaan} for more
 #'  details. Defaults to the default \link[lavaan]{lavaan} values. NOTE: Each factor
 #'  and/or regression needs to be specified on a single line. Newline breaks and
 #'  carriage returns WILL break the function.
-#' @param list.items A list containing one or more character vectors of item
-#'  names for each factor, where each factor is a separate element of the list.
-#'  The items should be input in the order in which the factors are input in
-#'  \code{i.per.f} and \code{factors}.
-#' @param full A numeric value indicating the total number of unique items in the
-#'  test or scale.
-#' @param i.per.f Vector with number of items per factor (e.g. target number), in
-#'  the same order of \code{list.items} and \code{factors}.
-#' @param factors Character vector with names of factors in the same order of
-#'  \code{list.items} and \code{i.per.f}.
+#' @param items A `character` vector of candidate item names. Defaults to
+#'  `NULL`, which uses all column names in `data` (required if `data` is
+#'  `NULL`, i.e. when using `sample.cov`/`sample.nobs` instead). Every
+#'  candidate item must appear on its factor's line in `initialModel`; an
+#'  item cross-loading on multiple factors should appear on each of those
+#'  factors' lines.
+#' @param itemsPerFactor Numeric vector with the target number of items to
+#'  retain per factor, in the same order the factors appear in
+#'  `initialModel`.
 #' @param bifactor Either the name of the factor that all of the chosen items
 #' will load on (as character), or `NULL` if the model is not a bifactor model.
 #' @param steps A numeric value that sets the stopping rule, which is the number
@@ -124,25 +123,15 @@
 #'  0.95)&(rmsea < 0.06)"}. The format for the logical test should match 1) the
 #'  names of the indices being used in \link[lavaan]{lavaan} and 2) the default
 #'  provided above. At least one fit index must be included.
-#' @param summaryfile The name of the summary file generated. A .txt file is
-#'  suggested. Default is "summary.txt" and writes into the current working
-#'  directory. This file writes a line for each ant within each step and
-#'  includes (a) a vector of a 0/1 value for each item indicating whether the
-#'  item was selected by that ant, (b) the run number, (c) the count number, (d)
-#'  the ant number, and (e) the current pheromone level.
-#' @param feedbackfile The name of the feedback file generated. An .html file is
-#'  suggested. Default is "iteration.html" and writes into the current working
-#'  directory. This file saves the result of each run, which includes (a) the
-#'  run number, (b) the count number, (c) the ant number, (d) the step number
-#'  (if the current run is successful) or "Failure" (if the current run is
-#'  unsuccessful), and for successful runs (f) the chosen fit statistics (from
-#'  \code{fit.indices}), the average of the gammas and betas (standardized regression
-#'  coefficients), and the overall variance explained of the current run.
-#' @param max.run The maximum number of ants to run before the algorithm stops.
+#' @param maxIterations The maximum number of ants to run before the algorithm stops.
 #'  This includes failed iterations as well. Default is 1000.
 #' @param parallel An option for using parallel processing. If \code{TRUE}, the
 #'  function will utilize all available cores (up to the number of ants). Default
 #'  is \code{TRUE}.
+#' @param verbose Logical. If `TRUE` (the default), prints per-ant progress to
+#'  the console. The full per-run history is always available afterward via
+#'  the returned object's `summary` and `final_solution` slots regardless of
+#'  this setting.
 #' @return An S4 object of class `ACO`, with (among other slots)
 #'  `final_solution` holding a named matrix with the final model's best fit
 #'  indices, the final pheromone level (either the mean of the standardized
@@ -162,87 +151,68 @@
 #'
 #' # some changes to the default values
 #' # notice that in this example we are recreating the original model
-#' abilityShortForm <- antcolony.lavaan(
+#' abilityShortForm <- antColony(
 #'   data = lavaan::HolzingerSwineford1939,
 #'   ants = 2, evaporation = 0.7,
-#'   antModel = " visual  =~ x1 + x2 + x3
+#'   initialModel = " visual  =~ x1 + x2 + x3
 #'              textual =~ x4 + x5 + x6
 #'              speed   =~ x7 + x8 + x9 ",
+#'   itemsPerFactor = c(3, 3, 3), steps = 2, fit.indices =
 #'     c("cfi"), fit.statistics.test = "(cfi > 0.6)",
+#'     maxIterations = 2, parallel = FALSE
 #' )
 #' \dontrun{
 #' # using simulated test data and the default values for lavaan.model.specs
 #' # first, read in the original or "full" model
 #' data(exampleAntModel) # a character vector for a lavaan model
 #'
-#' # then, create the list of the items by the factors
-#' # in this case, all items load onto the general 'Ability' factor
-#' list.items <- list(c(
-#'   "Item1", "Item2", "Item3", "Item4", "Item5",
-#'   "Item6", "Item7", "Item8", "Item9", "Item10",
-#'   "Item11", "Item12", "Item13", "Item14", "Item15",
-#'   "Item16", "Item17", "Item18", "Item19", "Item20",
-#'   "Item21", "Item22", "Item23", "Item24", "Item25",
-#'   "Item26", "Item27", "Item28", "Item29", "Item30",
-#'   "Item31", "Item32", "Item33", "Item34", "Item35",
-#'   "Item36", "Item37", "Item38", "Item39", "Item40",
-#'   "Item41", "Item42", "Item43", "Item44", "Item45",
-#'   "Item46", "Item47", "Item48", "Item49", "Item50",
-#'   "Item51", "Item52", "Item53", "Item54", "Item55", "Item56"
-#' ))
-#'
 #' # load the data
 #' data(simulated_test_data)
 #'
 #' # finally, call the function with some minor changes to the default values.
-#' abilityShortForm <- antcolony.lavaan(
+#' # every candidate item (all 56, in this case) must already appear on its
+#' # factor's line in exampleAntModel -- see ?exampleAntModel
+#' abilityShortForm <- antColony(
 #'   data = simulated_test_data,
-#'   ants = 5, evaporation = 0.7, antModel = exampleAntModel,
-#'   list.items = list.items, full = 56, i.per.f = 20,
-#'   factors = "Ability", steps = 3, fit.indices = c("cfi", "rmsea"),
+#'   ants = 5, evaporation = 0.7, initialModel = exampleAntModel,
+#'   itemsPerFactor = 20,
+#'   steps = 3, fit.indices = c("cfi", "rmsea"),
 #'   fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
-#'   summaryfile = "summary.txt",
-#'   feedbackfile = "iteration.html",
-#'   max.run = 500
+#'   maxIterations = 500
 #' )
 #'
 #' abilityShortForm # print the results of the final short form
-#' 
+#'
 #' # an example using binary (ordered) data
 #' # create the simulated full model and model data
 #' sim_model <- "
 #' f1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
 #' f2 =~ x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20
 #' f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30"
-#' 
+#'
 #' sim_data <-
 #'   cbind(
 #'     psych::sim.rasch(nvar = 10)$items,
 #'     psych::sim.rasch(nvar = 10)$items,
 #'     psych::sim.rasch(nvar = 10)$items
 #'   )
-#' 
+#'
 #' colnames(sim_data) = paste0("x", 1:30)
-#' # fit with antcolony.lavaan
+#' # fit with antColony
 #' # note that ONLY the estimator and ordered args
 #' # of lavaan.model.specs are changed. This retains
 #' # the default args, fitting a CFA but with ordered data.
 #' example <-
-#' antcolony.lavaan(
+#' antColony(
 #'   data = sim_data,
 #'   ants = 5, evaporation = 0.7,
-#'   antModel = sim_model,
-#'   lavaan.model.specs = 
+#'   initialModel = sim_model,
+#'   lavaan.model.specs =
 #'     list(estimator = "wlsmv", ordered = T),
-#'   list.items = list(paste0('x', 1:10),
-#'                     paste0('x', 11:20),
-#'                     paste0('x', 21:30)), 
-#'   full = 30, 
-#'   i.per.f = c(5, 5, 5), 
-#'   factors = c("f1", "f2", "f3"),
-#'   steps = 20, 
-#'   fit.indices = c("cfi.scaled"), 
-#'   fit.statistics.test = "(cfi.scaled > 0.90)", 
+#'   itemsPerFactor = c(5, 5, 5),
+#'   steps = 20,
+#'   fit.indices = c("cfi.scaled"),
+#'   fit.statistics.test = "(cfi.scaled > 0.90)",
 #'   maxIterations = 500,
 #'   parallel = T
 #' )
@@ -253,9 +223,9 @@
 #' @export
 #' @author Anthony W Raborn, \email{anthony.w.raborn@@gmail.com}
 
-antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
-                             ants = 20, evaporation = 0.9, antModel, list.items = NULL,
-                             full = NULL, i.per.f = NULL, factors = NULL, bifactor = NULL, steps = 50,
+antColony <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
+                             ants = 20, evaporation = 0.9, initialModel, items = NULL,
+                             itemsPerFactor = NULL, bifactor = NULL, steps = 50,
                              lavaan.model.specs = list(
                                model.type = "cfa", auto.var = T, estimator = "default",
                                ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE,
@@ -267,18 +237,31 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
                              ),
                              pheromone.calculation = "gamma", fit.indices = c("cfi", "tli", "rmsea"),
                              fit.statistics.test = "(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)",
-                             summaryfile = NULL,
-                             feedbackfile = NULL, max.run = 1000, parallel = T) {
+                             maxIterations = 1000, parallel = T, verbose = TRUE) {
   if (!requireNamespace("lavaan", quietly = TRUE)) {
     stop("The `lavaan` package is required to use this function. Please install `lavaan`, then try to use this function again.")
   }
   fitmeasuresCheck(fit.indices)
-  antcolony.lavaan.env <- new.env(parent = baseenv())
+  antColonyEnv <- new.env(parent = baseenv())
 
   if (pheromone.calculation %in% c("gamma", "beta", "regression", "variance") == FALSE) {
     stop("Pheromone calculation not recognized! Enter one of \'gamma\', \'beta\', \'regression\' or \'variance\'.")
   }
 
+  if (is.null(items)) {
+    if (is.null(data)) {
+      stop("`items` must be supplied when using sample.cov/sample.nobs instead of data.")
+    }
+    items <- colnames(data)
+  }
+  # derives factors and each factor's candidate item pool from initialModel's
+  # syntax (every candidate item must appear on its factor's line -- a
+  # cross-loaded item should appear on each of those factors' lines)
+  extracted <- syntaxExtraction(initialModelSyntaxFile = initialModel, items = items)
+  factors <- extracted$factors
+  list.items <- extracted$itemsPerFactor
+  full <- length(unique(unlist(list.items, use.names = FALSE)))
+  i.per.f <- itemsPerFactor
 
   summaryObject <- matrix(
     nrow = 1,
@@ -297,7 +280,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   }
 
   # reads the Lavaan model syntax input into the function
-  input <- unlist(strsplit(antModel, "\n"))
+  input <- unlist(strsplit(initialModel, "\n"))
 
   # creates a list to store factors.
   selected.items <- list.items
@@ -353,7 +336,9 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
   ant = 0L
   progress <- function(n) {
-    cat(paste("\r Run number ", run, " and ant number ", n, ".           ", sep = ""))
+    if (verbose) {
+      cat(paste("\r Run number ", run, " and ant number ", n, ".           ", sep = ""))
+    }
   }
   opts <- list(progress = progress)
 
@@ -361,7 +346,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
 
 
   # starts loop through iterations.
-    while (run <= max.run) {
+    while (run <= maxIterations) {
       antResults <-
         foreach::foreach(ant = 1:ants, .inorder = F, .combine = rbind, .options.snow = opts, .errorhandling = 'remove') %dopar% {
 
@@ -432,27 +417,28 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
             fitIndices = fit.indices
           )
 
+          mapply(assign, names(modelInfo), modelInfo, MoreArgs = list(envir = antColonyEnv))
           mapply(assign, names(antColonyEnv$model.fit), antColonyEnv$model.fit, MoreArgs = list(envir = antColonyEnv))
 
           # implements fit requirement.
           if (eval(parse(text = fit.statistics.test),
-                   envir = antcolony.lavaan.env
+                   envir = antColonyEnv
           ) == FALSE) {
             # Model didn't fit well enough, so set pheromone to 0.
             pheromone <- 0
           } else {
             # Model fit well enough, so calculate pheromone by either gamma or variance.
             if (pheromone.calculation == "gamma") { # mean of standardized gammas
-              pheromone <- round(mean(antcolony.lavaan.env$std.gammas, na.rm = T), 3)
+              pheromone <- round(mean(antColonyEnv$std.gammas, na.rm = T), 3)
             } else {
               if (pheromone.calculation == "beta") { # mean of standardized betas
-                pheromone <- round(mean(antcolony.lavaan.env$std.betas, na.rm = T), 3)
+                pheromone <- round(mean(antColonyEnv$std.betas, na.rm = T), 3)
               } else {
                 if (pheromone.calculation == "regression") { # mean of all regression coefs
-                  pheromone <- round(mean(antcolony.lavaan.env$std.reg.coef, na.rm = T), 3)
+                  pheromone <- round(mean(antColonyEnv$std.reg.coef, na.rm = T), 3)
                 }
                 if (pheromone.calculation == "variance") { # mean of r^2 values
-                  pheromone <- round(mean(antcolony.lavaan.env$variance.explained, na.rm = T), 3)
+                  pheromone <- round(mean(antColonyEnv$variance.explained, na.rm = T), 3)
                 }
               }
             }
@@ -466,11 +452,11 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
           'run' = run,
           'count' = count,
           'ant' = ant,
-          'model.fit' = antcolony.lavaan.env$model.fit,
+          'model.fit' = antColonyEnv$model.fit,
           'pheromone' = pheromone,
-          'mean.std.gammas' = mean(antcolony.lavaan.env$std.gammas),
-          'mean.std.betas' = mean(antcolony.lavaan.env$std.betas),
-          'mean.var.exp' = mean(antcolony.lavaan.env$variance.explained),
+          'mean.std.gammas' = mean(antColonyEnv$std.gammas),
+          'mean.std.betas' = mean(antColonyEnv$std.betas),
+          'mean.var.exp' = mean(antColonyEnv$variance.explained),
           'model.output' = modelCheck@model.output,
           'model.syntax' = new_ant_model
         )
@@ -550,7 +536,7 @@ antcolony.lavaan <- function(data = NULL, sample.cov = NULL, sample.nobs = NULL,
   teardownParallelCluster(cl)
 
   if (verbose) {
-  print("Compiling results.")
+    print("Compiling results.")
   }
 
   summaryObject <- data.frame(summaryObject)[-1, ]
