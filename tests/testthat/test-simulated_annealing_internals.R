@@ -150,6 +150,55 @@ test_that(
   }
 )
 
+# randomNeighborShort -- numChanges exceeding available capacity ####
+# FIXED: previously, the item- and replacement-selection logic sampled and
+# then retried in a `while (x %in% alreadyUsed) resample` loop. If a
+# randomly-chosen factor's pool of items (or replacements) was exhausted by
+# earlier iterations of the same call -- easy to hit when numChanges is
+# larger than a factor actually has room for -- that retry loop could never
+# find an unused candidate and spun forever. It's now structurally
+# impossible to hang: only factors with remaining capacity are considered,
+# and candidates are sampled directly from what's left rather than by
+# retrying until unique.
+test_that(
+  "randomNeighborShort terminates and degrades gracefully when numChanges exceeds available capacity", {
+    # a single factor with only 2 items, drawn from a 4-item pool: after one
+    # change, both the item-to-change pool and the replacement pool for this
+    # factor are exhausted, yet numChanges = 5 asks for far more changes
+    # than that capacity allows
+    tinyData <- as.data.frame(matrix(rnorm(4 * 100), ncol = 4))
+    names(tinyData) <- c("Item1", "Item2", "Item3", "Item4")
+    tinyModel <- "f =~ Item1 + Item2"
+    currentModel <-
+      modelWarningCheck(
+        lavaan::cfa(model = tinyModel, data = tinyData, std.lv = TRUE),
+        modelSyntax = tinyModel
+      )
+    lavaanSpecs <-
+      list(model.type = "cfa", estimator = "default", ordered = NULL,
+           int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = FALSE,
+           std.lv = TRUE, auto.fix.single = TRUE, auto.var = TRUE,
+           auto.cov.lv.x = TRUE, auto.th = TRUE, auto.delta = TRUE,
+           auto.cov.y = TRUE)
+
+    set.seed(1)
+    result <- randomNeighborShort(
+      currentModelObject = currentModel,
+      numChanges = 5,
+      allItems = c("Item1", "Item2", "Item3", "Item4"),
+      data = tinyData,
+      bifactor = FALSE,
+      init.model = tinyModel,
+      lavaan.model.specs = lavaanSpecs
+    )
+
+    expect_s4_class(result, "modelCheck")
+    # only 2 items exist for this factor, so at most 1 item can ever be
+    # swapped out (the other must remain, or there'd be nothing left)
+    expect_match(result@model.syntax, "^f =~ .+ \\+ .+$")
+  }
+)
+
 # # randomNeighborFull ####
 # test_that(
 #   "randomNeighborFull produces a list of appropriate length and with appropriate names", {
@@ -800,6 +849,61 @@ test_that(
   }
 )
 
+# mergeModelSpecs ####
+test_that(
+  "mergeModelSpecs fills in omitted elements from defaultSpecs and preserves NULL values", {
+    defaultSpecs <-
+      list(model.type = "cfa",
+           auto.var = TRUE,
+           estimator = "default",
+           ordered = NULL,
+           int.ov.free = TRUE,
+           int.lv.free = FALSE,
+           auto.fix.first = FALSE,
+           std.lv = TRUE,
+           auto.fix.single = TRUE,
+           auto.cov.lv.x = TRUE,
+           auto.th = TRUE,
+           auto.delta = TRUE,
+           auto.cov.y = TRUE)
+
+    merged <- mergeModelSpecs(list(estimator = "ML"), defaultSpecs)
+
+    # the overridden element is respected...
+    expect_equal(merged$estimator, "ML")
+    # ...and every omitted element falls back to defaultSpecs, including an
+    # explicit NULL (a naive modifyList() call would drop this key entirely)
+    expect_true("ordered" %in% names(merged))
+    expect_null(merged$ordered)
+    expect_equal(merged$model.type, "cfa")
+    expect_equal(merged$auto.var, TRUE)
+  }
+)
+
+test_that(
+  "mergeModelSpecs errors on an unrecognized (likely misspelled) element instead of silently ignoring it", {
+    defaultSpecs <-
+      list(model.type = "cfa",
+           auto.var = TRUE,
+           estimator = "default",
+           ordered = NULL,
+           int.ov.free = TRUE,
+           int.lv.free = FALSE,
+           auto.fix.first = FALSE,
+           std.lv = TRUE,
+           auto.fix.single = TRUE,
+           auto.cov.lv.x = TRUE,
+           auto.th = TRUE,
+           auto.delta = TRUE,
+           auto.cov.y = TRUE)
+
+    expect_error(
+      mergeModelSpecs(list(estmator = "ML"), defaultSpecs),
+      "not recognized"
+    )
+  }
+)
+
 # fitmeasuresCheck ####
 test_that(
   "fitmeasuresCheck returns silent when working, error when not", {
@@ -886,7 +990,12 @@ test_that(
            auto.delta = TRUE,
            auto.cov.y = TRUE)
 
-    set.seed(4)
+    # NOTE: this seed is tied to randomNeighborShort's current internal RNG
+    # call sequence purely to deterministically land on "Item1" being
+    # selected for replacement; if that sequence changes (e.g. a future
+    # refactor of the sampling logic), find a new seed that reproduces the
+    # same selection rather than assuming this one still does.
+    set.seed(1)
     corrupted <- randomNeighborShort(
       currentModelObject = currentModel,
       numChanges = 1,

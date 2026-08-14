@@ -28,6 +28,58 @@ test_that(
   }
 )
 
+# simulatedAnnealing() -- mergeModelSpecs (partial override + typo detection) ####
+test_that(
+  "simulatedAnnealing accepts a partial lavaan.model.specs, filling the rest from its defaults", {
+    set.seed(1)
+    defaultModel <-
+      ' visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6
+        speed   =~ x7 + x8 + x9'
+
+    result <- suppressWarnings(
+      simulatedAnnealing(
+        initialModel = defaultModel,
+        originalData = lavaan::HolzingerSwineford1939,
+        maxSteps = 3,
+        fitStatistic = "cfi",
+        maximize = TRUE,
+        maxItems = c(2, 2, 2),
+        items = paste0("x", 1:9),
+        maxChanges = 1,
+        lavaan.model.specs = list(estimator = "ML")
+      )
+    )
+
+    expect_s4_class(result, "SA")
+  }
+)
+
+test_that(
+  "simulatedAnnealing errors clearly when lavaan.model.specs has an unrecognized (likely misspelled) name", {
+    set.seed(1)
+    defaultModel <-
+      ' visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6
+        speed   =~ x7 + x8 + x9'
+
+    expect_error(
+      simulatedAnnealing(
+        initialModel = defaultModel,
+        originalData = lavaan::HolzingerSwineford1939,
+        maxSteps = 3,
+        fitStatistic = "cfi",
+        maximize = TRUE,
+        maxItems = c(2, 2, 2),
+        items = paste0("x", 1:9),
+        maxChanges = 1,
+        lavaan.model.specs = list(estmator = "ML")
+      ),
+      "not recognized"
+    )
+  }
+)
+
 # simulatedAnnealing() -- full model (non-short-form) mode ####
 # FIXED (see code review): when maxItems was NULL, simulatedAnnealing() never
 # initialized bestModel/currentModel before using them, so the "full model"
@@ -104,7 +156,7 @@ test_that(
     ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 
     result <- suppressWarnings(
-      tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
+      tabu.sem(init.model = init.model, ptab = ptab, criterion = AIC, niter = 2, tabu.size = 5)
     )
 
     expect_s4_class(result, "TS")
@@ -136,7 +188,7 @@ test_that(
     ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 
     result <- suppressWarnings(
-      tabu.sem(init.model = init.model, ptab = ptab, obj = function(x) Inf, niter = 1, tabu.size = 5)
+      tabu.sem(init.model = init.model, ptab = ptab, criterion = function(x) Inf, niter = 1, tabu.size = 5)
     )
 
     expect_s4_class(result, "TS")
@@ -171,7 +223,7 @@ test_that(
     ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 
     result <- suppressWarnings(
-      tabu.sem(init.model = init.model, ptab = ptab, obj = AIC, niter = 2, tabu.size = 5)
+      tabu.sem(init.model = init.model, ptab = ptab, criterion = AIC, niter = 2, tabu.size = 5)
     )
 
     expect_s4_class(result, "TS")
@@ -201,7 +253,7 @@ test_that(
     ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
 
     result <- suppressWarnings(
-      tabu.sem(init.model = init.model, ptab = ptab, obj = function(x) Inf, niter = 2, tabu.size = 5)
+      tabu.sem(init.model = init.model, ptab = ptab, criterion = function(x) Inf, niter = 2, tabu.size = 5)
     )
 
     expect_s4_class(result, "TS")
@@ -250,9 +302,32 @@ test_that(
   }
 )
 
-# tabuShortForm() -- checkModelSpecs ####
+# tabuShortForm() -- mergeModelSpecs (partial override + typo detection) ####
 test_that(
-  "tabuShortForm errors clearly when lavaan.model.specs is incomplete", {
+  "tabuShortForm accepts a partial lavaan.model.specs, filling the rest from its defaults", {
+    set.seed(1)
+    data(simulated_test_data)
+    shortAntModel <- "
+    Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+    Ability ~ Outcome
+    "
+
+    result <- tabuShortForm(
+      initialModel = shortAntModel,
+      originalData = simulated_test_data,
+      numItems = 7,
+      niter = 1,
+      tabu.size = 3,
+      parallel = FALSE,
+      lavaan.model.specs = list(estimator = "ML")
+    )
+
+    expect_s4_class(result, "TS")
+  }
+)
+
+test_that(
+  "tabuShortForm errors clearly when lavaan.model.specs has an unrecognized (likely misspelled) name", {
     set.seed(1)
     data(simulated_test_data)
     shortAntModel <- "
@@ -268,9 +343,48 @@ test_that(
         niter = 1,
         tabu.size = 3,
         parallel = FALSE,
-        lavaan.model.specs = list(estimator = "ML")
+        lavaan.model.specs = list(estmator = "ML")
       ),
-      "have not been specified"
+      "not recognized"
     )
+  }
+)
+
+# tabuShortForm() -- parallel cluster setup under CRAN-check core limits ####
+# FIXED (see comparison against the abandoned refactorSA/refactorTS branches):
+# when parallel = TRUE and _R_CHECK_LIMIT_CORES_ is set (as it is on CRAN's
+# check machines), the cluster (`cl`) and `%dopar%` were only ever created in
+# the *other* branch of the nested core-count check, so `%dopar%` was left
+# unbound -- "could not find function '%dopar%'" -- the moment this ran under
+# CRAN-like conditions, even though it worked fine locally. ACO and SA do not
+# have this bug (their cluster setup is unconditional within the `parallel`
+# branch); Tabu's has been aligned to match.
+test_that(
+  "tabuShortForm runs under simulated CRAN core-limit conditions", {
+    previousLimitCores <- Sys.getenv("_R_CHECK_LIMIT_CORES_", unset = NA)
+    Sys.setenv("_R_CHECK_LIMIT_CORES_" = "TRUE")
+    on.exit(
+      if (is.na(previousLimitCores)) {
+        Sys.unsetenv("_R_CHECK_LIMIT_CORES_")
+      } else {
+        Sys.setenv("_R_CHECK_LIMIT_CORES_" = previousLimitCores)
+      }
+    )
+    set.seed(1)
+    data(simulated_test_data)
+    shortAntModel <- "
+    Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+    Ability ~ Outcome
+    "
+
+    result <- tabuShortForm(
+      initialModel = shortAntModel,
+      originalData = simulated_test_data,
+      numItems = 7,
+      niter = 1,
+      tabu.size = 3
+    )
+
+    expect_s4_class(result, "TS")
   }
 )
