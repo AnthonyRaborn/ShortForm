@@ -130,31 +130,47 @@ randomNeighborShort <-
     }
     changingItems <- c()
     replacementItem <- c()
+    availableFactors <- if (bifactor) {
+      seq_len(length(factors) - 1)
+    } else {
+      seq_len(length(factors))
+    }
     for (i in 1:numChanges) {
-      # randomly select factor to have an item changed
-      if (bifactor) {
-        currentFactor <- sample(1:(length(factors) - 1), 1)
+      # only consider factors that still have both an item left to change
+      # and an unused replacement available -- sampling directly from what's
+      # left (instead of sample-then-retry-until-unique) makes it impossible
+      # to loop forever when a factor's pool has been exhausted
+      feasibleFactors <- Filter(
+        function(f) {
+          length(setdiff(currentItems[[f]], changingItems)) > 0 &&
+            length(setdiff(replacementItemPool[[f]], replacementItem)) > 0
+        },
+        availableFactors
+      )
+      if (length(feasibleFactors) == 0) {
+        # no factor has any remaining capacity for another change; make
+        # fewer changes than requested rather than hanging or erroring
+        break
+      }
+      currentFactor <- if (length(feasibleFactors) == 1) {
+        feasibleFactors
       } else {
-        currentFactor <- sample(1:length(factors), 1)
+        sample(feasibleFactors, 1)
       }
-      # randomly select the item to be changed
-      changingItemTemp <- c()
-      changingItemTemp <- sample(currentItems[[currentFactor]], 1)
-      while (changingItemTemp %in% changingItems ||
-             length(changingItemTemp %in% changingItems) == 0) {
-        changingItemTemp <- sample(currentItems[[currentFactor]], 1)
-      }
+
+      # randomly select the item to be changed, from only the items not
+      # already selected for this factor
+      changingItemTemp <- sample(setdiff(currentItems[[currentFactor]], changingItems), 1)
       changingItems <- c(changingItems, changingItemTemp)
-      # Sample an item from the items in the item pool
-      tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
-      while (tempReplacementItems %in% replacementItem) {
-        tempReplacementItems <- sample(replacementItemPool[[currentFactor]], 1)
-      }
+
+      # Sample a replacement item, from only the items not already used
+      tempReplacementItems <- sample(setdiff(replacementItemPool[[currentFactor]], replacementItem), 1)
       replacementItem <- c(replacementItem, tempReplacementItems)
     }
-    
+    numChanges <- length(changingItems)
+
     for (i in 1:length(factors)) {
-      for (j in 1:numChanges) {
+      for (j in seq_len(numChanges)) {
         currentItems[[i]] <-
           replaceItem(
             items = currentItems[[i]],
@@ -561,7 +577,7 @@ mergeModelSpecs <- function(userSpecs, defaultSpecs) {
   merged <- utils::modifyList(defaultSpecs, userSpecs, keep.null = TRUE)
   checkModelSpecs(merged)
   merged
-  }
+}
 
 fitmeasuresCheck <-
   function(

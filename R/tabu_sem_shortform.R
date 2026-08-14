@@ -138,7 +138,13 @@ tabuShortForm <- function(originalData,
                            verbose = FALSE,
                            parallel = T) {
   start.time = Sys.time()
-  checkModelSpecs(lavaan.model.specs)
+  # fill in any lavaan.model.specs the user omitted with this function's own
+  # defaults, so a partial override is respected without requiring the full
+  # list; errors on any unrecognized (likely misspelled) name
+  lavaan.model.specs <- mergeModelSpecs(
+    lavaan.model.specs,
+    eval(formals(sys.function())$lavaan.model.specs)
+  )
   mapply(
     assign,
     names(lavaan.model.specs),
