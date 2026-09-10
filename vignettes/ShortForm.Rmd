@@ -1,0 +1,155 @@
+---
+title: "Getting Started with ShortForm"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with ShortForm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+**ShortForm** is an R package for constructing short-form assessments
+from larger item banks using reproducible, optimization-based
+workflows.
+
+It provides implementations of three metaheuristic search algorithms
+to automate item selection while preserving prespecified psychometric
+properties (such as model fit):
+
+- **Ant Colony Optimization** (`antColony()`) -- adapted from
+  [Leite, Huang, & Marcoulides (2008)](https://doi.org/10.1080/00273170802285743)
+- **Simulated Annealing** (`simulatedAnnealing()`) -- following
+  [Kirkpatrick et al. (1983)](https://doi.org/10.1126/science.220.4598.671)
+- **Tabu Search** (`tabuSearch()`, and the lower-level `tabu.sem()`) --
+  based on [Marcoulides & Falk (2018)](https://doi.org/10.1080/10705511.2017.1409074)
+
+All three search over candidate short forms of a `lavaan` model,
+evaluating each candidate's fit and keeping the best one found. This
+vignette gives a quick tour of all three; see the dedicated vignettes
+(`vignette("antColony")`, `vignette("simulatedAnnealing")`,
+`vignette("tabuSearch")`) for a deeper look at each one.
+
+## When to use ShortForm
+
+- Reducing assessment length while maintaining measurement validity
+- Automating item selection for large-scale assessments
+- Building reproducible pipelines for psychometric modeling and evaluation
+
+## A shared workflow
+
+All three algorithms follow the same general shape:
+
+1. **Specify the full model** -- lavaan syntax for the item bank you're
+   reducing, with every candidate item already listed under its factor.
+2. **Choose how many items to keep per factor**, and (for
+   `simulatedAnnealing()`/`tabuSearch()`) which fit measure or custom
+   function to optimize.
+3. **Run the algorithm** -- it searches candidate short forms and keeps
+   track of the best one found.
+4. **Inspect the result** -- every algorithm returns an S4 object with
+   `show()`/`summary()`/`plot()` methods.
+
+```{r setup}
+library(ShortForm)
+```
+
+## Quick example: Ant Colony Optimization
+
+```{r quick-example-ACO}
+set.seed(58310)
+
+result_ACO <- antColony(
+  data = lavaan::HolzingerSwineford1939,
+  ants = 2, evaporation = 0.7,
+  initialModel = " visual  =~ x1 + x2 + x3
+                   textual =~ x4 + x5 + x6
+                   speed   =~ x7 + x8 + x9 ",
+  itemsPerFactor = c(3, 3, 3),
+  steps = 2, fit.indices = c("cfi"), fit.statistics.test = "(cfi > 0.6)",
+  maxIterations = 2, parallel = FALSE, verbose = FALSE
+)
+
+result_ACO
+```
+
+## Quick example: Simulated Annealing
+
+```{r quick-example-SA}
+set.seed(58310)
+
+result_SA <- suppressWarnings(simulatedAnnealing(
+  initialModel = " visual  =~ x1 + x2 + x3
+                   textual =~ x4 + x5 + x6
+                   speed   =~ x7 + x8 + x9 ",
+  originalData = lavaan::HolzingerSwineford1939,
+  maxIterations = 3,
+  criterion = "cfi", negateCriterion = TRUE,
+  itemsPerFactor = c(2, 2, 2),
+  items = paste0("x", 1:9)
+))
+
+result_SA
+```
+
+## Quick example: Tabu Search
+
+```{r quick-example-TS}
+set.seed(58310)
+
+shortAntModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+Ability ~ Outcome
+"
+
+result_TS <- tabuSearch(
+  initialModel = shortAntModel,
+  originalData = simulated_test_data, itemsPerFactor = 7,
+  maxIterations = 3, tabu.size = 3, parallel = FALSE
+)
+
+result_TS
+```
+
+## Which algorithm should I use?
+
+There's no universally "best" choice -- all three are heuristic
+searches, so it's reasonable to try more than one and compare results.
+A few practical differences:
+
+- **Ant Colony Optimization** evaluates many candidate short forms
+  ("ants") per iteration and is naturally parallel-friendly; it's a
+  good default when you can afford to evaluate a lot of candidate
+  models and want a threshold-based fit criterion (e.g. "CFI > 0.95
+  AND RMSEA < 0.06") rather than a single scalar to optimize.
+- **Simulated Annealing** explores one candidate at a time per chain
+  but can accept a worse candidate with some probability (shrinking
+  over time), which helps it escape local optima; running multiple
+  parallel chains (`setChains`) gives several independent searches to
+  compare.
+- **Tabu Search** also explores one candidate at a time, but instead
+  of accepting worse candidates, it forbids revisiting recently-tried
+  changes (the "tabu" list) to avoid cycling back to the same local
+  optimum.
+
+## Outputs
+
+Every algorithm returns an S4 object with:
+
+- `show()`/`print()` -- a compact summary: run time, the selected
+  criterion and its final-model value, the function call, and the
+  final model syntax
+- `summary()` -- the above plus the full `lavaan` fit output
+- `plot()` -- a visualization of how the search progressed (fit over
+  iterations/steps, or ACO's pheromone/regression diagnostics)
+
+```{r outputs}
+plot(result_TS)
+```

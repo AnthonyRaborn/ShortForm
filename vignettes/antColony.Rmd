@@ -1,0 +1,213 @@
+---
+title: "Ant Colony Optimization with antColony()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ant Colony Optimization with antColony()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ShortForm)
+```
+
+## How it works
+
+The Ant Colony Optimization (ACO) algorithm (Dorigo & Stutzle, 2004;
+adapted for short-form construction by
+[Leite, Huang, & Marcoulides, 2008](https://doi.org/10.1080/00273170802285743))
+is based on the foraging behavior of ants: they search for food in a
+variety of directions, and the shortest paths accumulate the strongest
+pheromone trails, which then attract more ants.
+
+Applied to short-form construction:
+
+1. A number of "ants" (candidate short forms) are sampled per
+   iteration, with items selected with probability proportional to
+   their current "pheromone" weight.
+2. Each candidate model is fit, and checked against a fit-based
+   threshold test (`fit.statistics.test`).
+3. Candidates that pass the threshold have a "pheromone" strength
+   computed from their fit (`pheromone.calculation`); the best
+   candidate's items have pheromone added to their weight, making them
+   more likely to be sampled again.
+4. This repeats until the same solution is chosen for a set number of
+   ants in a row (`steps`), or `maxIterations` ants have been tried in
+   total.
+
+## A basic example
+
+Every candidate item must already appear on its factor's line in
+`initialModel` -- `antColony()` derives the factor names and each
+factor's candidate item pool directly from that syntax, the same way
+`simulatedAnnealing()` and `tabuSearch()` do.
+
+```{r basic-example}
+set.seed(58310)
+
+result <- antColony(
+  data = lavaan::HolzingerSwineford1939,
+  ants = 2, evaporation = 0.7,
+  initialModel = " visual  =~ x1 + x2 + x3
+                   textual =~ x4 + x5 + x6
+                   speed   =~ x7 + x8 + x9 ",
+  itemsPerFactor = c(3, 3, 3),
+  steps = 2,
+  fit.indices = c("cfi"),
+  fit.statistics.test = "(cfi > 0.6)",
+  maxIterations = 2,
+  parallel = FALSE,
+  verbose = FALSE
+)
+
+result
+```
+
+`itemsPerFactor` sets the target number of items to keep for each
+factor, in the order the factors appear in `initialModel`. Since this
+toy example already asks to keep all 3 items per factor, the "search"
+has only one candidate to find.
+
+## Inspecting the result
+
+```{r summary}
+summary(result)
+```
+
+`plot()` shows several diagnostics: how the pheromone accumulates
+across runs, and how the mean standardized loadings/variance explained
+change.
+
+```{r plot, fig.width=7, fig.height=6}
+plot(result)
+```
+
+You can also request a single panel:
+
+```{r plot-single, fig.width=6, fig.height=4}
+plot(result, type = "pheromone")
+```
+
+## A more realistic example
+
+The toy example above doesn't actually reduce the item bank. A more
+typical use case starts from a much larger item pool -- here, the
+bundled `exampleAntModel` (56 items on a single `Ability` factor) and
+`simulated_test_data`:
+
+```{r realistic-example, eval=FALSE}
+data(exampleAntModel) # a character vector for a lavaan model
+data(simulated_test_data)
+
+abilityShortForm <- antColony(
+  data = simulated_test_data,
+  ants = 5, evaporation = 0.7,
+  initialModel = exampleAntModel,
+  itemsPerFactor = 20,
+  steps = 3,
+  fit.indices = c("cfi", "rmsea"),
+  fit.statistics.test = "(cfi > 0.95)&(rmsea < 0.05)",
+  maxIterations = 500
+)
+
+abilityShortForm
+```
+
+## Fit indices, thresholds, and pheromone
+
+Unlike `simulatedAnnealing()`/`tabuSearch()`, which optimize a single
+scalar `criterion`, `antColony()` uses two related but distinct
+arguments:
+
+- `fit.indices` -- which `lavaan::fitmeasures()` values to compute for
+  each candidate (e.g. `c("cfi", "tli", "rmsea")`)
+- `fit.statistics.test` -- a logical expression over those fit indices
+  that a candidate must satisfy to be considered viable at all (e.g.
+  `"(cfi > 0.95)&(tli > 0.95)&(rmsea < 0.06)"`)
+- `pheromone.calculation` -- how the *strength* of a viable candidate's
+  pheromone deposit is computed: `"gamma"` (mean standardized latent
+  regression coefficients), `"beta"` (mean standardized observed
+  regression coefficients), `"regression"` (both), or `"variance"`
+  (mean variance explained)
+
+A candidate that fails `fit.statistics.test` contributes no pheromone
+at all, regardless of `pheromone.calculation`.
+
+## Ordered (categorical) data
+
+`antColony()` works with categorical/ordered indicators by passing the
+appropriate `lavaan.model.specs`:
+
+```{r ordered-example, eval=FALSE}
+sim_model <- "
+f1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+f2 =~ x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20
+f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30"
+
+sim_data <- cbind(
+  psych::sim.rasch(nvar = 10)$items,
+  psych::sim.rasch(nvar = 10)$items,
+  psych::sim.rasch(nvar = 10)$items
+)
+colnames(sim_data) <- paste0("x", 1:30)
+
+# only estimator and ordered are changed -- every other lavaan.model.specs
+# element falls back to antColony()'s own default
+example <- antColony(
+  data = sim_data,
+  ants = 5, evaporation = 0.7,
+  initialModel = sim_model,
+  lavaan.model.specs = list(estimator = "wlsmv", ordered = TRUE),
+  itemsPerFactor = c(5, 5, 5),
+  steps = 20,
+  fit.indices = c("cfi.scaled"),
+  fit.statistics.test = "(cfi.scaled > 0.90)",
+  maxIterations = 500,
+  parallel = TRUE
+)
+```
+
+`lavaan.model.specs` accepts a *partial* list -- any element you omit
+falls back to `antColony()`'s own default for that element, but every
+name you do supply must be a recognized `lavaan()` argument, or the
+call errors immediately (catching typos like `estmator` before a long
+run starts).
+
+## Bifactor models
+
+Pass the name of the general factor as `bifactor` to have all of the
+retained items across the other factors also load on it:
+
+```{r bifactor-example, eval=FALSE}
+bifactorModel <- "
+visual  =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
+textual =~ x4 + x5 + x6
+speed   =~ x7 + x8 + x9"
+
+antColony(
+  data = lavaan::HolzingerSwineford1939,
+  ants = 5, evaporation = 0.7,
+  initialModel = bifactorModel,
+  itemsPerFactor = c(6, 3, 3),
+  bifactor = "visual",
+  steps = 5, fit.indices = c("cfi"), fit.statistics.test = "(cfi > 0.9)",
+  maxIterations = 100
+)
+```
+
+## Parallelization and progress output
+
+`antColony()` evaluates the `ants` candidates within each iteration in
+parallel by default (`parallel = TRUE`); set `parallel = FALSE` for
+serial execution (as in the examples above, so output is
+deterministic). `verbose` controls whether per-ant progress is printed
+to the console -- the full per-run history is always available
+afterward from the returned object's `summary` and `final_solution`
+slots regardless of this setting.

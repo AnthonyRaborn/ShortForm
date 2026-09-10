@@ -1,0 +1,201 @@
+---
+title: "Tabu Search with tabuSearch()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tabu Search with tabuSearch()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ShortForm)
+```
+
+## How it works
+
+Tabu search is based on
+[Marcoulides & Falk (2018)](https://doi.org/10.1080/10705511.2017.1409074),
+extended here for short-form construction. At each iteration:
+
+1. Every "neighbor" reachable by a single one-item swap (one item
+   currently on a factor for one item not currently on it) is
+   generated and fit.
+2. Among the neighbors that both converged and aren't on the recent
+   "tabu" list (a short memory of recently-visited changes, sized by
+   `tabu.size`), the best one becomes the new current model.
+3. If that model is also better than the best one found so far, it
+   becomes the new best, and the tabu list is cleared.
+
+Forbidding recently-tried changes (rather than accepting worse moves
+with some probability, as `simulatedAnnealing()` does) is what keeps
+Tabu search from immediately cycling back to a local optimum it just
+left.
+
+`tabuSearch()` is the short-form-oriented, higher-level function; the
+package also provides the lower-level `tabu.sem()` for searching over
+an arbitrary set of free/fixed parameter changes (given an already-fit
+model and a candidate parameter table from `search.prep()`), which
+`tabuSearch()` is itself built on top of internally.
+
+## A basic example
+
+As with `antColony()`/`simulatedAnnealing()`, every candidate item
+must already appear on its factor's line in `initialModel`.
+
+```{r basic-example}
+set.seed(58310)
+
+shortAntModel <- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+Ability ~ Outcome
+"
+
+result <- tabuSearch(
+  initialModel = shortAntModel,
+  originalData = simulated_test_data,
+  itemsPerFactor = 7,
+  maxIterations = 3,
+  tabu.size = 3,
+  parallel = FALSE
+)
+
+result
+```
+
+`itemsPerFactor` sets the target item count per factor; `items`
+(omitted here) is the flat candidate item pool, defaulting to all
+column names in `originalData`.
+
+## Inspecting the result
+
+```{r summary}
+summary(result)
+```
+
+`plot()` shows the criterion value across iterations, labeled to show
+whether it's being maximized or minimized:
+
+```{r plot, fig.width=6, fig.height=4}
+plot(result)
+```
+
+## The criterion
+
+`criterion` accepts either a `character` fit-measure name recognized
+by `lavaan::fitmeasures()` (the default is `"cfi"`, maximized), or an
+arbitrary function that takes a fitted `lavaan` object and returns a
+single numeric value -- useful for measures `lavaan::fitmeasures()`
+doesn't provide directly, like AIC, or for custom scoring:
+
+```{r criterion-function}
+set.seed(58310)
+
+tabuCriterion <- function(fit) {
+  tryCatch(lavaan::fitmeasures(fit, "chisq"), error = function(e) Inf)
+}
+
+result_chisq <- tabuSearch(
+  initialModel = shortAntModel,
+  originalData = simulated_test_data,
+  itemsPerFactor = 7,
+  criterion = tabuCriterion,
+  # smaller chisq is better, so this is minimized directly
+  # (unlike the default cfi criterion, which is maximized)
+  negateCriterion = FALSE,
+  maxIterations = 3, tabu.size = 3, parallel = FALSE
+)
+
+result_chisq
+```
+
+`negateCriterion` controls the search direction: `TRUE` (the default,
+matching the default `"cfi"` criterion) looks for the *largest* value
+of `criterion`; `FALSE` looks for the *smallest*. Set it to match
+whichever direction is "better" for your chosen criterion.
+
+## A larger example
+
+The examples above are deliberately small so they run quickly. A more
+realistic search, over a larger item bank with a custom criterion:
+
+```{r larger-example, eval=FALSE}
+# four correlated-ish factors, 12 candidate items each
+tabuModel <- "
+Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 +
+Item7 + Item8 + Item9 + Item10 + Item11 + Item12
+Trait2 =~ Item13 + Item14 + Item15 + Item16 + Item17 +
+Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24
+Trait3 =~ Item25 + Item26 + Item27 + Item28 + Item29 + Item30 +
+Item31 + Item32 + Item33 + Item34 + Item35 + Item36
+Trait4 =~ Item37 + Item38 + Item39 + Item40 + Item41 +
+Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48
+"
+# NOTE: each factor must be on a single line, or the algorithm
+# will not parse the model syntax correctly.
+
+tabuShort <- tabuSearch(
+  initialModel = tabuModel, originalData = tabuData, # your data here
+  itemsPerFactor = c(3, 3, 3, 3),
+  criterion = tabuCriterion,
+  negateCriterion = FALSE,
+  maxIterations = 20, tabu.size = 10
+)
+```
+
+## Bifactor models
+
+Pass the name of the general factor as `bifactor` to have all of the
+retained items across the other factors also load on it:
+
+```{r bifactor-example, eval=FALSE}
+bifactorModel <- "
+visual  =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
+textual =~ x4 + x5 + x6
+speed   =~ x7 + x8 + x9"
+
+tabuSearch(
+  initialModel = bifactorModel,
+  originalData = lavaan::HolzingerSwineford1939,
+  itemsPerFactor = c(6, 3, 3),
+  bifactor = "visual",
+  maxIterations = 20, tabu.size = 5
+)
+```
+
+## The lower-level tabu.sem()
+
+`tabu.sem()` searches directly over a candidate parameter table (from
+`search.prep()`) rather than item swaps -- useful when you want to
+search over an arbitrary set of free/fixed parameter changes rather
+than a short-form-specific item-swap search:
+
+```{r tabu-sem}
+holzingerModel <- " visual  =~ x1 + x2 + x3
+                     textual =~ x4 + x5 + x6
+                     speed   =~ x7 + x8 + x9"
+
+init.model <- lavaan::lavaan(
+  model = holzingerModel, data = lavaan::HolzingerSwineford1939,
+  auto.var = TRUE, auto.fix.first = TRUE, std.lv = FALSE, auto.cov.lv.x = TRUE
+)
+ptab <- search.prep(fitted.model = init.model, loadings = TRUE, fcov = TRUE, errors = FALSE)
+
+trial <- suppressWarnings(
+  tabu.sem(init.model = init.model, ptab = ptab, criterion = AIC, niter = 2, tabu.size = 5)
+)
+
+trial
+```
+
+Like `tabuSearch()`, `tabu.sem()`'s `criterion` accepts either a
+character fit-measure name or a function (here, base R's `AIC()`), and
+its `negateCriterion` defaults to `FALSE` (minimizing) rather than
+`tabuSearch()`'s `TRUE`, since a plain objective like AIC is typically
+minimized directly.

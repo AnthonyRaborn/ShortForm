@@ -1,0 +1,185 @@
+---
+title: "Simulated Annealing with simulatedAnnealing()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulated Annealing with simulatedAnnealing()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ShortForm)
+```
+
+## How it works
+
+Simulated annealing mimics the physical process of annealing metals.
+[Kirkpatrick et al. (1983)](https://doi.org/10.1126/science.220.4598.671)
+introduced the analogy; `simulatedAnnealing()` follows that
+demonstration closely, adapted for psychometric models.
+
+At each step:
+
+1. A "neighbor" candidate model is generated from the current model
+   (by default, swapping one or more items for a short form, or
+   freeing/fixing a parameter for a full-model search).
+2. The neighbor's `criterion` value is compared to the current model's.
+3. If the neighbor is better, it's accepted. If it's worse, it's
+   accepted anyway with some probability that depends on how much
+   worse it is and the current "temperature" -- which shrinks toward
+   zero as the search progresses, so the algorithm accepts worse moves
+   more readily early on (to escape local optima) and becomes greedier
+   as it converges.
+4. The best model found so far is tracked separately from the current
+   model, since the current model can still wander to worse solutions.
+
+## A basic example
+
+As with `antColony()`, every candidate item must already appear on its
+factor's line in `initialModel` -- factors and each factor's candidate
+item pool are derived directly from that syntax.
+
+```{r basic-example}
+set.seed(58310)
+
+result <- suppressWarnings(simulatedAnnealing(
+  initialModel = " visual  =~ x1 + x2 + x3
+                   textual =~ x4 + x5 + x6
+                   speed   =~ x7 + x8 + x9 ",
+  originalData = lavaan::HolzingerSwineford1939,
+  maxIterations = 3,
+  criterion = "cfi",
+  negateCriterion = TRUE,
+  itemsPerFactor = c(2, 2, 2),
+  items = paste0("x", 1:9)
+))
+
+result
+```
+
+`itemsPerFactor` sets the target number of items to keep per factor
+(in the order factors appear in `initialModel`); `items` is the flat
+pool of candidate item names to draw from (defaulting to all column
+names in `originalData` if omitted).
+
+## Inspecting the result
+
+```{r summary}
+summary(result)
+```
+
+`plot()` shows the criterion value across chain steps. Since the
+algorithm can wander to worse solutions before recovering, this trace
+is not necessarily monotonic -- the *best* model found is what's
+returned in `result@best_model`, not necessarily the last one visited.
+
+```{r plot, fig.width=6, fig.height=4}
+plot(result)
+```
+
+An early "burn-in" period (common practice for Monte Carlo-style
+methods) can be excluded from the plot:
+
+```{r plot-burnin, fig.width=6, fig.height=4}
+plot(result, burn_in = 1)
+```
+
+## The criterion
+
+`criterion` accepts either a `character` fit-measure name recognized
+by `lavaan::fitmeasures()` (as above), or an arbitrary function that
+takes a fitted `lavaan` object and returns a single numeric value:
+
+```{r criterion-function, eval=FALSE}
+simulatedAnnealing(
+  initialModel = "...",
+  originalData = myData,
+  maxIterations = 20,
+  criterion = function(fit) AIC(fit),
+  negateCriterion = FALSE, # smaller AIC is better
+  itemsPerFactor = c(6, 6, 6)
+)
+```
+
+`negateCriterion` controls the search direction: `TRUE` looks for the
+*largest* value of `criterion` (e.g. CFI, where larger is better),
+`FALSE` looks for the *smallest* (e.g. RMSEA or AIC, where smaller is
+better). `criterion`/`negateCriterion` is supplied on its natural
+scale either way -- you never need to pre-negate your own criterion
+function.
+
+## Full-model (non-short-form) searches
+
+Omitting `itemsPerFactor` switches from item-swap short-form search to
+a full-model search, where each step frees or fixes one parameter
+rather than swapping items:
+
+```{r full-model-example, eval=FALSE}
+fittedModel <- lavaan::cfa(
+  model = " visual  =~ x1 + x2 + x3
+            textual =~ x4 + x5 + x6
+            speed   =~ x7 + x8 + x9",
+  data = lavaan::HolzingerSwineford1939
+)
+
+simulatedAnnealing(
+  initialModel = fittedModel,
+  originalData = lavaan::HolzingerSwineford1939,
+  maxIterations = 20,
+  criterion = "cfi",
+  negateCriterion = TRUE
+)
+```
+
+## Bifactor models
+
+Pass the name of the general factor as `bifactor` to have all of the
+retained items across the other factors also load on it -- as with
+`antColony()`, this only applies when creating a short form
+(`itemsPerFactor` supplied):
+
+```{r bifactor-example, eval=FALSE}
+bifactorModel <- "
+visual  =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
+textual =~ x4 + x5 + x6
+speed   =~ x7 + x8 + x9"
+
+simulatedAnnealing(
+  initialModel = bifactorModel,
+  originalData = lavaan::HolzingerSwineford1939,
+  maxIterations = 20,
+  criterion = "cfi", negateCriterion = TRUE,
+  itemsPerFactor = c(6, 3, 3),
+  items = paste0("x", 1:9),
+  bifactor = "visual"
+)
+```
+
+## Parallel chains
+
+`setChains` runs multiple independent searches in parallel (each
+starting from the same `initialModel` but exploring different random
+neighbors), which is a useful check against any one chain getting
+stuck:
+
+```{r parallel-chains, eval=FALSE}
+simulatedAnnealing(
+  initialModel = "...",
+  originalData = myData,
+  maxIterations = 100,
+  criterion = "cfi", negateCriterion = TRUE,
+  itemsPerFactor = c(6, 6, 6),
+  setChains = 4
+)
+```
+
+With `setChains > 1`, `plot()` overlays each chain's trace (up to 8
+chains), and the best model/fit reported is the best across all
+chains.
