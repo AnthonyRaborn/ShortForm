@@ -116,6 +116,7 @@ expressed the same way regardless of which algorithm you’re calling.
   to the show/summary output for SA, TS, and ACO objects
 - Added a shared `resolveCriterion()` internal helper so `criterion` can
   be a character fit-measure name or a function everywhere it’s accepted
+- Added vignettes
 
 # ShortForm v0.5.9
 

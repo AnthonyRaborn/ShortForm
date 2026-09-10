@@ -81,6 +81,7 @@ expressed the same way regardless of which algorithm you're calling.
 - Replaced internal `mapply(assign, ...)` variable-splatting with `do.call()` (where the values were only ever fed into a single downstream `lavaan()` call) or plain named-list access (where a couple of values were unpacked for general use), removing several ad hoc internal environments in the process
 - Added the selected criterion/fit-statistic and its final-model value to the show/summary output for SA, TS, and ACO objects
 - Added a shared `resolveCriterion()` internal helper so `criterion` can be a character fit-measure name or a function everywhere it's accepted
+- Added vignettes
 
 # ShortForm v0.5.9
 

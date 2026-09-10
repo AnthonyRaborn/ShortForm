@@ -57,7 +57,7 @@ This package demonstrates:
 
 ------------------------------------------------------------------------
 
-This document was created on 2026-08-14.
+This document was created on 2026-09-09.
 
 ## Installation
 
@@ -221,7 +221,7 @@ plot(result_TS)
 
 ## Workflow
 
-``` mermaid
+```
 flowchart LR
     A@{ shape: lean-r, label: "Full Item Bank" } --> B[Specify Model]
     B --> C[Run Optimization Algorithm]
